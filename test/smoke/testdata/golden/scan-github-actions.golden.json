@@ -1,12 +1,15 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
   "manifests": [
     {
       "dependencies": [
         {
-          "depends_on": [],
           "id": "pkg:githubactions/.github%2Factions%2Fbomly@local",
-          "licenses": [],
           "name": ".github/actions/bomly",
           "package_ref": "pkg:githubactions/.github%2Factions%2Fbomly@local",
           "purl": "pkg:githubactions/.github%2Factions%2Fbomly@local",
@@ -26,9 +29,7 @@
     {
       "dependencies": [
         {
-          "depends_on": [],
           "id": "pkg:githubactions/.github%2Factions%2Fbomly@local",
-          "licenses": [],
           "name": ".github/actions/bomly",
           "package_ref": "pkg:githubactions/.github%2Factions%2Fbomly@local",
           "purl": "pkg:githubactions/.github%2Factions%2Fbomly@local",
@@ -43,7 +44,6 @@
             "pkg:githubactions/actions/checkout@v1"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
-          "licenses": [],
           "name": ".github/workflows/main.yml",
           "package_ref": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
@@ -53,9 +53,7 @@
           "version": "local"
         },
         {
-          "depends_on": [],
           "id": "pkg:githubactions/actions/checkout@v1",
-          "licenses": [],
           "locations": [
             {
               "access_path": ".github/workflows/main.yml",
@@ -85,9 +83,6 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "digests": [
@@ -97,11 +92,13 @@
         }
       ],
       "ecosystem": "github-actions",
-      "licenses": [],
+      "id": "pkg:githubactions/.github%2Factions%2Fbomly@local",
+      "language": "yaml",
       "name": ".github/actions/bomly",
+      "package_manager": "github-actions",
       "purl": "pkg:githubactions/.github%2Factions%2Fbomly@local",
-      "version": "local",
-      "vulnerabilities": []
+      "type": "action",
+      "version": "local"
     },
     {
       "digests": [
@@ -111,29 +108,40 @@
         }
       ],
       "ecosystem": "github-actions",
-      "licenses": [],
+      "id": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
+      "language": "yaml",
       "name": ".github/workflows/main.yml",
+      "package_manager": "github-actions",
       "purl": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
-      "version": "local",
-      "vulnerabilities": []
+      "type": "workflow",
+      "version": "local"
     },
     {
       "ecosystem": "github-actions",
-      "licenses": [],
-      "name": "actions:checkout",
+      "id": "pkg:githubactions/actions/checkout@v1",
+      "language": "yaml",
+      "name": "checkout",
       "org": "actions",
+      "package_manager": "github-actions",
       "purl": "pkg:githubactions/actions/checkout@v1",
-      "version": "v1",
-      "vulnerabilities": []
+      "type": "action",
+      "version": "v1"
     }
   ],
-  "project": {
-    "ecosystem": "github-actions",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "github-actions",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "f0a3d236727c15020a8767b3dba8818178adfc22",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-github-actions"
+  }
 }

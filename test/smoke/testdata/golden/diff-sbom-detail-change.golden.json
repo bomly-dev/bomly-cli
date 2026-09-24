@@ -4,36 +4,33 @@
     "base": "detail-change-base.spdx.json",
     "head": "detail-change-head.spdx.json"
   },
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "go",
-      "licenses": [],
-      "name": "example.com/app",
+      "id": "pkg:golang/example.com/app@1.0.0",
+      "name": "app",
       "org": "example.com",
+      "package_manager": "gomod",
       "purl": "pkg:golang/example.com/app@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
+      "version": "1.0.0"
     },
     {
       "ecosystem": "go",
-      "licenses": [],
-      "name": "example.com/parent",
+      "id": "pkg:golang/example.com/parent@1.0.0",
+      "name": "parent",
       "org": "example.com",
+      "package_manager": "gomod",
       "purl": "pkg:golang/example.com/parent@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
+      "version": "1.0.0"
     },
     {
       "ecosystem": "go",
-      "licenses": [],
-      "name": "example.com/shared",
+      "id": "pkg:golang/example.com/shared@1.0.0",
+      "name": "shared",
       "org": "example.com",
+      "package_manager": "gomod",
       "purl": "pkg:golang/example.com/shared@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
+      "version": "1.0.0"
     }
   ],
   "project": {

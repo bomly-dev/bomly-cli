@@ -72,13 +72,16 @@ The shape every Bomly subcommand emits. Each command has its own schema:
 | `bomly explain` | [explain.md](schemas/explain.md) |
 | `bomly diff` | [diff.md](schemas/diff.md) |
 
-`bomly scan` surfaces the three-collection model (see [Architecture → Domain model](ARCHITECTURE.md#domain-model)):
+`bomly scan` emits the scan record (schema `bomly.scan.v1`) and surfaces the
+three-collection model (see [Architecture → Domain model](ARCHITECTURE.md#domain-model)):
 `manifests[].dependencies` are lean detection-stage nodes (identity, `scopes`,
 `depends_on`, `package_ref`); `packages` is the deduplicated matching-stage
 registry (licenses, vulnerabilities, scorecard, EOL, CPEs, digests) keyed by
 PURL; and `findings` is the reference-style audit output. Resolve a finding or a
-dependency to its enrichment by matching `package_ref`/`package.purl` into
-`packages`.
+dependency to its enrichment by matching its `package_ref` into
+`packages[].purl`. Above the collections, `subject` says what was scanned
+(repository, ref, resolved commit), `run` says when and by which version, and
+`verdict` says what policy concluded.
 
 For remediation suggestions, `affected_dependency_refs` names occurrences of
 the vulnerable package. `suggested_action_dependency_ref` names the dependency or

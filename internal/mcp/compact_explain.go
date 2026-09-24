@@ -161,7 +161,7 @@ func manifestForPurl(manifests []output.ScanManifest, purl string) *output.ScanM
 	}
 	for idx := range manifests {
 		for _, dep := range manifests[idx].Dependencies {
-			if dep.Purl == purl {
+			if dep.PURL == purl {
 				return &manifests[idx]
 			}
 		}

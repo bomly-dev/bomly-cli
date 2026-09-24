@@ -1,5 +1,10 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
   "manifests": [
     {
       "dependencies": [
@@ -10,7 +15,6 @@
             "pkg:npm/minimist@1.2.5"
           ],
           "id": "module:apps/web/package.json#pkg:npm/web@1.0.0",
-          "licenses": [],
           "name": "web",
           "purl": "pkg:npm/web@1.0.0",
           "version": "1.0.0"
@@ -21,13 +25,11 @@
             "pkg:npm/minimist@1.2.5"
           ],
           "id": "module:packages/lib/package.json#pkg:npm/lib@1.0.0",
-          "licenses": [],
           "name": "lib",
           "purl": "pkg:npm/lib@1.0.0",
           "version": "1.0.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:npm/left-pad@1.3.0",
           "licenses": [
             {
@@ -59,7 +61,6 @@
           "version": "1.3.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:npm/lodash@4.17.20",
           "licenses": [
             {
@@ -101,7 +102,6 @@
           "version": "4.17.20"
         },
         {
-          "depends_on": [],
           "id": "pkg:npm/minimist@1.2.5",
           "licenses": [
             {
@@ -160,13 +160,11 @@
             "pkg:npm/ms@2.1.3"
           ],
           "id": "module:package.json#pkg:npm/example-javascript-npm-workspaces@1.0.0",
-          "licenses": [],
           "name": "example-javascript-npm-workspaces",
           "purl": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
           "version": "1.0.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:npm/ms@2.1.3",
           "licenses": [
             {
@@ -213,13 +211,11 @@
             "pkg:npm/minimist@1.2.5"
           ],
           "id": "module:packages/lib/package.json#pkg:npm/lib@1.0.0",
-          "licenses": [],
           "name": "lib",
           "purl": "pkg:npm/lib@1.0.0",
           "version": "1.0.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:npm/lodash@4.17.20",
           "licenses": [
             {
@@ -261,7 +257,6 @@
           "version": "4.17.20"
         },
         {
-          "depends_on": [],
           "id": "pkg:npm/minimist@1.2.5",
           "licenses": [
             {
@@ -314,11 +309,13 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -326,6 +323,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/left-pad@1.3.0",
       "licenses": [
         {
           "type": "declared",
@@ -334,10 +332,14 @@
       ],
       "name": "left-pad",
       "purl": "pkg:npm/left-pad@1.3.0",
-      "version": "1.3.0",
-      "vulnerabilities": []
+      "version": "1.3.0"
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/lodash/-/lodash-4.17.20.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -345,6 +347,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/lodash@4.17.20",
       "licenses": [
         {
           "type": "declared",
@@ -353,10 +356,14 @@
       ],
       "name": "lodash",
       "purl": "pkg:npm/lodash@4.17.20",
-      "version": "4.17.20",
-      "vulnerabilities": []
+      "version": "4.17.20"
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/minimist/-/minimist-1.2.5.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -364,6 +371,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/minimist@1.2.5",
       "licenses": [
         {
           "type": "declared",
@@ -372,10 +380,14 @@
       ],
       "name": "minimist",
       "purl": "pkg:npm/minimist@1.2.5",
-      "version": "1.2.5",
-      "vulnerabilities": []
+      "version": "1.2.5"
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -383,6 +395,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/ms@2.1.3",
       "licenses": [
         {
           "type": "declared",
@@ -391,17 +404,23 @@
       ],
       "name": "ms",
       "purl": "pkg:npm/ms@2.1.3",
-      "version": "2.1.3",
-      "vulnerabilities": []
+      "version": "2.1.3"
     }
   ],
-  "project": {
-    "ecosystem": "npm",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "npm",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "af7ad0d9a3aa4ab26cf92f2e7645d3f935e3b535",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-javascript-npm-workspaces"
+  }
 }

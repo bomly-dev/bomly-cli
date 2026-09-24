@@ -1,18 +1,10 @@
 {
-  "audit_summary": {
-    "critical": 0,
-    "high": 0,
-    "low": 0,
-    "medium": 0,
-    "total": 0,
-    "unknown": 0
-  },
   "command": "explain",
   "dependency": {
     "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
     "licenses": [
       {
-        "spdxExpression": "MIT",
+        "spdx_expression": "MIT",
         "type": "declared",
         "value": "MIT"
       }
@@ -27,9 +19,6 @@
     "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
     "version": "1.2.5-r3",
     "vulnerabilities": []
-  },
-  "metadata": {
-    "duration_ms": 0
   },
   "paths": [
     {
@@ -51,7 +40,7 @@
           "id": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -72,7 +61,7 @@
           "id": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -92,7 +81,7 @@
           "id": "pkg:apk/alpine/busybox@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -112,7 +101,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -150,7 +139,7 @@
           "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -171,7 +160,7 @@
           "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "licenses": [
             {
-              "spdxExpression": "Apache-2.0",
+              "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2.0"
             }
@@ -191,7 +180,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -229,7 +218,7 @@
           "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -250,7 +239,7 @@
           "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "licenses": [
             {
-              "spdxExpression": "Apache-2.0",
+              "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2.0"
             }
@@ -270,7 +259,7 @@
           "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "licenses": [
             {
-              "spdxExpression": "Apache-2.0",
+              "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2.0"
             }
@@ -290,7 +279,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -328,7 +317,7 @@
           "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -349,7 +338,7 @@
           "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "licenses": [
             {
-              "spdxExpression": "Apache-2.0",
+              "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2.0"
             }
@@ -369,7 +358,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -407,7 +396,7 @@
           "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -428,7 +417,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -466,7 +455,7 @@
           "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -487,7 +476,7 @@
           "id": "pkg:apk/alpine/zlib@1.3.2-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "Zlib",
+              "spdx_expression": "Zlib",
               "type": "declared",
               "value": "Zlib"
             }
@@ -507,7 +496,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -545,7 +534,7 @@
           "id": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=musl",
           "licenses": [
             {
-              "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
+              "spdx_expression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
               "type": "declared",
               "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
             }
@@ -566,7 +555,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -604,7 +593,7 @@
           "id": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=musl",
           "licenses": [
             {
-              "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
+              "spdx_expression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
               "type": "declared",
               "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
             }
@@ -625,7 +614,7 @@
           "id": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -645,7 +634,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -683,7 +672,7 @@
           "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -704,7 +693,7 @@
           "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "licenses": [
             {
-              "spdxExpression": "Apache-2.0",
+              "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2.0"
             }
@@ -724,7 +713,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -762,7 +751,7 @@
           "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -783,7 +772,7 @@
           "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "licenses": [
             {
-              "spdxExpression": "Apache-2.0",
+              "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2.0"
             }
@@ -803,7 +792,7 @@
           "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "licenses": [
             {
-              "spdxExpression": "Apache-2.0",
+              "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2.0"
             }
@@ -823,7 +812,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -861,7 +850,7 @@
           "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -882,7 +871,7 @@
           "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "licenses": [
             {
-              "spdxExpression": "Apache-2.0",
+              "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2.0"
             }
@@ -902,7 +891,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -940,7 +929,7 @@
           "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
           "licenses": [
             {
-              "spdxExpression": "GPL-2.0-only",
+              "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
             }
@@ -961,7 +950,7 @@
           "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "licenses": [
             {
-              "spdxExpression": "MIT",
+              "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
             }
@@ -993,19 +982,11 @@
   "schema_version": "1.0",
   "targets": [
     {
-      "audit_summary": {
-        "critical": 0,
-        "high": 0,
-        "low": 0,
-        "medium": 0,
-        "total": 0,
-        "unknown": 0
-      },
       "dependency": {
         "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
         "licenses": [
           {
-            "spdxExpression": "MIT",
+            "spdx_expression": "MIT",
             "type": "declared",
             "value": "MIT"
           }
@@ -1042,7 +1023,7 @@
               "id": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1063,7 +1044,7 @@
               "id": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1083,7 +1064,7 @@
               "id": "pkg:apk/alpine/busybox@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1103,7 +1084,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }
@@ -1141,7 +1122,7 @@
               "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1162,7 +1143,7 @@
               "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "licenses": [
                 {
-                  "spdxExpression": "Apache-2.0",
+                  "spdx_expression": "Apache-2.0",
                   "type": "declared",
                   "value": "Apache-2.0"
                 }
@@ -1182,7 +1163,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }
@@ -1220,7 +1201,7 @@
               "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1241,7 +1222,7 @@
               "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "licenses": [
                 {
-                  "spdxExpression": "Apache-2.0",
+                  "spdx_expression": "Apache-2.0",
                   "type": "declared",
                   "value": "Apache-2.0"
                 }
@@ -1261,7 +1242,7 @@
               "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "licenses": [
                 {
-                  "spdxExpression": "Apache-2.0",
+                  "spdx_expression": "Apache-2.0",
                   "type": "declared",
                   "value": "Apache-2.0"
                 }
@@ -1281,7 +1262,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }
@@ -1319,7 +1300,7 @@
               "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1340,7 +1321,7 @@
               "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "licenses": [
                 {
-                  "spdxExpression": "Apache-2.0",
+                  "spdx_expression": "Apache-2.0",
                   "type": "declared",
                   "value": "Apache-2.0"
                 }
@@ -1360,7 +1341,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }
@@ -1398,7 +1379,7 @@
               "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1419,7 +1400,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }
@@ -1457,7 +1438,7 @@
               "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1478,7 +1459,7 @@
               "id": "pkg:apk/alpine/zlib@1.3.2-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "Zlib",
+                  "spdx_expression": "Zlib",
                   "type": "declared",
                   "value": "Zlib"
                 }
@@ -1498,7 +1479,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }
@@ -1536,7 +1517,7 @@
               "id": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=musl",
               "licenses": [
                 {
-                  "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
+                  "spdx_expression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
                   "type": "declared",
                   "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
                 }
@@ -1557,7 +1538,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }
@@ -1595,7 +1576,7 @@
               "id": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=musl",
               "licenses": [
                 {
-                  "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
+                  "spdx_expression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
                   "type": "declared",
                   "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
                 }
@@ -1616,7 +1597,7 @@
               "id": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1636,7 +1617,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }
@@ -1674,7 +1655,7 @@
               "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1695,7 +1676,7 @@
               "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "licenses": [
                 {
-                  "spdxExpression": "Apache-2.0",
+                  "spdx_expression": "Apache-2.0",
                   "type": "declared",
                   "value": "Apache-2.0"
                 }
@@ -1715,7 +1696,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }
@@ -1753,7 +1734,7 @@
               "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1774,7 +1755,7 @@
               "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "licenses": [
                 {
-                  "spdxExpression": "Apache-2.0",
+                  "spdx_expression": "Apache-2.0",
                   "type": "declared",
                   "value": "Apache-2.0"
                 }
@@ -1794,7 +1775,7 @@
               "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "licenses": [
                 {
-                  "spdxExpression": "Apache-2.0",
+                  "spdx_expression": "Apache-2.0",
                   "type": "declared",
                   "value": "Apache-2.0"
                 }
@@ -1814,7 +1795,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }
@@ -1852,7 +1833,7 @@
               "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1873,7 +1854,7 @@
               "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "licenses": [
                 {
-                  "spdxExpression": "Apache-2.0",
+                  "spdx_expression": "Apache-2.0",
                   "type": "declared",
                   "value": "Apache-2.0"
                 }
@@ -1893,7 +1874,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }
@@ -1931,7 +1912,7 @@
               "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
               "licenses": [
                 {
-                  "spdxExpression": "GPL-2.0-only",
+                  "spdx_expression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
                 }
@@ -1952,7 +1933,7 @@
               "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
-                  "spdxExpression": "MIT",
+                  "spdx_expression": "MIT",
                   "type": "declared",
                   "value": "MIT"
                 }

@@ -45,7 +45,7 @@ func TestBuildCompactScanFlatScanOmitsGroupCounts(t *testing.T) {
 }
 
 func TestBuildCompactScanTotalPackagesDedupsAcrossModuleManifests(t *testing.T) {
-	shared := output.ScanDependency{ID: "pkg:npm/lodash@4.17.21", Name: "lodash", Version: "4.17.21", Purl: "pkg:npm/lodash@4.17.21"}
+	shared := output.ScanDependency{ID: "pkg:npm/lodash@4.17.21", Name: "lodash", Version: "4.17.21", PURL: "pkg:npm/lodash@4.17.21"}
 	run := mcp.ScanRunResult{
 		Response: output.ScanResponse{
 			Command: "scan",

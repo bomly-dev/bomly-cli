@@ -27,10 +27,10 @@ type remediationRow struct {
 	advice             string
 }
 
-func buildRemediationReport(packages []output.ScanPackageEntry) remediationReport {
-	sorted := append([]output.ScanPackageEntry(nil), packages...)
+func buildRemediationReport(packages []*model.Package) remediationReport {
+	sorted := append([]*model.Package(nil), packages...)
 	sort.SliceStable(sorted, func(i, j int) bool {
-		return sorted[i].Purl < sorted[j].Purl
+		return sorted[i].PURL < sorted[j].PURL
 	})
 
 	var report remediationReport
@@ -78,14 +78,14 @@ func isConcreteFixAction(action model.RemediationAction) bool {
 	}
 }
 
-func remediationPackageLabel(pkg output.ScanPackageEntry) string {
+func remediationPackageLabel(pkg *model.Package) string {
 	switch {
 	case pkg.Name != "" && pkg.Version != "":
 		return pkg.Name + "@" + pkg.Version
 	case pkg.Name != "":
 		return pkg.Name
-	case pkg.Purl != "":
-		return pkg.Purl
+	case pkg.PURL != "":
+		return pkg.PURL
 	default:
 		return "-"
 	}
@@ -116,7 +116,7 @@ func pluralWord(count int, singular, plural string) string {
 	return plural
 }
 
-func remediationText(packages []output.ScanPackageEntry) string {
+func remediationText(packages []*model.Package) string {
 	report := buildRemediationReport(packages)
 	if len(report.rows) == 0 {
 		return ""
@@ -131,7 +131,7 @@ func remediationText(packages []output.ScanPackageEntry) string {
 		Style("  Run again with --format json to see remediation details.", Dim)
 }
 
-func remediationMarkdown(packages []output.ScanPackageEntry) []string {
+func remediationMarkdown(packages []*model.Package) []string {
 	report := buildRemediationReport(packages)
 	if len(report.rows) == 0 {
 		return nil
@@ -183,9 +183,9 @@ func remediationActionText(action model.RemediationAction) string {
 	return strings.ToUpper(value[:1]) + value[1:]
 }
 
-func explainRemediationPackages(target output.ExplainTargetResponse) []output.ScanPackageEntry {
-	return []output.ScanPackageEntry{{
-		Purl:            target.Dependency.Purl,
+func explainRemediationPackages(target output.ExplainTargetResponse) []*model.Package {
+	return []*model.Package{{
+		PURL:            target.Dependency.Purl,
 		Name:            target.Dependency.Name,
 		Version:         target.Dependency.Version,
 		Vulnerabilities: target.Dependency.Vulnerabilities,
@@ -193,7 +193,7 @@ func explainRemediationPackages(target output.ExplainTargetResponse) []output.Sc
 	}}
 }
 
-func diffRemediationPackages(payload output.DiffResponse) []output.ScanPackageEntry {
+func diffRemediationPackages(payload output.DiffResponse) []*model.Package {
 	relevant := make(map[string]struct{})
 	for _, change := range payload.Results.Vulnerabilities.Added {
 		relevant[change.Package.Purl] = struct{}{}
@@ -201,9 +201,9 @@ func diffRemediationPackages(payload output.DiffResponse) []output.ScanPackageEn
 	for _, change := range payload.Results.Vulnerabilities.Persisted {
 		relevant[change.Package.Purl] = struct{}{}
 	}
-	packages := make([]output.ScanPackageEntry, 0, len(relevant))
+	packages := make([]*model.Package, 0, len(relevant))
 	for _, pkg := range payload.Packages {
-		if _, ok := relevant[pkg.Purl]; ok {
+		if _, ok := relevant[pkg.PURL]; ok {
 			packages = append(packages, pkg)
 		}
 	}

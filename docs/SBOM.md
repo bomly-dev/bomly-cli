@@ -407,14 +407,27 @@ identifiers are fixed.
 
 Some information necessarily becomes less specific during conversion:
 
-- Vulnerabilities are written but never read back. A CycloneDX export carries
-  ratings, CWEs, affected component references, descriptions, and advisory
-  URLs; an SPDX 2.3 export carries each vulnerability as a package security
-  advisory reference. Neither format's importer builds vulnerability records,
-  so converting a document does not carry its vulnerabilities across — Bomly
-  re-derives them by scanning with `--enrich`. What does survive an SPDX round
-  trip is the advisory reference itself, because it is preserved as an
-  ordinary external reference like any other the source stated.
+- Vulnerabilities survive a CycloneDX round trip and are lost across SPDX.
+  A CycloneDX export carries ratings, CWEs, affected component references,
+  descriptions, advisory URLs, and the VEX `analysis` block — state,
+  justification, responses, detail — and ingest reads all of them back into
+  the package registry, so a document that says a package is `not_affected`
+  because the code is not reachable yields a scan that says so too. An SPDX
+  2.3 export carries each vulnerability as a package security advisory
+  reference and nothing more, because the format has no slot for a rating or
+  an analysis; what survives an SPDX round trip is the advisory reference
+  itself, preserved as an ordinary external reference like any other the
+  source stated. End-of-life records survive both formats (see the `bomly:eol*`
+  properties and the SPDX package comment above).
+- SPDX `licenseDeclared` and `licenseConcluded` are read as the two claims
+  they are and written back to the field each came from; a document that
+  concluded a license re-exports it as concluded, not restated as declared.
+  Bomly concludes nothing itself, so `licenseConcluded` is `NOASSERTION`
+  exactly when no source concluded anything.
+- The format and specification version a document was decoded as is
+  recorded on its assertions (`format`, for example `cyclonedx-1.6+json`)
+  and reaches the scan document; a conversion never re-emits it, since the
+  output format's own header says what the output is.
 - Scope is a set in Bomly and a single value in both formats. A package
   reachable from both a runtime and a development root carries both scopes, so
   each format gets Bomly's projection in its native field — runtime wins a

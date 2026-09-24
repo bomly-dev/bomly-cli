@@ -1,5 +1,10 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
   "manifests": [
     {
       "dependencies": [
@@ -11,14 +16,11 @@
             "pkg:hex/plug@1.7.0"
           ],
           "id": "module:mix.exs#pkg:hex/root",
-          "licenses": [],
           "name": "root",
           "purl": "pkg:hex/root"
         },
         {
-          "depends_on": [],
           "id": "pkg:hex/bunt@1.0.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "mix.lock",
@@ -48,7 +50,6 @@
             "pkg:hex/ranch@1.8.0"
           ],
           "id": "pkg:hex/cowboy@2.9.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "mix.lock",
@@ -73,9 +74,7 @@
           "version": "2.9.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:hex/cowlib@2.11.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "mix.lock",
@@ -106,7 +105,6 @@
             "pkg:hex/jason@1.2.2"
           ],
           "id": "pkg:hex/credo@1.7.7",
-          "licenses": [],
           "locations": [
             {
               "access_path": "mix.lock",
@@ -131,9 +129,7 @@
           "version": "1.7.7"
         },
         {
-          "depends_on": [],
           "id": "pkg:hex/decimal@2.1.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "mix.lock",
@@ -158,9 +154,7 @@
           "version": "2.1.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:hex/file_system@1.0.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "mix.lock",
@@ -189,7 +183,6 @@
             "pkg:hex/decimal@2.1.1"
           ],
           "id": "pkg:hex/jason@1.2.2",
-          "licenses": [],
           "locations": [
             {
               "access_path": "mix.lock",
@@ -214,9 +207,7 @@
           "version": "1.2.2"
         },
         {
-          "depends_on": [],
           "id": "pkg:hex/mime@1.6.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "mix.lock",
@@ -246,7 +237,6 @@
             "pkg:hex/plug_crypto@0.2.3"
           ],
           "id": "pkg:hex/plug@1.7.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "mix.lock",
@@ -271,9 +261,7 @@
           "version": "1.7.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:hex/plug_crypto@0.2.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "mix.lock",
@@ -298,9 +286,7 @@
           "version": "0.2.3"
         },
         {
-          "depends_on": [],
           "id": "pkg:hex/ranch@1.8.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "mix.lock",
@@ -333,106 +319,132 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "elixir",
-      "licenses": [],
+      "id": "pkg:hex/bunt@1.0.0",
+      "language": "elixir",
       "name": "bunt",
+      "package_manager": "mix",
       "purl": "pkg:hex/bunt@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.0.0"
     },
     {
       "ecosystem": "elixir",
-      "licenses": [],
+      "id": "pkg:hex/cowboy@2.9.0",
+      "language": "elixir",
       "name": "cowboy",
+      "package_manager": "mix",
       "purl": "pkg:hex/cowboy@2.9.0",
-      "version": "2.9.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.9.0"
     },
     {
       "ecosystem": "elixir",
-      "licenses": [],
+      "id": "pkg:hex/cowlib@2.11.0",
+      "language": "elixir",
       "name": "cowlib",
+      "package_manager": "mix",
       "purl": "pkg:hex/cowlib@2.11.0",
-      "version": "2.11.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.11.0"
     },
     {
       "ecosystem": "elixir",
-      "licenses": [],
+      "id": "pkg:hex/credo@1.7.7",
+      "language": "elixir",
       "name": "credo",
+      "package_manager": "mix",
       "purl": "pkg:hex/credo@1.7.7",
-      "version": "1.7.7",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.7.7"
     },
     {
       "ecosystem": "elixir",
-      "licenses": [],
+      "id": "pkg:hex/decimal@2.1.1",
+      "language": "elixir",
       "name": "decimal",
+      "package_manager": "mix",
       "purl": "pkg:hex/decimal@2.1.1",
-      "version": "2.1.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.1.1"
     },
     {
       "ecosystem": "elixir",
-      "licenses": [],
+      "id": "pkg:hex/file_system@1.0.1",
+      "language": "elixir",
       "name": "file_system",
+      "package_manager": "mix",
       "purl": "pkg:hex/file_system@1.0.1",
-      "version": "1.0.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.0.1"
     },
     {
       "ecosystem": "elixir",
-      "licenses": [],
+      "id": "pkg:hex/jason@1.2.2",
+      "language": "elixir",
       "name": "jason",
+      "package_manager": "mix",
       "purl": "pkg:hex/jason@1.2.2",
-      "version": "1.2.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.2.2"
     },
     {
       "ecosystem": "elixir",
-      "licenses": [],
+      "id": "pkg:hex/mime@1.6.0",
+      "language": "elixir",
       "name": "mime",
+      "package_manager": "mix",
       "purl": "pkg:hex/mime@1.6.0",
-      "version": "1.6.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.6.0"
     },
     {
       "ecosystem": "elixir",
-      "licenses": [],
+      "id": "pkg:hex/plug@1.7.0",
+      "language": "elixir",
       "name": "plug",
+      "package_manager": "mix",
       "purl": "pkg:hex/plug@1.7.0",
-      "version": "1.7.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.7.0"
     },
     {
       "ecosystem": "elixir",
-      "licenses": [],
+      "id": "pkg:hex/plug_crypto@0.2.3",
+      "language": "elixir",
       "name": "plug_crypto",
+      "package_manager": "mix",
       "purl": "pkg:hex/plug_crypto@0.2.3",
-      "version": "0.2.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.2.3"
     },
     {
       "ecosystem": "elixir",
-      "licenses": [],
+      "id": "pkg:hex/ranch@1.8.0",
+      "language": "elixir",
       "name": "ranch",
+      "package_manager": "mix",
       "purl": "pkg:hex/ranch@1.8.0",
-      "version": "1.8.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.8.0"
     }
   ],
-  "project": {
-    "ecosystem": "elixir",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "mix",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "2827ac98c5a2dd99f5ad3f28022deaa21a82f24b",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-elixir-mix"
+  }
 }

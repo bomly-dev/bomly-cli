@@ -1,12 +1,4 @@
 {
-  "audit_summary": {
-    "critical": 0,
-    "high": 0,
-    "low": 0,
-    "medium": 0,
-    "total": 0,
-    "unknown": 0
-  },
   "command": "explain",
   "dependency": {
     "id": "pkg:golang/golang.org/x/text@v0.3.5",
@@ -32,9 +24,6 @@
     "scope": "runtime",
     "version": "v0.3.5",
     "vulnerabilities": []
-  },
-  "metadata": {
-    "duration_ms": 0
   },
   "paths": [
     {
@@ -90,14 +79,6 @@
   "schema_version": "1.0",
   "targets": [
     {
-      "audit_summary": {
-        "critical": 0,
-        "high": 0,
-        "low": 0,
-        "medium": 0,
-        "total": 0,
-        "unknown": 0
-      },
       "dependency": {
         "id": "pkg:golang/golang.org/x/text@v0.3.5",
         "licenses": [],

@@ -331,8 +331,10 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (m
 	if cmdCtx.ResolvedConfig.Audit {
 		findings = pipeResult.Findings
 	}
-	response := output.BuildScanResponse(
-		cmdCtx.ProjectDescriptor(),
+	response := output.BuildScanRecord(
+		cmdCtx.ExecutionTarget(),
+		output.NewScanRun(a.version, cmdCtx.ResolvedConfig.Enrich, cmdCtx.ResolvedConfig.Analyze, cmdCtx.ResolvedConfig.Audit, failOnTokens(cmdCtx.ResolvedConfig.FailOn)),
+		cmdCtx.ResolvedConfig.Audit,
 		pipeResult.Consolidated,
 		pipeResult.Registry,
 		findings,
@@ -341,6 +343,7 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (m
 	)
 	return mcp.ScanRunResult{
 		Response:    response,
+		Project:     cmdCtx.ProjectDescriptor(),
 		Findings:    findings,
 		Graph:       pipeResult.Graph,
 		Registry:    pipeResult.Registry,
@@ -437,7 +440,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 			PackageManager: target.Manifest.Subproject.PrimaryPackageManager(),
 			Dependency:     explainPackageRef(target.Dependency, explainResult.Registry),
 			Paths:          explainPathsWithLinks(target.Paths),
-			Findings:       output.FindingsFromScan(target.Findings, explainResult.Registry),
+			Findings:       target.Findings,
 			AuditSummary:   output.SummaryFromFindings(target.Findings),
 		})
 	}

@@ -40,7 +40,7 @@ func TestBuildScanResponseIncludesFallbackProvenance(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: "/repo"}, consolidated, nil, nil, time.Now().Add(-time.Second))
+	response := output.BuildScanRecord(plugin.ExecutionTarget{}, output.NewScanRun("test", false, false, false, nil), false, consolidated, nil, nil, time.Now().Add(-time.Second))
 	if len(response.Manifests) != 1 {
 		t.Fatalf("expected one manifest, got %d", len(response.Manifests))
 	}
@@ -80,7 +80,7 @@ func TestBuildScanResponseOmitsFallbackWhenAbsent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: "/repo"}, consolidated, nil, nil, time.Now().Add(-time.Second))
+	response := output.BuildScanRecord(plugin.ExecutionTarget{}, output.NewScanRun("test", false, false, false, nil), false, consolidated, nil, nil, time.Now().Add(-time.Second))
 	payload, err := json.Marshal(response.Manifests[0])
 	if err != nil {
 		t.Fatalf("marshal manifest: %v", err)

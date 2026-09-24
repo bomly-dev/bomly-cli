@@ -55,14 +55,14 @@ func fixtureDiffPayload() output.DiffResponse {
 		}},
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{
-				{ID: "CVE-2024-0001", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityHigh, Source: "osv", Package: output.FindingPackageRef{Name: "react", Version: "19.0.0"}},
-				{ID: "license:unknown-license:zod@3.23.0", Kind: sdkmodel.FindingKindLicense, Severity: "n/a", Auditor: "license", Source: "license", Package: output.FindingPackageRef{Name: "zod", Version: "3.23.0"}},
+				{ID: "CVE-2024-0001", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityHigh, Source: "osv", PackageRef: "pkg:npm/react@19.0.0"},
+				{ID: "license:unknown-license:zod@3.23.0", Kind: sdkmodel.FindingKindLicense, Severity: "n/a", Auditor: "license", Source: "license", PackageRef: "pkg:npm/zod@3.23.0"},
 			},
 			Persisted: []output.AuditFinding{
-				{ID: "CVE-2023-9999", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityMedium, Source: "osv", Package: output.FindingPackageRef{Name: "lodash", Version: "4.17.20"}},
+				{ID: "CVE-2023-9999", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityMedium, Source: "osv", PackageRef: "pkg:npm/lodash@4.17.20"},
 			},
 			Resolved: []output.AuditFinding{
-				{ID: "CVE-2022-1111", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityLow, Source: "osv", Package: output.FindingPackageRef{Name: "dropped", Version: "0.1.0"}},
+				{ID: "CVE-2022-1111", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityLow, Source: "osv", PackageRef: "pkg:npm/dropped@0.1.0"},
 			},
 			// AuditSummary.Total now reflects Introduced + Persisted only
 			// (scan_output.go no longer appends Resolved). For this fixture
@@ -930,9 +930,9 @@ func TestCollectComponentChanges_MaxSeverityFromInlineVulns(t *testing.T) {
 		Added: []output.DiffPackageChange{{Package: output.PackageRef{
 			Name: "vulny", Version: "1",
 			Vulnerabilities: []output.VulnerabilityRef{
-				{ID: "X-1", Severity: sdkmodel.SeverityLow},
-				{ID: "X-2", Severity: sdkmodel.SeverityCritical},
-				{ID: "X-3", Severity: sdkmodel.SeverityHigh},
+				{ID: "X-1", ParsedSeverity: sdkmodel.SeverityLow},
+				{ID: "X-2", ParsedSeverity: sdkmodel.SeverityCritical},
+				{ID: "X-3", ParsedSeverity: sdkmodel.SeverityHigh},
 			},
 		}}},
 	}}}}
@@ -1571,12 +1571,12 @@ func TestComponentChangeDetails_ChangedShowsLicenseAndVulnDelta(t *testing.T) {
 		beforePkg: output.PackageRef{
 			Name: "react", Version: "18.2.0",
 			Licenses:        []output.LicenseRef{{SPDXExpression: "MIT"}, {SPDXExpression: "BSD-2-Clause"}},
-			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-OLD", Severity: sdkmodel.SeverityHigh}},
+			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-OLD", ParsedSeverity: sdkmodel.SeverityHigh}},
 		},
 		pkgRef: output.PackageRef{
 			Name: "react", Version: "19.0.0",
 			Licenses:        []output.LicenseRef{{SPDXExpression: "MIT"}, {SPDXExpression: "Apache-2.0"}},
-			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-NEW", Severity: sdkmodel.SeverityCritical}},
+			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-NEW", ParsedSeverity: sdkmodel.SeverityCritical}},
 		},
 	}
 	plain := render.StripANSI(strings.Join(componentChangeDetails(c), "\n"))
@@ -1622,7 +1622,7 @@ func TestComponentChangeDetails_AddedRemovedShowsPlainLists(t *testing.T) {
 		pkgRef: output.PackageRef{
 			Name: "new-thing", Version: "1",
 			Licenses:        []output.LicenseRef{{SPDXExpression: "ISC"}},
-			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-X", Severity: sdkmodel.SeverityLow}},
+			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-X", ParsedSeverity: sdkmodel.SeverityLow}},
 		},
 	}
 	plain := render.StripANSI(strings.Join(componentChangeDetails(added), "\n"))

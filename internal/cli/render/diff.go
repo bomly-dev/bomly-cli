@@ -187,7 +187,7 @@ func findingsSummaryLine(audit *output.DiffAudit) []string {
 	lines := []string{"", Style(compactAuditSummary(introduced, persisted), Red)}
 	for _, item := range findings {
 		f := item.finding
-		pkg := f.Package.DisplayLabel()
+		pkg := output.FindingLabel(f)
 		if pkg == "" {
 			pkg = "-"
 		}
@@ -245,7 +245,7 @@ func compactAuditSummary(introduced, persisted int) string {
 func vulnCountsForPackageRef(pkg output.PackageRef) string {
 	var critical, high, medium, low int
 	for _, v := range pkg.Vulnerabilities {
-		switch strings.ToLower(string(v.Severity)) {
+		switch strings.ToLower(string(v.ParsedSeverity)) {
 		case "critical":
 			critical++
 		case "high":
@@ -299,7 +299,7 @@ func primaryLicense(pkg output.PackageRef) string {
 	if len(pkg.Licenses) == 0 {
 		return "-"
 	}
-	if value := pkg.Licenses[0].Identifier(); value != "" {
+	if value := output.LicenseIdentifier(pkg.Licenses[0]); value != "" {
 		return value
 	}
 	return "-"
@@ -318,7 +318,7 @@ func licenseList(values []output.LicenseRef) string {
 	}
 	licenses := make([]string, 0, len(values))
 	for _, value := range values {
-		if id := value.Identifier(); id != "" {
+		if id := output.LicenseIdentifier(value); id != "" {
 			licenses = append(licenses, id)
 		}
 	}
@@ -347,8 +347,8 @@ func sortDiffAuditFindings(findings []output.AuditFinding) []output.AuditFinding
 		if sorted[i].ID != sorted[j].ID {
 			return sorted[i].ID < sorted[j].ID
 		}
-		pi := sorted[i].Package.DisplayLabel()
-		pj := sorted[j].Package.DisplayLabel()
+		pi := output.FindingLabel(sorted[i])
+		pj := output.FindingLabel(sorted[j])
 		if pi != pj {
 			return pi < pj
 		}

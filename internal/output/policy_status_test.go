@@ -22,10 +22,10 @@ func TestFailingFindingCountKeepsSuppressedFindingNonBlocking(t *testing.T) {
 // TestFindingsFromScanExposesStableRuleID verifies structured output includes
 // the package-specific rule identity required to author baseline entries.
 func TestFindingsFromScanExposesStableRuleID(t *testing.T) {
-	findings := FindingsFromScan([]model.Finding{{
+	findings := []model.Finding{{
 		ID: "package:denied:example", RuleID: "denied-package",
 		Kind: model.FindingKindPackage, PackageRef: "pkg:npm/example@1.0.0",
-	}}, nil)
+	}}
 	if len(findings) != 1 || findings[0].RuleID != "denied-package" {
 		t.Fatalf("projected findings = %#v", findings)
 	}

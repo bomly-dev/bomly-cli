@@ -1,6 +1,8 @@
 package output
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"maps"
 	"math"
 	"path/filepath"
@@ -13,38 +15,8 @@ import (
 
 	"github.com/bomly-dev/bomly-sdk/model"
 	"github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/scan"
 )
-
-// ScanResponse is the structured payload for the scan command. It surfaces the
-// three-collection model: manifests carry lean detection-stage dependencies,
-// packages is the deduplicated matching-stage registry projection, and findings
-// is the reference-style audit output.
-type ScanResponse struct {
-	SchemaVersion string             `json:"schema_version"`
-	Command       string             `json:"command"`
-	Project       ProjectDescriptor  `json:"project"`
-	Manifests     []ScanManifest     `json:"manifests"`
-	Packages      []ScanPackageEntry `json:"packages"`
-	Findings      []AuditFinding     `json:"findings,omitempty"`
-	AuditSummary  *AuditSummary      `json:"audit_summary,omitempty"`
-	// Warnings are the detection-stage problems the run reported: resolution
-	// failures, detector fallbacks, and package-manager misconfiguration. Each
-	// carries a type so consumers can tell degraded coverage from advice.
-	Warnings []plugin.DetectorWarning `json:"warnings,omitempty"`
-	Metadata Metadata                 `json:"metadata"`
-}
-
-// ScanManifest is one manifest-scoped dependency inventory in the scan payload.
-type ScanManifest struct {
-	Path           string                    `json:"path,omitempty"`
-	Kind           model.ManifestKind        `json:"kind,omitempty"`
-	Subproject     string                    `json:"subproject,omitempty"`
-	Ecosystem      model.Ecosystem           `json:"ecosystem,omitempty"`
-	PackageManager model.PackageManager      `json:"package_manager,omitempty"`
-	Detector       string                    `json:"detector,omitempty"`
-	Resolution     *model.ResolutionMetadata `json:"resolution,omitempty"`
-	Dependencies   []ScanDependency          `json:"dependencies"`
-}
 
 // DiffResponse is the structured payload for the diff command. Packages is
 // the PURL-deduplicated union of the base and head registries (head wins on
@@ -57,7 +29,7 @@ type DiffResponse struct {
 	Comparison    DiffComparison           `json:"comparison"`
 	Results       DiffResults              `json:"results"`
 	Summary       DiffSummary              `json:"summary"`
-	Packages      []ScanPackageEntry       `json:"packages"`
+	Packages      []*model.Package         `json:"packages"`
 	Audit         *DiffAudit               `json:"audit,omitempty"`
 	Warnings      []plugin.DetectorWarning `json:"warnings,omitempty"`
 	Metadata      Metadata                 `json:"metadata"`
@@ -220,40 +192,91 @@ type ExplainTargetResponse struct {
 	AuditSummary   *AuditSummary        `json:"audit_summary,omitempty"`
 }
 
-// BuildScanResponse constructs the structured scan payload from consolidated
-// manifest selections and findings. Reachability metadata (analyzer runs and
-// per-analyzer stats) is attached afterwards via ScanResponse.WithAnalyzerRuns.
-func BuildScanResponse(project ProjectDescriptor, consolidated plugin.ConsolidatedGraph, registry *model.PackageRegistry, findings []model.Finding, started time.Time, options ...ReportOptions) ScanResponse {
-	response := ScanResponse{
-		SchemaVersion: SchemaVersion,
+// BuildScanRecord constructs the scan record from what the pipeline holds:
+// the consolidated manifest selections, the registry, the findings, and the
+// facts about the run itself -- what was scanned, when, by what -- that the
+// document never used to carry. Reachability metadata (analyzer runs and
+// per-analyzer stats) is attached afterwards via WithAnalyzerRuns.
+func BuildScanRecord(target plugin.ExecutionTarget, run scan.Run, auditEnabled bool, consolidated plugin.ConsolidatedGraph, registry *model.PackageRegistry, findings []model.Finding, started time.Time, options ...ReportOptions) scan.Record {
+	run.StartedAt = started.UTC()
+	run.CompletedAt = time.Now().UTC()
+	record := scan.Record{
+		SchemaVersion: scan.SchemaVersion,
 		Command:       "scan",
-		Project:       project,
+		Subject:       SubjectFromExecutionTarget(target),
+		Run:           run,
 		Manifests:     ScanManifestsFromConsolidated(consolidated, registry),
 		Packages:      PackagesFromRegistry(registry),
 		Metadata:      Metadata{DurationMS: time.Since(started).Milliseconds()},
 	}
 	if len(findings) > 0 {
-		response.Findings = FindingsFromScan(findings, registry)
-		response.AuditSummary = SummaryFromFindings(findings)
+		record.Findings = FindingsWithSeverity(findings, registry)
+		record.AuditSummary = SummaryFromFindings(record.Findings)
 	}
-	return response.WithReportOptions(firstReportOptions(options))
+	if auditEnabled {
+		record.Verdict = scan.VerdictOf(findings)
+	}
+	return WithScanReportOptions(record, firstReportOptions(options))
 }
 
-// WithAnalyzerRuns annotates a ScanResponse with analyzer run names and
-// per-analyzer reachability stats. Returns the response by value so it
-// can be chained from BuildScanResponse callers without intermediate
-// state.
-func (r ScanResponse) WithAnalyzerRuns(runs []string, stats map[string]plugin.ReachabilityStats) ScanResponse {
-	return r.WithReportOptions(ReportOptions{
+// NewScanRun describes the execution about to produce a record: a fresh
+// run identifier, the host and its version, and the stage selections and
+// policy inputs the user chose. Timestamps are filled by BuildScanRecord.
+func NewScanRun(toolVersion string, enrich, analyze, audit bool, failOn []string) scan.Run {
+	return scan.Run{
+		ID:      newRunID(),
+		Tool:    scan.Tool{Name: "bomly", Version: strings.TrimSpace(toolVersion)},
+		Options: scan.Options{Enrich: enrich, Analyze: analyze, Audit: audit, FailOn: append([]string(nil), failOn...)},
+	}
+}
+
+// newRunID returns 128 random bits as hex: enough to name a run without
+// coordination, and nothing a reader could mistake for a commit.
+func newRunID() string {
+	var raw [16]byte
+	if _, err := rand.Read(raw[:]); err != nil {
+		return ""
+	}
+	return "run-" + hex.EncodeToString(raw[:])
+}
+
+// SubjectFromExecutionTarget identifies what was scanned without its local
+// location: a repository by URL, ref and the commit it resolved to; a
+// filesystem target by its commit when it had one; an image by its
+// reference. The path a target was read from stays out of the record.
+func SubjectFromExecutionTarget(target plugin.ExecutionTarget) scan.Subject {
+	subject := scan.Subject{Kind: target.Kind, RepositoryURL: target.RepositoryURL, Ref: target.Ref, CommitSHA: target.CommitSHA}
+	if target.Kind == plugin.ExecutionTargetContainerImage {
+		subject.ImageDigest = imageDigestOf(target.Location)
+	}
+	return subject
+}
+
+// imageDigestOf returns the digest part of an image reference pinned by
+// digest ("repo@sha256:..."), or "" for a reference pinned by tag: a tag is
+// not an identity, and recording it as one would claim more than a scan
+// knows.
+func imageDigestOf(reference string) string {
+	if at := strings.LastIndex(reference, "@"); at >= 0 && strings.Contains(reference[at+1:], ":") {
+		return reference[at+1:]
+	}
+	return ""
+}
+
+// WithScanAnalyzerRuns annotates a scan record with analyzer run names and
+// per-analyzer reachability stats.
+func WithScanAnalyzerRuns(r scan.Record, runs []string, stats map[string]plugin.ReachabilityStats) scan.Record {
+	return WithScanReportOptions(r, ReportOptions{
 		ReachabilityEnabled: len(runs) > 0 || len(stats) > 0,
 		AnalyzerRuns:        runs,
 		AnalyzerStats:       stats,
 	})
 }
 
-// WithReportOptions annotates a ScanResponse with optional report data and
-// strips experimental reachability annotations when the flag is disabled.
-func (r ScanResponse) WithReportOptions(options ReportOptions) ScanResponse {
+// WithScanReportOptions annotates a scan record with optional report data
+// and strips experimental reachability annotations when the flag is
+// disabled.
+func WithScanReportOptions(r scan.Record, options ReportOptions) scan.Record {
 	r.Metadata = metadataWithReportOptions(r.Metadata, options)
 	if len(options.DetectorWarnings) > 0 {
 		r.Warnings = options.DetectorWarnings
@@ -262,7 +285,7 @@ func (r ScanResponse) WithReportOptions(options ReportOptions) ScanResponse {
 		return r
 	}
 	for idx := range r.Packages {
-		r.Packages[idx] = r.Packages[idx].withoutReachability()
+		r.Packages[idx] = packageWithoutReachability(r.Packages[idx])
 	}
 	return r
 }
@@ -270,8 +293,8 @@ func (r ScanResponse) WithReportOptions(options ReportOptions) ScanResponse {
 // ScanManifestsFromConsolidated converts consolidated manifest selections into stable scan payloads.
 // registry, when non-nil, enriches each manifest's packages with matching-stage
 // data (vulnerabilities / scorecard / etc.) resolved by PURL.
-func ScanManifestsFromConsolidated(consolidated plugin.ConsolidatedGraph, registry *model.PackageRegistry) []ScanManifest {
-	manifests := make([]ScanManifest, 0, len(consolidated.Manifests))
+func ScanManifestsFromConsolidated(consolidated plugin.ConsolidatedGraph, registry *model.PackageRegistry) []scan.Manifest {
+	manifests := make([]scan.Manifest, 0, len(consolidated.Manifests))
 	for idx, manifest := range consolidated.Manifests {
 		if manifest.Entry.Graph == nil {
 			continue
@@ -293,12 +316,12 @@ func ScanManifestsFromConsolidated(consolidated plugin.ConsolidatedGraph, regist
 	return manifests
 }
 
-func scanManifestFromConsolidated(manifest plugin.ConsolidatedManifest, idx int, registry *model.PackageRegistry) ScanManifest {
+func scanManifestFromConsolidated(manifest plugin.ConsolidatedManifest, idx int, registry *model.PackageRegistry) scan.Manifest {
 	kind := strings.TrimSpace(string(manifest.Entry.Manifest.Kind))
 	if kind == "" {
 		kind = "entry-" + strconv.Itoa(idx+1)
 	}
-	return ScanManifest{
+	return scan.Manifest{
 		Path:           normalizeScanManifestPath(manifest.Subproject, diffManifestPath(manifest.Subproject, manifest.Entry.Manifest), manifest.Entry.Manifest.Path),
 		Kind:           model.ManifestKind(kind),
 		Subproject:     manifest.Subproject.RelativePath,
@@ -387,20 +410,20 @@ func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, h
 // into one PURL-deduplicated packages collection. Head entries win on
 // conflict, so findings computed against the head state resolve to head
 // advisory data while base-only (resolved-finding) packages stay joinable.
-func PackagesFromRegistries(base, head *model.PackageRegistry) []ScanPackageEntry {
+func PackagesFromRegistries(base, head *model.PackageRegistry) []*model.Package {
 	headEntries := PackagesFromRegistry(head)
 	seen := make(map[string]struct{}, len(headEntries))
 	for _, entry := range headEntries {
-		seen[entry.Purl] = struct{}{}
+		seen[entry.PURL] = struct{}{}
 	}
 	merged := headEntries
 	for _, entry := range PackagesFromRegistry(base) {
-		if _, ok := seen[entry.Purl]; ok {
+		if _, ok := seen[entry.PURL]; ok {
 			continue
 		}
 		merged = append(merged, entry)
 	}
-	sort.Slice(merged, func(i, j int) bool { return merged[i].Purl < merged[j].Purl })
+	sort.Slice(merged, func(i, j int) bool { return merged[i].PURL < merged[j].PURL })
 	return merged
 }
 
@@ -420,9 +443,9 @@ func (r DiffResponse) WithReportOptions(options ReportOptions) DiffResponse {
 	for idx := range r.Results.Manifests {
 		r.Results.Manifests[idx] = stripDiffManifestReachability(r.Results.Manifests[idx])
 	}
-	r.Packages = append([]ScanPackageEntry(nil), r.Packages...)
+	r.Packages = clonePackages(r.Packages)
 	for idx := range r.Packages {
-		r.Packages[idx] = r.Packages[idx].withoutReachability()
+		r.Packages[idx] = packageWithoutReachability(r.Packages[idx])
 	}
 	return r
 }
@@ -831,10 +854,10 @@ func licenseRefsEqual(left, right []LicenseRef) bool {
 	leftIDs := make([]string, 0, len(left))
 	rightIDs := make([]string, 0, len(right))
 	for _, ref := range left {
-		leftIDs = append(leftIDs, ref.Identifier())
+		leftIDs = append(leftIDs, LicenseIdentifier(ref))
 	}
 	for _, ref := range right {
-		rightIDs = append(rightIDs, ref.Identifier())
+		rightIDs = append(rightIDs, LicenseIdentifier(ref))
 	}
 	sort.Strings(leftIDs)
 	sort.Strings(rightIDs)
@@ -1489,4 +1512,14 @@ func filepathBase(path string) string {
 		return path
 	}
 	return parts[len(parts)-1]
+}
+
+// clonePackages deep-copies a packages collection so stripping annotations
+// from a document never reaches the registry it was projected from.
+func clonePackages(packages []*model.Package) []*model.Package {
+	out := make([]*model.Package, 0, len(packages))
+	for _, pkg := range packages {
+		out = append(out, pkg.Clone())
+	}
+	return out
 }

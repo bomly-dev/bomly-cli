@@ -182,7 +182,7 @@ func TestDiffVulnerabilityMarkdownPersistedMessage(t *testing.T) {
 			Vulnerabilities: output.DiffVulnerabilityResults{
 				Persisted: []output.DiffVulnerabilityChange{{
 					Package:       output.PackageRef{Name: "commons-lang3", Version: "3.18.0"},
-					Vulnerability: output.VulnerabilityRef{ID: "CVE-2025-48924", Severity: model.SeverityMedium},
+					Vulnerability: output.VulnerabilityRef{ID: "CVE-2025-48924", ParsedSeverity: model.SeverityMedium},
 				}},
 			},
 		},
@@ -241,12 +241,12 @@ func TestPersistedLicenseFindingCountDedupesByPackage(t *testing.T) {
 	// Two persisted license findings on the same package must count as one
 	// package, so the count matches the "N packages" wording in
 	// licensePersistedNote.
-	pkg := output.FindingPackageRef{Purl: "pkg:npm/lib@1.0.0"}
+	const pkg = "pkg:npm/lib@1.0.0"
 	audit := &output.DiffAudit{
 		Persisted: []output.AuditFinding{
-			{Kind: model.FindingKindLicense, Package: pkg},
-			{Kind: model.FindingKindLicense, Package: pkg},
-			{Kind: model.FindingKindVulnerability, Package: pkg},
+			{Kind: model.FindingKindLicense, PackageRef: pkg},
+			{Kind: model.FindingKindLicense, PackageRef: pkg},
+			{Kind: model.FindingKindVulnerability, PackageRef: pkg},
 		},
 	}
 	if got := persistedLicenseFindingCount(audit); got != 1 {
@@ -263,7 +263,7 @@ func TestDiffMarkdownFindingsTableHasLegendNoPolicyStatus(t *testing.T) {
 				Auditor:      "license",
 				Severity:     model.SeverityWarning,
 				PolicyStatus: model.FindingPolicyStatusWarn,
-				Package:      output.FindingPackageRef{Name: "junit", Version: "4.12"},
+				PackageRef:   "pkg:generic/junit@4.12",
 				Title:        "Package has invalid SPDX license: non-standard",
 			}},
 		},

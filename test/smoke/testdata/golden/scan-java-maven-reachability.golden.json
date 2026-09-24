@@ -1,5 +1,10 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
   "manifests": [
     {
       "dependencies": [
@@ -18,15 +23,12 @@
             "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
           ],
           "id": "module:pom.xml#pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
-          "licenses": [],
           "name": "com.bomly:example-java-maven",
           "purl": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
           "version": "1.0-SNAPSHOT"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/aopalliance/aopalliance@1.0",
-          "licenses": [],
           "matched": true,
           "name": "aopalliance:aopalliance",
           "package_ref": "pkg:maven/aopalliance/aopalliance@1.0",
@@ -42,7 +44,6 @@
             "pkg:maven/org.slf4j/slf4j-api@1.6.1"
           ],
           "id": "pkg:maven/com.101tec/zkclient@0.7",
-          "licenses": [],
           "matched": true,
           "name": "com.101tec:zkclient",
           "package_ref": "pkg:maven/com.101tec/zkclient@0.7",
@@ -53,9 +54,7 @@
           "version": "0.7"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@1.4.1",
-          "licenses": [],
           "matched": true,
           "name": "com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru",
           "package_ref": "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@1.4.1",
@@ -66,9 +65,7 @@
           "version": "1.4.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/com.h2database/h2@1.3.176",
-          "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
@@ -98,7 +95,6 @@
             "pkg:maven/com.orientechnologies/orientdb-enterprise@2.1.9"
           ],
           "id": "pkg:maven/com.orientechnologies/orientdb-client@2.1.9",
-          "licenses": [],
           "matched": true,
           "name": "com.orientechnologies:orientdb-client",
           "package_ref": "pkg:maven/com.orientechnologies/orientdb-client@2.1.9",
@@ -115,7 +111,6 @@
             "pkg:maven/net.java.dev.jna/jna@4.0.0"
           ],
           "id": "pkg:maven/com.orientechnologies/orientdb-core@2.1.9",
-          "licenses": [],
           "matched": true,
           "name": "com.orientechnologies:orientdb-core",
           "package_ref": "pkg:maven/com.orientechnologies/orientdb-core@2.1.9",
@@ -130,7 +125,6 @@
             "pkg:maven/com.orientechnologies/orientdb-core@2.1.9"
           ],
           "id": "pkg:maven/com.orientechnologies/orientdb-enterprise@2.1.9",
-          "licenses": [],
           "matched": true,
           "name": "com.orientechnologies:orientdb-enterprise",
           "package_ref": "pkg:maven/com.orientechnologies/orientdb-enterprise@2.1.9",
@@ -146,7 +140,6 @@
             "pkg:maven/javax.mail/mail@1.4"
           ],
           "id": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
-          "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
@@ -172,9 +165,7 @@
           "version": "2.1.9"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/com.yammer.metrics/metrics-core@2.2.0",
-          "licenses": [],
           "matched": true,
           "name": "com.yammer.metrics:metrics-core",
           "package_ref": "pkg:maven/com.yammer.metrics/metrics-core@2.2.0",
@@ -185,9 +176,7 @@
           "version": "2.2.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/commons-collections/commons-collections@3.2.1",
-          "licenses": [],
           "matched": true,
           "name": "commons-collections:commons-collections",
           "package_ref": "pkg:maven/commons-collections/commons-collections@3.2.1",
@@ -198,9 +187,7 @@
           "version": "3.2.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
-          "licenses": [],
           "matched": true,
           "name": "commons-fileupload:commons-fileupload",
           "package_ref": "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
@@ -211,9 +198,7 @@
           "version": "1.3.3"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/commons-io/commons-io@2.5",
-          "licenses": [],
           "matched": true,
           "name": "commons-io:commons-io",
           "package_ref": "pkg:maven/commons-io/commons-io@2.5",
@@ -224,9 +209,7 @@
           "version": "2.5"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/commons-logging/commons-logging@1.1.1",
-          "licenses": [],
           "matched": true,
           "name": "commons-logging:commons-logging",
           "package_ref": "pkg:maven/commons-logging/commons-logging@1.1.1",
@@ -237,9 +220,7 @@
           "version": "1.1.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/io.netty/netty@3.7.0.Final",
-          "licenses": [],
           "matched": true,
           "name": "io.netty:netty",
           "package_ref": "pkg:maven/io.netty/netty@3.7.0.Final",
@@ -250,9 +231,7 @@
           "version": "3.7.0.Final"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/javax.activation/activation@1.1",
-          "licenses": [],
           "matched": true,
           "name": "javax.activation:activation",
           "package_ref": "pkg:maven/javax.activation/activation@1.1",
@@ -263,9 +242,7 @@
           "version": "1.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/javax.jcr/jcr@1.0",
-          "licenses": [],
           "matched": true,
           "name": "javax.jcr:jcr",
           "package_ref": "pkg:maven/javax.jcr/jcr@1.0",
@@ -280,7 +257,6 @@
             "pkg:maven/javax.activation/activation@1.1"
           ],
           "id": "pkg:maven/javax.mail/mail@1.4",
-          "licenses": [],
           "matched": true,
           "name": "javax.mail:mail",
           "package_ref": "pkg:maven/javax.mail/mail@1.4",
@@ -291,9 +267,7 @@
           "version": "1.4"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/jline/jline@0.9.94",
-          "licenses": [],
           "matched": true,
           "name": "jline:jline",
           "package_ref": "pkg:maven/jline/jline@0.9.94",
@@ -308,7 +282,6 @@
             "pkg:maven/org.hamcrest/hamcrest-core@1.3"
           ],
           "id": "pkg:maven/junit/junit@4.12",
-          "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
@@ -334,9 +307,7 @@
           "version": "4.12"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/log4j/log4j@1.2.15",
-          "licenses": [],
           "matched": true,
           "name": "log4j:log4j",
           "package_ref": "pkg:maven/log4j/log4j@1.2.15",
@@ -351,7 +322,6 @@
             "pkg:maven/org.jrobin/jrobin@1.5.9"
           ],
           "id": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
@@ -377,9 +347,7 @@
           "version": "1.59.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/net.java.dev.jna/jna-platform@4.0.0",
-          "licenses": [],
           "matched": true,
           "name": "net.java.dev.jna:jna-platform",
           "package_ref": "pkg:maven/net.java.dev.jna/jna-platform@4.0.0",
@@ -390,9 +358,7 @@
           "version": "4.0.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/net.java.dev.jna/jna@4.0.0",
-          "licenses": [],
           "matched": true,
           "name": "net.java.dev.jna:jna",
           "package_ref": "pkg:maven/net.java.dev.jna/jna@4.0.0",
@@ -403,9 +369,7 @@
           "version": "4.0.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/net.jpountz.lz4/lz4@1.2.0",
-          "licenses": [],
           "matched": true,
           "name": "net.jpountz.lz4:lz4",
           "package_ref": "pkg:maven/net.jpountz.lz4/lz4@1.2.0",
@@ -416,9 +380,7 @@
           "version": "1.2.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/net.sf.jopt-simple/jopt-simple@3.2",
-          "licenses": [],
           "matched": true,
           "name": "net.sf.jopt-simple:jopt-simple",
           "package_ref": "pkg:maven/net.sf.jopt-simple/jopt-simple@3.2",
@@ -433,7 +395,6 @@
             "pkg:maven/org.javassist/javassist@3.20.0-GA"
           ],
           "id": "pkg:maven/ognl/ognl@3.1.15",
-          "licenses": [],
           "matched": true,
           "name": "ognl:ognl",
           "package_ref": "pkg:maven/ognl/ognl@3.1.15",
@@ -444,9 +405,7 @@
           "version": "3.1.15"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.apache.commons/commons-lang3@3.6",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.commons:commons-lang3",
           "package_ref": "pkg:maven/org.apache.commons/commons-lang3@3.6",
@@ -457,9 +416,7 @@
           "version": "3.6"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-api@1.4",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.jackrabbit:jackrabbit-api",
           "package_ref": "pkg:maven/org.apache.jackrabbit/jackrabbit-api@1.4",
@@ -475,7 +432,6 @@
             "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4"
           ],
           "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@1.4",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.jackrabbit:jackrabbit-classloader",
           "package_ref": "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@1.4",
@@ -486,9 +442,7 @@
           "version": "1.4"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.jackrabbit:jackrabbit-jcr-commons",
           "package_ref": "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4",
@@ -504,7 +458,6 @@
             "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7"
           ],
           "id": "pkg:maven/org.apache.kafka/kafka-clients@0.9.0.1",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.kafka:kafka-clients",
           "package_ref": "pkg:maven/org.apache.kafka/kafka-clients@0.9.0.1",
@@ -527,7 +480,6 @@
             "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6"
           ],
           "id": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
@@ -553,9 +505,7 @@
           "version": "0.9.0.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.apache.logging.log4j/log4j-api@2.8.2",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.logging.log4j:log4j-api",
           "package_ref": "pkg:maven/org.apache.logging.log4j/log4j-api@2.8.2",
@@ -566,9 +516,7 @@
           "version": "2.8.2"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.apache.santuario/xmlsec@1.5.1",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.santuario:xmlsec",
           "package_ref": "pkg:maven/org.apache.santuario/xmlsec@1.5.1",
@@ -583,7 +531,6 @@
             "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator"
           ],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.sling:org.apache.sling.adapter",
           "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator",
@@ -594,9 +541,7 @@
           "version": "2.0.2-incubator"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.sling:org.apache.sling.api",
           "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator",
@@ -607,9 +552,7 @@
           "version": "2.0.4-incubator"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.commons.mime@2.0.2-incubator",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.sling:org.apache.sling.commons.mime",
           "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.commons.mime@2.0.2-incubator",
@@ -620,9 +563,7 @@
           "version": "2.0.2-incubator"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.sling:org.apache.sling.commons.osgi",
           "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator",
@@ -641,7 +582,6 @@
             "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator"
           ],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
-          "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
@@ -671,7 +611,6 @@
             "pkg:maven/javax.jcr/jcr@1.0"
           ],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@2.0.2-incubator",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.sling:org.apache.sling.jcr.api",
           "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@2.0.2-incubator",
@@ -687,7 +626,6 @@
             "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator"
           ],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.sling:org.apache.sling.jcr.resource",
           "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator",
@@ -707,7 +645,6 @@
             "pkg:maven/org.freemarker/freemarker@2.3.23"
           ],
           "id": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
-          "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
@@ -738,7 +675,6 @@
             "pkg:maven/jline/jline@0.9.94"
           ],
           "id": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
-          "licenses": [],
           "matched": true,
           "name": "org.apache.zookeeper:zookeeper",
           "package_ref": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
@@ -749,9 +685,7 @@
           "version": "3.4.6"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.freemarker/freemarker@2.3.23",
-          "licenses": [],
           "matched": true,
           "name": "org.freemarker:freemarker",
           "package_ref": "pkg:maven/org.freemarker/freemarker@2.3.23",
@@ -762,9 +696,7 @@
           "version": "2.3.23"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
-          "licenses": [],
           "matched": true,
           "name": "org.hamcrest:hamcrest-core",
           "package_ref": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
@@ -775,9 +707,7 @@
           "version": "1.3"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.javassist/javassist@3.20.0-GA",
-          "licenses": [],
           "matched": true,
           "name": "org.javassist:javassist",
           "package_ref": "pkg:maven/org.javassist/javassist@3.20.0-GA",
@@ -788,9 +718,7 @@
           "version": "3.20.0-GA"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.jrobin/jrobin@1.5.9",
-          "licenses": [],
           "matched": true,
           "name": "org.jrobin:jrobin",
           "package_ref": "pkg:maven/org.jrobin/jrobin@1.5.9",
@@ -805,7 +733,6 @@
             "pkg:maven/org.apache.santuario/xmlsec@1.5.1"
           ],
           "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
-          "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
@@ -831,9 +758,7 @@
           "version": "1.8.1.Final"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.mindrot/jbcrypt@0.4",
-          "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
@@ -859,9 +784,7 @@
           "version": "0.4"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.neo4j/neo4j-jmx@1.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
@@ -887,9 +810,7 @@
           "version": "1.3"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.scala-lang.modules/scala-parser-combinators_2.11@1.0.4",
-          "licenses": [],
           "matched": true,
           "name": "org.scala-lang.modules:scala-parser-combinators_2.11",
           "package_ref": "pkg:maven/org.scala-lang.modules/scala-parser-combinators_2.11@1.0.4",
@@ -900,9 +821,7 @@
           "version": "1.0.4"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.scala-lang.modules/scala-xml_2.11@1.0.4",
-          "licenses": [],
           "matched": true,
           "name": "org.scala-lang.modules:scala-xml_2.11",
           "package_ref": "pkg:maven/org.scala-lang.modules/scala-xml_2.11@1.0.4",
@@ -913,9 +832,7 @@
           "version": "1.0.4"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.scala-lang/scala-library@2.11.7",
-          "licenses": [],
           "matched": true,
           "name": "org.scala-lang:scala-library",
           "package_ref": "pkg:maven/org.scala-lang/scala-library@2.11.7",
@@ -926,9 +843,7 @@
           "version": "2.11.7"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.slf4j/slf4j-api@1.6.1",
-          "licenses": [],
           "matched": true,
           "name": "org.slf4j:slf4j-api",
           "package_ref": "pkg:maven/org.slf4j/slf4j-api@1.6.1",
@@ -939,9 +854,7 @@
           "version": "1.6.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6",
-          "licenses": [],
           "matched": true,
           "name": "org.slf4j:slf4j-log4j12",
           "package_ref": "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6",
@@ -952,9 +865,7 @@
           "version": "1.7.6"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
-          "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-aop",
           "package_ref": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
@@ -965,9 +876,7 @@
           "version": "3.1.1.RELEASE"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
-          "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-asm",
           "package_ref": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
@@ -978,9 +887,7 @@
           "version": "3.1.1.RELEASE"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
-          "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-beans",
           "package_ref": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
@@ -997,7 +904,6 @@
             "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
           ],
           "id": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
-          "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-context",
           "package_ref": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
@@ -1012,7 +918,6 @@
             "pkg:maven/commons-logging/commons-logging@1.1.1"
           ],
           "id": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
-          "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-core",
           "package_ref": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
@@ -1023,9 +928,7 @@
           "version": "3.1.1.RELEASE"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
-          "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-expression",
           "package_ref": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
@@ -1043,7 +946,6 @@
             "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
           ],
           "id": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
-          "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
@@ -1069,9 +971,7 @@
           "version": "3.1.1.RELEASE"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7",
-          "licenses": [],
           "matched": true,
           "name": "org.xerial.snappy:snappy-java",
           "package_ref": "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7",
@@ -1100,68 +1000,76 @@
         "unreachable": 62
       }
     },
-    "duration_ms": 0,
     "reachability_enabled": true
   },
   "packages": [
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/aopalliance/aopalliance@1.0",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "aopalliance:aopalliance",
+      "name": "aopalliance",
       "org": "aopalliance",
+      "package_manager": "maven",
       "purl": "pkg:maven/aopalliance/aopalliance@1.0",
-      "version": "1.0",
-      "vulnerabilities": []
+      "version": "1.0"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/com.101tec/zkclient@0.7",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "com.101tec:zkclient",
+      "name": "zkclient",
       "org": "com.101tec",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.101tec/zkclient@0.7",
-      "version": "0.7",
-      "vulnerabilities": []
+      "version": "0.7"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@1.4.1",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru",
+      "name": "concurrentlinkedhashmap-lru",
       "org": "com.googlecode.concurrentlinkedhashmap",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@1.4.1",
-      "version": "1.4.1",
-      "vulnerabilities": []
+      "version": "1.4.1"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/com.h2database/h2@1.3.176",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "com.h2database:h2",
+      "name": "h2",
       "org": "com.h2database",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.h2database/h2@1.3.176",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -1200,7 +1108,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Arbitrary code execution in H2 Console",
           "epss": [
             {
               "cve": "CVE-2022-23221",
@@ -1223,6 +1131,7 @@
           ],
           "id": "GHSA-45hx-wfhj-473x",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1251,7 +1160,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1277,7 +1185,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "RCE in H2 Console",
           "epss": [
             {
               "cve": "CVE-2021-42392",
@@ -1300,6 +1208,7 @@
           ],
           "id": "GHSA-h376-j262-vhq6",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1328,7 +1237,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1337,32 +1245,37 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/com.orientechnologies/orientdb-client@2.1.9",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "com.orientechnologies:orientdb-client",
+      "name": "orientdb-client",
       "org": "com.orientechnologies",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.orientechnologies/orientdb-client@2.1.9",
-      "version": "2.1.9",
-      "vulnerabilities": []
+      "version": "2.1.9"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/com.orientechnologies/orientdb-core@2.1.9",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "com.orientechnologies:orientdb-core",
+      "name": "orientdb-core",
       "org": "com.orientechnologies",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.orientechnologies/orientdb-core@2.1.9",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -1402,7 +1315,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "OrientDB vulnerable to Improper Privilage Management leading to arbitrary command injection",
           "epss": [
             {
               "cve": "CVE-2017-11467",
@@ -1425,6 +1338,7 @@
           ],
           "id": "GHSA-xm6r-4466-mr74",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1453,7 +1367,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1462,64 +1375,73 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/com.orientechnologies/orientdb-enterprise@2.1.9",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "com.orientechnologies:orientdb-enterprise",
+      "name": "orientdb-enterprise",
       "org": "com.orientechnologies",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.orientechnologies/orientdb-enterprise@2.1.9",
-      "version": "2.1.9",
-      "vulnerabilities": []
+      "version": "2.1.9"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "com.orientechnologies:orientdb-server",
+      "name": "orientdb-server",
       "org": "com.orientechnologies",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
-      "version": "2.1.9",
-      "vulnerabilities": []
+      "version": "2.1.9"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/com.yammer.metrics/metrics-core@2.2.0",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "com.yammer.metrics:metrics-core",
+      "name": "metrics-core",
       "org": "com.yammer.metrics",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.yammer.metrics/metrics-core@2.2.0",
-      "version": "2.2.0",
-      "vulnerabilities": []
+      "version": "2.2.0"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/commons-collections/commons-collections@3.2.1",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "commons-collections:commons-collections",
+      "name": "commons-collections",
       "org": "commons-collections",
+      "package_manager": "maven",
       "purl": "pkg:maven/commons-collections/commons-collections@3.2.1",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -1552,7 +1474,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Insecure Deserialization in Apache Commons Collection",
           "epss": [
             {
               "cve": "CVE-2015-6420",
@@ -1575,6 +1497,7 @@
           ],
           "id": "GHSA-6hgm-866r-3cjv",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1603,7 +1526,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1629,7 +1551,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Deserialization of Untrusted Data in Apache commons collections",
           "epss": [
             {
               "cve": "CVE-2015-7501",
@@ -1652,6 +1574,7 @@
           ],
           "id": "GHSA-fjq5-5j5f-mvxh",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1680,7 +1603,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1689,16 +1611,19 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "commons-fileupload:commons-fileupload",
+      "name": "commons-fileupload",
       "org": "commons-fileupload",
+      "package_manager": "maven",
       "purl": "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -1738,7 +1663,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Commons FileUpload denial of service vulnerability",
           "epss": [
             {
               "cve": "CVE-2023-24998",
@@ -1761,6 +1686,7 @@
           ],
           "id": "GHSA-hfrx-6qgj-fp6c",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1792,7 +1718,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1818,7 +1743,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Commons FileUpload, Apache Commons FileUpload: FileUpload DoS via part headers",
           "epss": [
             {
               "cve": "CVE-2025-48976",
@@ -1841,6 +1766,7 @@
           ],
           "id": "GHSA-vv7r-c36w-3prj",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1872,7 +1798,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1881,16 +1806,19 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/commons-io/commons-io@2.5",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "commons-io:commons-io",
+      "name": "commons-io",
       "org": "commons-io",
+      "package_manager": "maven",
       "purl": "pkg:maven/commons-io/commons-io@2.5",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -1930,7 +1858,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Commons IO: Possible denial of service attack on untrusted input to XmlStreamReader",
           "epss": [
             {
               "cve": "CVE-2024-47554",
@@ -1953,6 +1881,7 @@
           ],
           "id": "GHSA-78wr-2p64-hpwj",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1981,7 +1910,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2007,7 +1935,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Path Traversal and Improper Input Validation in Apache Commons IO",
           "epss": [
             {
               "cve": "CVE-2021-29425",
@@ -2030,6 +1958,7 @@
           ],
           "id": "GHSA-gwrp-pvrq-jmwv",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2058,7 +1987,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2067,32 +1995,37 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/commons-logging/commons-logging@1.1.1",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "commons-logging:commons-logging",
+      "name": "commons-logging",
       "org": "commons-logging",
+      "package_manager": "maven",
       "purl": "pkg:maven/commons-logging/commons-logging@1.1.1",
-      "version": "1.1.1",
-      "vulnerabilities": []
+      "version": "1.1.1"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/io.netty/netty@3.7.0.Final",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "io.netty:netty",
+      "name": "netty",
       "org": "io.netty",
+      "package_manager": "maven",
       "purl": "pkg:maven/io.netty/netty@3.7.0.Final",
       "remediation": {
         "status": "partial",
@@ -2130,7 +2063,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Local Information Disclosure Vulnerability in Netty on Unix-Like systems",
           "epss": [
             {
               "cve": "CVE-2021-21290",
@@ -2142,6 +2075,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-5mcr-gq6c-3hq2",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2170,7 +2104,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2189,7 +2122,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Netty denial of service vulnerability",
           "epss": [
             {
               "cve": "CVE-2014-0193",
@@ -2212,6 +2145,7 @@
           ],
           "id": "GHSA-7vpq-g998-qpv7",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2240,7 +2174,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2266,7 +2199,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "SnappyFrameDecoder doesn't restrict chunk length any may buffer skippable chunks in an unnecessary way",
           "epss": [
             {
               "cve": "CVE-2021-37137",
@@ -2278,6 +2211,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-9vjp-v76f-g363",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2306,7 +2240,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2332,7 +2265,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "HTTP Request Smuggling in Netty",
           "epss": [
             {
               "cve": "CVE-2019-20444",
@@ -2344,6 +2277,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-cqqj-4p63-rrmm",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2372,7 +2306,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2398,7 +2331,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Possible request smuggling in HTTP/2 due missing validation of content-length",
           "epss": [
             {
               "cve": "CVE-2021-21409",
@@ -2410,6 +2343,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-f256-j965-7f32",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2438,7 +2372,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2464,7 +2397,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Bzip2Decoder doesn't allow setting size restrictions for decompressed data",
           "epss": [
             {
               "cve": "CVE-2021-37136",
@@ -2476,6 +2409,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-grg4-wf29-r9vv",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2504,7 +2438,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2523,7 +2456,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "HTTP Request Smuggling in Netty",
           "epss": [
             {
               "cve": "CVE-2019-20445",
@@ -2535,6 +2468,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-p2v9-g2qv-p635",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2563,7 +2497,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2589,7 +2522,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "HTTP Request Smuggling in Netty",
           "epss": [
             {
               "cve": "CVE-2019-16869",
@@ -2601,6 +2534,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-p979-4mfw-53vg",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2629,7 +2563,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2655,7 +2588,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Possible request smuggling in HTTP/2 due missing validation",
           "epss": [
             {
               "cve": "CVE-2021-21295",
@@ -2667,6 +2600,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-wm47-8v5p-wjpj",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2695,7 +2629,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2721,7 +2654,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "HTTP request smuggling in netty",
           "epss": [
             {
               "cve": "CVE-2021-43797",
@@ -2733,6 +2666,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-wx5j-54mm-rqqq",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2761,7 +2695,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2787,7 +2720,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Information Exposure in Netty",
           "epss": [
             {
               "cve": "CVE-2015-2156",
@@ -2810,6 +2743,7 @@
           ],
           "id": "GHSA-xfv3-rrfm-f2rv",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2838,7 +2772,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2847,75 +2780,86 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/javax.activation/activation@1.1",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "javax.activation:activation",
+      "name": "activation",
       "org": "javax.activation",
+      "package_manager": "maven",
       "purl": "pkg:maven/javax.activation/activation@1.1",
-      "version": "1.1",
-      "vulnerabilities": []
+      "version": "1.1"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/javax.jcr/jcr@1.0",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "javax.jcr:jcr",
+      "name": "jcr",
       "org": "javax.jcr",
+      "package_manager": "maven",
       "purl": "pkg:maven/javax.jcr/jcr@1.0",
-      "version": "1.0",
-      "vulnerabilities": []
+      "version": "1.0"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/javax.mail/mail@1.4",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "javax.mail:mail",
+      "name": "mail",
       "org": "javax.mail",
+      "package_manager": "maven",
       "purl": "pkg:maven/javax.mail/mail@1.4",
-      "version": "1.4",
-      "vulnerabilities": []
+      "version": "1.4"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/jline/jline@0.9.94",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "jline:jline",
+      "name": "jline",
       "org": "jline",
+      "package_manager": "maven",
       "purl": "pkg:maven/jline/jline@0.9.94",
-      "version": "0.9.94",
-      "vulnerabilities": []
+      "version": "0.9.94"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/junit/junit@4.12",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "junit:junit",
+      "name": "junit",
       "org": "junit",
+      "package_manager": "maven",
       "purl": "pkg:maven/junit/junit@4.12",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -2954,7 +2898,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "TemporaryFolder on unix-like systems does not limit access to created files",
           "epss": [
             {
               "cve": "CVE-2020-15250",
@@ -2977,6 +2921,7 @@
           ],
           "id": "GHSA-269g-pwp5-87pp",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3008,7 +2953,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3017,16 +2961,19 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/log4j/log4j@1.2.15",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "log4j:log4j",
+      "name": "log4j",
       "org": "log4j",
+      "package_manager": "maven",
       "purl": "pkg:maven/log4j/log4j@1.2.15",
       "remediation": {
         "status": "partial",
@@ -3064,7 +3011,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Deserialization of Untrusted Data in Log4j",
           "epss": [
             {
               "cve": "CVE-2019-17571",
@@ -3076,6 +3023,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-2qrg-x229-3v8q",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3104,7 +3052,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3130,7 +3077,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "SQL Injection in Log4j 1.2.x",
           "epss": [
             {
               "cve": "CVE-2022-23305",
@@ -3142,6 +3089,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-65fg-84f6-3jq3",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3170,7 +3118,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3196,7 +3143,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Deserialization of Untrusted Data in Apache Log4j",
           "epss": [
             {
               "cve": "CVE-2022-23307",
@@ -3208,6 +3155,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-f7vh-qwp3-x37m",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3236,7 +3184,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3262,7 +3209,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "JMSAppender in Log4j 1.2 is vulnerable to deserialization of untrusted data",
           "epss": [
             {
               "cve": "CVE-2021-4104",
@@ -3274,6 +3221,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-fp5r-v3w9-4333",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3302,7 +3250,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3328,7 +3275,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Log4j 1.x (EOL) allows Denial of Service (DoS)",
           "epss": [
             {
               "cve": "CVE-2023-26464",
@@ -3351,6 +3298,7 @@
           ],
           "id": "GHSA-vp98-w2p3-mv35",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3379,7 +3327,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3405,7 +3352,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Deserialization of Untrusted Data in Log4j 1.x",
           "epss": [
             {
               "cve": "CVE-2022-23302",
@@ -3417,6 +3364,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-w9p3-5cr8-m3jj",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3445,7 +3393,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3454,15 +3401,18 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "net.bull.javamelody:javamelody-core",
+      "name": "javamelody-core",
       "org": "net.bull.javamelody",
+      "package_manager": "maven",
       "purl": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -3501,7 +3451,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "JavaMelody has XXE via parseSoapMethodName in bull/javamelody/PayloadNameRequestWrapper.java.",
           "epss": [
             {
               "cve": "CVE-2018-15531",
@@ -3524,6 +3474,7 @@
           ],
           "id": "GHSA-6fvx-r7hx-3vh6",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3552,7 +3503,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3570,7 +3520,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Java Melody vulnerable to cross-site scripting",
           "fix_available": [
             {
               "date": "\u003cnormalized\u003e",
@@ -3585,6 +3535,7 @@
           ],
           "id": "GHSA-cqhr-jqvc-qw9p",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3612,7 +3563,6 @@
               "url": "\u003cnormalized\u003e"
             }
           ],
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3638,7 +3588,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Cross-site Scripting in JavaMelody",
           "epss": [
             {
               "cve": "CVE-2018-12432",
@@ -3661,6 +3611,7 @@
           ],
           "id": "GHSA-g66q-grxc-64j3",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3689,7 +3640,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3698,56 +3648,65 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/net.java.dev.jna/jna-platform@4.0.0",
       "licenses": [
         {
-          "spdxExpression": "LGPL-2.1-only",
+          "source": "external-depsdev",
+          "spdx_expression": "LGPL-2.1-only",
           "type": "declared",
           "value": "LGPL-2.1"
         },
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "net.java.dev.jna:jna-platform",
+      "name": "jna-platform",
       "org": "net.java.dev.jna",
+      "package_manager": "maven",
       "purl": "pkg:maven/net.java.dev.jna/jna-platform@4.0.0",
-      "version": "4.0.0",
-      "vulnerabilities": []
+      "version": "4.0.0"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/net.java.dev.jna/jna@4.0.0",
       "licenses": [
         {
-          "spdxExpression": "LGPL-2.1-only",
+          "source": "external-depsdev",
+          "spdx_expression": "LGPL-2.1-only",
           "type": "declared",
           "value": "LGPL-2.1"
         },
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "net.java.dev.jna:jna",
+      "name": "jna",
       "org": "net.java.dev.jna",
+      "package_manager": "maven",
       "purl": "pkg:maven/net.java.dev.jna/jna@4.0.0",
-      "version": "4.0.0",
-      "vulnerabilities": []
+      "version": "4.0.0"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/net.jpountz.lz4/lz4@1.2.0",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "net.jpountz.lz4:lz4",
+      "name": "lz4",
       "org": "net.jpountz.lz4",
+      "package_manager": "maven",
       "purl": "pkg:maven/net.jpountz.lz4/lz4@1.2.0",
       "remediation": {
         "status": "unavailable",
@@ -3785,7 +3744,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "yawkat LZ4 Java has a possible information leak in Java safe decompressor",
           "epss": [
             {
               "cve": "CVE-2025-66566",
@@ -3797,6 +3756,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-cmp6-m4wj-q63q",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3825,7 +3785,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3851,7 +3810,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "LZ4 Java Compression has Out-of-bounds memory operations which can cause DoS",
           "epss": [
             {
               "cve": "CVE-2025-12183",
@@ -3863,6 +3822,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-vqf4-7m7x-wgfc",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3891,7 +3851,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3900,47 +3859,54 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/net.sf.jopt-simple/jopt-simple@3.2",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "net.sf.jopt-simple:jopt-simple",
+      "name": "jopt-simple",
       "org": "net.sf.jopt-simple",
+      "package_manager": "maven",
       "purl": "pkg:maven/net.sf.jopt-simple/jopt-simple@3.2",
-      "version": "3.2",
-      "vulnerabilities": []
+      "version": "3.2"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/ognl/ognl@3.1.15",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "ognl:ognl",
+      "name": "ognl",
       "org": "ognl",
+      "package_manager": "maven",
       "purl": "pkg:maven/ognl/ognl@3.1.15",
-      "version": "3.1.15",
-      "vulnerabilities": []
+      "version": "3.1.15"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.commons/commons-lang3@3.6",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.commons:commons-lang3",
+      "name": "commons-lang3",
       "org": "org.apache.commons",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.commons/commons-lang3@3.6",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -3980,7 +3946,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Commons Lang is vulnerable to Uncontrolled Recursion when processing long inputs",
           "epss": [
             {
               "cve": "CVE-2025-48924",
@@ -4003,6 +3969,7 @@
           ],
           "id": "GHSA-j288-q9x7-2f5v",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4031,7 +3998,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4040,48 +4006,55 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-api@1.4",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.jackrabbit:jackrabbit-api",
+      "name": "jackrabbit-api",
       "org": "org.apache.jackrabbit",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-api@1.4",
-      "version": "1.4",
-      "vulnerabilities": []
+      "version": "1.4"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@1.4",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.jackrabbit:jackrabbit-classloader",
+      "name": "jackrabbit-classloader",
       "org": "org.apache.jackrabbit",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@1.4",
-      "version": "1.4",
-      "vulnerabilities": []
+      "version": "1.4"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.jackrabbit:jackrabbit-jcr-commons",
+      "name": "jackrabbit-jcr-commons",
       "org": "org.apache.jackrabbit",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -4121,7 +4094,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Jackrabbit: Core and JCR Commons are vulnerable to Deserialization of Untrusted Data",
           "epss": [
             {
               "cve": "CVE-2025-58782",
@@ -4144,6 +4117,7 @@
           ],
           "id": "GHSA-cxvc-g8f2-4gmm",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4172,7 +4146,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4181,32 +4154,37 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.kafka/kafka-clients@0.9.0.1",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.kafka:kafka-clients",
+      "name": "kafka-clients",
       "org": "org.apache.kafka",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.kafka/kafka-clients@0.9.0.1",
-      "version": "0.9.0.1",
-      "vulnerabilities": []
+      "version": "0.9.0.1"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.kafka:kafka_2.11",
+      "name": "kafka_2.11",
       "org": "org.apache.kafka",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
       "remediation": {
         "status": "unavailable",
@@ -4244,7 +4222,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Kafka Deserialization of Untrusted Data vulnerability",
           "epss": [
             {
               "cve": "CVE-2025-27819",
@@ -4256,6 +4234,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-mcwh-c9pg-xw43",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4284,7 +4263,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4293,32 +4271,37 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.logging.log4j/log4j-api@2.8.2",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.logging.log4j:log4j-api",
+      "name": "log4j-api",
       "org": "org.apache.logging.log4j",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.logging.log4j/log4j-api@2.8.2",
-      "version": "2.8.2",
-      "vulnerabilities": []
+      "version": "2.8.2"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.santuario/xmlsec@1.5.1",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.santuario:xmlsec",
+      "name": "xmlsec",
       "org": "org.apache.santuario",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.santuario/xmlsec@1.5.1",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -4351,7 +4334,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Improper Input Validation in Apache Santuario XML Security",
           "epss": [
             {
               "cve": "CVE-2013-4517",
@@ -4374,6 +4357,7 @@
           ],
           "id": "GHSA-4p4w-6h54-g885",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4405,7 +4389,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4416,7 +4399,7 @@
             "\u003cnormalized\u003e"
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache XML Security For Java vulnerable to Infinite Loop",
           "epss": [
             {
               "cve": "CVE-2013-5823",
@@ -4439,6 +4422,7 @@
           ],
           "id": "GHSA-8gwc-x7mg-7p7p",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4470,7 +4454,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4496,7 +4479,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Exposure of Sensitive Information to an Unauthorized Actor in Apache Santuario",
           "epss": [
             {
               "cve": "CVE-2021-40690",
@@ -4519,6 +4502,7 @@
           ],
           "id": "GHSA-j8wc-gxx9-82hx",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4550,7 +4534,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4569,7 +4552,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Inefficient Algorithmic Complexity in Apache Santuario XML Security",
           "epss": [
             {
               "cve": "CVE-2013-2172",
@@ -4592,6 +4575,7 @@
           ],
           "id": "GHSA-r237-w2w6-jq3p",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4623,7 +4607,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4649,7 +4632,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Santuario - XML Security for Java are vulnerable to private key disclosure",
           "epss": [
             {
               "cve": "CVE-2023-44483",
@@ -4672,6 +4655,7 @@
           ],
           "id": "GHSA-xfrj-6vvc-3xm2",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4703,7 +4687,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4712,32 +4695,37 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.sling:org.apache.sling.adapter",
+      "name": "org.apache.sling.adapter",
       "org": "org.apache.sling",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator",
-      "version": "2.0.2-incubator",
-      "vulnerabilities": []
+      "version": "2.0.2-incubator"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.sling:org.apache.sling.api",
+      "name": "org.apache.sling.api",
       "org": "org.apache.sling",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator",
       "remediation": {
         "status": "partial",
@@ -4768,7 +4756,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Improper Restriction of Operations within the Bounds of a Memory Buffer in Apache Sling",
           "epss": [
             {
               "cve": "CVE-2013-2254",
@@ -4791,6 +4779,7 @@
           ],
           "id": "GHSA-cxwh-vmhg-39r2",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4819,7 +4808,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4845,7 +4833,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Log Injection in Apache Sling Commons Log and Apache Sling API",
           "epss": [
             {
               "cve": "CVE-2022-32549",
@@ -4857,6 +4845,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-qmx3-m648-hr74",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4885,7 +4874,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4904,7 +4892,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Improper Neutralization of Input During Web Page Generation in Apache Sling",
           "epss": [
             {
               "cve": "CVE-2015-2944",
@@ -4927,6 +4915,7 @@
           ],
           "id": "GHSA-rxvx-44w5-44r7",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4955,7 +4944,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4964,48 +4952,55 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.sling/org.apache.sling.commons.mime@2.0.2-incubator",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.sling:org.apache.sling.commons.mime",
+      "name": "org.apache.sling.commons.mime",
       "org": "org.apache.sling",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.commons.mime@2.0.2-incubator",
-      "version": "2.0.2-incubator",
-      "vulnerabilities": []
+      "version": "2.0.2-incubator"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.sling:org.apache.sling.commons.osgi",
+      "name": "org.apache.sling.commons.osgi",
       "org": "org.apache.sling",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator",
-      "version": "2.0.2-incubator",
-      "vulnerabilities": []
+      "version": "2.0.2-incubator"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.sling:org.apache.sling.engine",
+      "name": "org.apache.sling.engine",
       "org": "org.apache.sling",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -5044,7 +5039,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Sling Engine vulnerable to cross-site scripting (XSS) that can lead to privilege escalation",
           "epss": [
             {
               "cve": "CVE-2022-45064",
@@ -5067,6 +5062,7 @@
           ],
           "id": "GHSA-mg46-f9h5-g27x",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5095,7 +5091,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -5104,48 +5099,55 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@2.0.2-incubator",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.sling:org.apache.sling.jcr.api",
+      "name": "org.apache.sling.jcr.api",
       "org": "org.apache.sling",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@2.0.2-incubator",
-      "version": "2.0.2-incubator",
-      "vulnerabilities": []
+      "version": "2.0.2-incubator"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.sling:org.apache.sling.jcr.resource",
+      "name": "org.apache.sling.jcr.resource",
       "org": "org.apache.sling",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator",
-      "version": "2.0.2-incubator",
-      "vulnerabilities": []
+      "version": "2.0.2-incubator"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.apache.struts:struts2-core",
+      "name": "struts2-core",
       "org": "org.apache.struts",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
       "remediation": {
         "status": "partial",
@@ -5183,7 +5185,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Struts vulnerable to path traversal",
           "epss": [
             {
               "cve": "CVE-2023-50164",
@@ -5206,6 +5208,7 @@
           ],
           "id": "GHSA-2j39-qcjm-428w",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5234,7 +5237,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -5260,7 +5262,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Struts file upload logic is flawed",
           "epss": [
             {
               "cve": "CVE-2024-53677",
@@ -5283,6 +5285,7 @@
           ],
           "id": "GHSA-43mq-6xmg-29vm",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5311,7 +5314,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -5337,7 +5339,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Struts vulnerable to memory exhaustion",
           "epss": [
             {
               "cve": "CVE-2023-34396",
@@ -5360,6 +5362,7 @@
           ],
           "id": "GHSA-4g42-gqrg-4633",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5388,7 +5391,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -5414,7 +5416,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Struts Improper Control of Dynamically-Managed Code Resources vulnerability",
           "epss": [
             {
               "cve": "CVE-2023-41835",
@@ -5437,6 +5439,7 @@
           ],
           "id": "GHSA-729q-fcgp-r5xh",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5465,7 +5468,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -5491,7 +5493,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Struts vulnerable to memory exhaustion",
           "epss": [
             {
               "cve": "CVE-2023-34149",
@@ -5514,6 +5516,7 @@
           ],
           "id": "GHSA-8f6x-v685-g2xc",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5542,7 +5545,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -5568,7 +5570,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Unrestricted Upload of File with Dangerous Type in Apache Struts2",
           "epss": [
             {
               "cve": "CVE-2012-1592",
@@ -5591,6 +5593,7 @@
           ],
           "id": "GHSA-8m5q-crqq-6pmf",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5619,7 +5622,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -5645,7 +5647,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Improper Preservation of Permissions in Apache Struts",
           "epss": [
             {
               "cve": "CVE-2019-0233",
@@ -5668,6 +5670,7 @@
           ],
           "id": "GHSA-ccp5-gg58-pxfm",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5696,7 +5699,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -5714,7 +5716,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Struts vulnerable to remote command execution (RCE) due to improper input validation",
           "epss": [
             {
               "cve": "CVE-2018-11776",
@@ -5755,6 +5757,7 @@
             }
           ],
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5783,7 +5786,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -5809,7 +5811,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Remote code execution in Apache Struts",
           "epss": [
             {
               "cve": "CVE-2020-17530",
@@ -5850,6 +5852,7 @@
             }
           ],
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5878,7 +5881,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -5904,7 +5906,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Struts 2 is Missing XML Validation",
           "epss": [
             {
               "cve": "CVE-2025-68493",
@@ -5916,6 +5918,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-qcfc-hmrc-59x7",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5944,7 +5947,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -5970,7 +5972,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Struts has a Denial of Service vulnerability",
           "epss": [
             {
               "cve": "CVE-2025-66675",
@@ -5993,6 +5995,7 @@
           ],
           "id": "GHSA-rg58-xhh7-mqjw",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6021,7 +6024,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6047,7 +6049,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Expression Language Injection in Apache Struts",
           "epss": [
             {
               "cve": "CVE-2021-31805",
@@ -6070,6 +6072,7 @@
           ],
           "id": "GHSA-v8j6-6c2r-r27c",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6098,7 +6101,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6124,7 +6126,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Improperly Controlled Modification of Dynamically-Determined Object Attributes in Apache Struts",
           "epss": [
             {
               "cve": "CVE-2019-0230",
@@ -6147,6 +6149,7 @@
           ],
           "id": "GHSA-wp4h-pvgw-5727",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6175,7 +6178,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6201,7 +6203,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Apache Struts is Vulnerable to DoS via File Leak",
           "epss": [
             {
               "cve": "CVE-2025-64775",
@@ -6213,6 +6215,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-xx7v-hqxh-cjr9",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6241,7 +6244,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6250,10 +6252,11 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "id": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
       "matched": true,
-      "name": "org.apache.zookeeper:zookeeper",
+      "name": "zookeeper",
       "org": "org.apache.zookeeper",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -6293,7 +6296,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Access control bypass in Apache ZooKeeper",
           "epss": [
             {
               "cve": "CVE-2019-0201",
@@ -6316,6 +6319,7 @@
           ],
           "id": "GHSA-2hw2-62cp-p9p7",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6344,7 +6348,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6370,7 +6373,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Authorization Bypass Through User-Controlled Key vulnerability in Apache ZooKeeper",
           "epss": [
             {
               "cve": "CVE-2023-44981",
@@ -6393,6 +6396,7 @@
           ],
           "id": "GHSA-7286-pgfv-vxvh",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6421,7 +6425,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6447,7 +6450,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Uncontrolled Resource Consumption in Apache ZooKeeper",
           "epss": [
             {
               "cve": "CVE-2017-5637",
@@ -6470,6 +6473,7 @@
           ],
           "id": "GHSA-7cwj-j333-x7f7",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6498,7 +6502,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6524,7 +6527,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Missing Authorization in Apache ZooKeeper",
           "epss": [
             {
               "cve": "CVE-2018-8012",
@@ -6547,6 +6550,7 @@
           ],
           "id": "GHSA-ccqf-c5hq-77mp",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6575,7 +6579,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6584,87 +6587,100 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.freemarker/freemarker@2.3.23",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.freemarker:freemarker",
+      "name": "freemarker",
       "org": "org.freemarker",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.freemarker/freemarker@2.3.23",
-      "version": "2.3.23",
-      "vulnerabilities": []
+      "version": "2.3.23"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "org.hamcrest:hamcrest-core",
+      "name": "hamcrest-core",
       "org": "org.hamcrest",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
-      "version": "1.3",
-      "vulnerabilities": []
+      "version": "1.3"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.javassist/javassist@3.20.0-GA",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         },
         {
-          "spdxExpression": "LGPL-2.1-only",
+          "source": "external-depsdev",
+          "spdx_expression": "LGPL-2.1-only",
           "type": "declared",
           "value": "LGPL-2.1"
         },
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.javassist:javassist",
+      "name": "javassist",
       "org": "org.javassist",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.javassist/javassist@3.20.0-GA",
-      "version": "3.20.0-GA",
-      "vulnerabilities": []
+      "version": "3.20.0-GA"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.jrobin/jrobin@1.5.9",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
-      "name": "org.jrobin:jrobin",
+      "name": "jrobin",
       "org": "org.jrobin",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.jrobin/jrobin@1.5.9",
-      "version": "1.5.9",
-      "vulnerabilities": []
+      "version": "1.5.9"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.keycloak:keycloak-saml-core",
+      "name": "keycloak-saml-core",
       "org": "org.keycloak",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
       "remediation": {
         "status": "partial",
@@ -6702,7 +6718,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "ECP SAML binding bypasses authentication flows",
           "epss": [
             {
               "cve": "CVE-2021-3827",
@@ -6725,6 +6741,7 @@
           ],
           "id": "GHSA-4pc7-vqv5-5r3v",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6753,7 +6770,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6779,7 +6795,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Keycloak: Denial of Service via specially crafted SAML input",
           "epss": [
             {
               "cve": "CVE-2026-7307",
@@ -6802,6 +6818,7 @@
           ],
           "id": "GHSA-p5mv-gj8j-xqgf",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6830,7 +6847,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6856,7 +6872,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Improper Verification of SAML Responses Leading to Privilege Escalation in Keycloak",
           "epss": [
             {
               "cve": "CVE-2024-8698",
@@ -6879,6 +6895,7 @@
           ],
           "id": "GHSA-xgfv-xpx8-qhcr",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6907,7 +6924,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6933,7 +6949,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Keycloak: Denial of Service due to excessive SAMLRequest decompression",
           "epss": [
             {
               "cve": "CVE-2026-2575",
@@ -6956,6 +6972,7 @@
           ],
           "id": "GHSA-xv6h-r36f-3gp5",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6984,7 +7001,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -6993,160 +7009,181 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.mindrot/jbcrypt@0.4",
       "licenses": [
         {
-          "spdxExpression": "ISC",
+          "source": "external-depsdev",
+          "spdx_expression": "ISC",
           "type": "declared",
           "value": "ISC"
         }
       ],
       "matched": true,
-      "name": "org.mindrot:jbcrypt",
+      "name": "jbcrypt",
       "org": "org.mindrot",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.mindrot/jbcrypt@0.4",
-      "version": "0.4",
-      "vulnerabilities": []
+      "version": "0.4"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.neo4j/neo4j-jmx@1.3",
       "licenses": [
         {
-          "spdxExpression": "GPL-3.0-only",
+          "source": "external-depsdev",
+          "spdx_expression": "GPL-3.0-only",
           "type": "declared",
           "value": "GPL-3.0"
         }
       ],
       "matched": true,
-      "name": "org.neo4j:neo4j-jmx",
+      "name": "neo4j-jmx",
       "org": "org.neo4j",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.neo4j/neo4j-jmx@1.3",
-      "version": "1.3",
-      "vulnerabilities": []
+      "version": "1.3"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.scala-lang.modules/scala-parser-combinators_2.11@1.0.4",
       "licenses": [
         {
-          "spdxExpression": "BSD-3-Clause",
+          "source": "external-depsdev",
+          "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
-      "name": "org.scala-lang.modules:scala-parser-combinators_2.11",
+      "name": "scala-parser-combinators_2.11",
       "org": "org.scala-lang.modules",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.scala-lang.modules/scala-parser-combinators_2.11@1.0.4",
-      "version": "1.0.4",
-      "vulnerabilities": []
+      "version": "1.0.4"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.scala-lang.modules/scala-xml_2.11@1.0.4",
       "licenses": [
         {
-          "spdxExpression": "BSD-3-Clause",
+          "source": "external-depsdev",
+          "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
-      "name": "org.scala-lang.modules:scala-xml_2.11",
+      "name": "scala-xml_2.11",
       "org": "org.scala-lang.modules",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.scala-lang.modules/scala-xml_2.11@1.0.4",
-      "version": "1.0.4",
-      "vulnerabilities": []
+      "version": "1.0.4"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.scala-lang/scala-library@2.11.7",
       "licenses": [
         {
-          "spdxExpression": "BSD-3-Clause",
+          "source": "external-depsdev",
+          "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
-      "name": "org.scala-lang:scala-library",
+      "name": "scala-library",
       "org": "org.scala-lang",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.scala-lang/scala-library@2.11.7",
-      "version": "2.11.7",
-      "vulnerabilities": []
+      "version": "2.11.7"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.slf4j/slf4j-api@1.6.1",
       "licenses": [
         {
-          "spdxExpression": "MIT",
+          "source": "external-depsdev",
+          "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
         }
       ],
       "matched": true,
-      "name": "org.slf4j:slf4j-api",
+      "name": "slf4j-api",
       "org": "org.slf4j",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.slf4j/slf4j-api@1.6.1",
-      "version": "1.6.1",
-      "vulnerabilities": []
+      "version": "1.6.1"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6",
       "licenses": [
         {
-          "spdxExpression": "MIT",
+          "source": "external-depsdev",
+          "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
         }
       ],
       "matched": true,
-      "name": "org.slf4j:slf4j-log4j12",
+      "name": "slf4j-log4j12",
       "org": "org.slf4j",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6",
-      "version": "1.7.6",
-      "vulnerabilities": []
+      "version": "1.7.6"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.springframework:spring-aop",
+      "name": "spring-aop",
       "org": "org.springframework",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
-      "version": "3.1.1.RELEASE",
-      "vulnerabilities": []
+      "version": "3.1.1.RELEASE"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.springframework:spring-asm",
+      "name": "spring-asm",
       "org": "org.springframework",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
-      "version": "3.1.1.RELEASE",
-      "vulnerabilities": []
+      "version": "3.1.1.RELEASE"
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.springframework:spring-beans",
+      "name": "spring-beans",
       "org": "org.springframework",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
@@ -7184,7 +7221,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Remote Code Execution in Spring Framework",
           "epss": [
             {
               "cve": "CVE-2022-22965",
@@ -7225,6 +7262,7 @@
             }
           ],
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7256,7 +7294,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -7282,7 +7319,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Denial of service in Spring Framework",
           "epss": [
             {
               "cve": "CVE-2022-22970",
@@ -7305,6 +7342,7 @@
           ],
           "id": "GHSA-hh26-6xwr-ggv7",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7336,7 +7374,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -7345,16 +7382,19 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.springframework:spring-context",
+      "name": "spring-context",
       "org": "org.springframework",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
@@ -7392,7 +7432,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework DataBinder Case Sensitive Match Exception",
           "epss": [
             {
               "cve": "CVE-2024-38820",
@@ -7404,6 +7444,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-4gc7-5j7h-4qph",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7435,7 +7476,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -7461,7 +7501,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework DataBinder Case Sensitive Match Exception",
           "epss": [
             {
               "cve": "CVE-2025-22233",
@@ -7473,6 +7513,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-4wp7-92pw-q264",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "low",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7504,7 +7545,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -7530,7 +7570,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Improper handling of case sensitivity in Spring Framework",
           "epss": [
             {
               "cve": "CVE-2022-22968",
@@ -7553,6 +7593,7 @@
           ],
           "id": "GHSA-g5mm-vmx4-3rg7",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7584,7 +7625,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -7593,16 +7633,19 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.springframework:spring-core",
+      "name": "spring-core",
       "org": "org.springframework",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
@@ -7632,7 +7675,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Possible privilege escalation in org.springframework:spring-core",
           "epss": [
             {
               "cve": "CVE-2018-1272",
@@ -7655,6 +7698,7 @@
           ],
           "id": "GHSA-4487-x383-qpph",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7686,7 +7730,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -7712,7 +7755,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework Denial of Service via AntPathMatcher",
           "epss": [
             {
               "cve": "CVE-2026-41848",
@@ -7724,6 +7767,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-659m-px2c-25wj",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "low",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7755,7 +7799,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -7781,7 +7824,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Security and Spring Framework may not recognize certain paths that should be protected",
           "epss": [
             {
               "cve": "CVE-2016-5007",
@@ -7804,6 +7847,7 @@
           ],
           "id": "GHSA-8crv-49fr-2h6j",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7835,7 +7879,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -7861,7 +7904,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Path Traversal in org.springframework:spring-core",
           "epss": [
             {
               "cve": "CVE-2018-1271",
@@ -7884,6 +7927,7 @@
           ],
           "id": "GHSA-g8hw-794c-4j9g",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7915,7 +7959,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -7941,7 +7984,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Files or Directories Accessible to External Parties in org.springframework:spring-core",
           "epss": [
             {
               "cve": "CVE-2015-5211",
@@ -7964,6 +8007,7 @@
           ],
           "id": "GHSA-pgf9-h69p-pcgf",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7995,7 +8039,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8013,7 +8056,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Denial of Service in org.springframework:spring-core",
           "epss": [
             {
               "cve": "CVE-2018-1257",
@@ -8036,6 +8079,7 @@
           ],
           "id": "GHSA-rcpf-vj53-7h2m",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8067,7 +8111,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8086,7 +8129,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Improper Limitation of a Pathname to a Restricted Directory in Spring Framework",
           "epss": [
             {
               "cve": "CVE-2014-3578",
@@ -8109,6 +8152,7 @@
           ],
           "id": "GHSA-rhcg-rwhx-qj3j",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8140,7 +8184,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8149,16 +8192,19 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.springframework:spring-expression",
+      "name": "spring-expression",
       "org": "org.springframework",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
@@ -8196,7 +8242,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Allocation of Resources Without Limits or Throttling in Spring Framework",
           "epss": [
             {
               "cve": "CVE-2022-22950",
@@ -8219,6 +8265,7 @@
           ],
           "id": "GHSA-558x-2xjg-6232",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8250,7 +8297,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8276,7 +8322,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework vulnerable to denial of service via specially crafted SpEL expression",
           "epss": [
             {
               "cve": "CVE-2023-20861",
@@ -8299,6 +8345,7 @@
           ],
           "id": "GHSA-564r-hj7v-mcr5",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8330,7 +8377,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8356,7 +8402,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework Denial of Service via Integer Overflow in SpEL Expressions",
           "epss": [
             {
               "cve": "CVE-2026-41849",
@@ -8368,6 +8414,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-775g-4xr8-78h8",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8399,7 +8446,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8425,7 +8471,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework vulnerable to Denial of Service",
           "epss": [
             {
               "cve": "CVE-2024-38808",
@@ -8448,6 +8494,7 @@
           ],
           "id": "GHSA-9cmq-m9j5-mvww",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8479,7 +8526,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8505,7 +8551,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework Arbitrary Method Invocation in SpEL Expressions",
           "epss": [
             {
               "cve": "CVE-2026-41852",
@@ -8517,6 +8563,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-9f52-rjqv-25qv",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "low",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8548,7 +8595,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8574,7 +8620,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework Algorithmic Denial of Service via SpEL Expressions",
           "epss": [
             {
               "cve": "CVE-2026-41850",
@@ -8586,6 +8632,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-r5w3-xv2f-j59q",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8617,7 +8664,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8643,7 +8689,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework Denial of Service via Unbounded Cache in SpEL",
           "epss": [
             {
               "cve": "CVE-2026-41851",
@@ -8655,6 +8701,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-wxpp-56q6-5pcg",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8686,7 +8733,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8712,7 +8758,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework vulnerable to denial of service",
           "epss": [
             {
               "cve": "CVE-2023-20863",
@@ -8735,6 +8781,7 @@
           ],
           "id": "GHSA-wxqc-pxw9-g2p8",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8766,7 +8813,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8775,16 +8821,19 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.springframework:spring-web",
+      "name": "spring-web",
       "org": "org.springframework",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
@@ -8822,7 +8871,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework DoS via conditional HTTP request",
           "epss": [
             {
               "cve": "CVE-2024-38809",
@@ -8845,6 +8894,7 @@
           ],
           "id": "GHSA-2rmj-mq67-h97g",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8876,7 +8926,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8902,7 +8951,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework URL Parsing with Host Validation",
           "epss": [
             {
               "cve": "CVE-2024-22262",
@@ -8925,6 +8974,7 @@
           ],
           "id": "GHSA-2wrp-6fg6-hmc5",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8956,7 +9006,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -8982,7 +9031,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework DataBinder Case Sensitive Match Exception",
           "epss": [
             {
               "cve": "CVE-2024-38820",
@@ -8994,6 +9043,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-4gc7-5j7h-4qph",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9025,7 +9075,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -9051,7 +9100,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Pivotal Spring Framework contains unsafe Java deserialization methods",
           "epss": [
             {
               "cve": "CVE-2016-1000027",
@@ -9074,6 +9123,7 @@
           ],
           "id": "GHSA-4wrc-f8pq-fpqp",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9105,7 +9155,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -9131,7 +9180,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Pivotal Spring Framework DoS Attack with XML Input",
           "epss": [
             {
               "cve": "CVE-2015-3192",
@@ -9154,6 +9203,7 @@
           ],
           "id": "GHSA-6v7w-535j-rq5m",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9185,7 +9235,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -9211,7 +9260,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Web vulnerable to Open Redirect or Server Side Request Forgery",
           "epss": [
             {
               "cve": "CVE-2024-22243",
@@ -9223,6 +9272,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-ccgv-vj62-xf9h",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9254,7 +9304,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -9273,7 +9322,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Cross-Site Request Forgery in Spring Framework",
           "epss": [
             {
               "cve": "CVE-2013-6429",
@@ -9296,6 +9345,7 @@
           ],
           "id": "GHSA-g6hf-f9cq-q7w7",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9327,7 +9377,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -9353,7 +9402,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Spring Framework URL Parsing with Host Validation Vulnerability",
           "epss": [
             {
               "cve": "CVE-2024-22259",
@@ -9376,6 +9425,7 @@
           ],
           "id": "GHSA-hgjh-9rj2-g67j",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9407,7 +9457,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -9433,7 +9482,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "Improper Neutralization of Input During Web Page Generation in Spring Framework",
           "epss": [
             {
               "cve": "CVE-2013-6430",
@@ -9456,6 +9505,7 @@
           ],
           "id": "GHSA-xjrf-8x4f-43h4",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9487,7 +9537,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -9496,16 +9545,19 @@
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
-      "name": "org.xerial.snappy:snappy-java",
+      "name": "snappy-java",
       "org": "org.xerial.snappy",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7",
       "remediation": {
         "status": "partial",
@@ -9543,7 +9595,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "snappy-java's missing upper bound check on chunk length can lead to Denial of Service (DoS) impact",
           "epss": [
             {
               "cve": "CVE-2023-43642",
@@ -9566,6 +9618,7 @@
           ],
           "id": "GHSA-55g7-9cwv-5qfv",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9594,7 +9647,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -9620,7 +9672,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "snappy-java's Integer Overflow vulnerability in compress leads to DoS",
           "epss": [
             {
               "cve": "CVE-2023-34454",
@@ -9643,6 +9695,7 @@
           ],
           "id": "GHSA-fjpj-2g6w-x25r",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9671,7 +9724,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -9697,7 +9749,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "snappy-java's Integer Overflow vulnerability in shuffle leads to DoS",
           "epss": [
             {
               "cve": "CVE-2023-34453",
@@ -9720,6 +9772,7 @@
           ],
           "id": "GHSA-pqr6-cmr2-h8hf",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9748,7 +9801,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -9774,7 +9826,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "snappy-java's unchecked chunk length leads to DoS",
           "epss": [
             {
               "cve": "CVE-2023-34455",
@@ -9797,6 +9849,7 @@
           ],
           "id": "GHSA-qcwq-55hx-v3vh",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9825,7 +9878,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -9833,13 +9885,24 @@
       ]
     }
   ],
-  "project": {
-    "ecosystem": "maven",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "maven",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "options": {
+      "analyze": true,
+      "enrich": true
+    },
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "93bb3aae614e2f2c6cb65f5ea2315846f5234150",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-java-maven"
+  }
 }

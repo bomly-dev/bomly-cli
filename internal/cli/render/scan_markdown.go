@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"github.com/bomly-dev/bomly-sdk/model"
 	"io"
 	"sort"
 	"strings"
@@ -10,14 +11,16 @@ import (
 )
 
 // ScanMarkdown writes a GitHub-flavored Markdown scan report.
-func ScanMarkdown(w io.Writer, payload output.ScanResponse) error {
+func ScanMarkdown(w io.Writer, payload output.ScanResponse, descriptor output.ProjectDescriptor) error {
 	return writeMarkdownReport(w, MarkdownReport[output.ScanResponse]{
 		Title: "Bomly Scan Summary",
 		Intro: func(payload output.ScanResponse) []string {
 			var lines []string
-			project := payload.Project.Name
+			// The record identifies its subject without a local path; the
+			// report, read where the scan ran, may still name the project.
+			project := descriptor.Name
 			if project == "" {
-				project = payload.Project.Path
+				project = descriptor.Path
 			}
 			if project != "" {
 				lines = append(lines, fmt.Sprintf("Project: `%s`", markdownInline(project)))
@@ -100,7 +103,7 @@ func scanInventoryMarkdown(payload output.ScanResponse) []string {
 		rows = append(rows, []string{
 			ValueOrDash(scanDependencyDisplayName(dep)),
 			ValueOrDash(dep.Version),
-			ValueOrDash(dep.PrimaryScope()),
+			ValueOrDash(output.DependencyPrimaryScope(dep)),
 			ValueOrDash(licenseList(dep.Licenses)),
 		})
 	}
@@ -125,7 +128,7 @@ func scanFindingsMarkdown(payload output.ScanResponse) []string {
 	rows := make([][]string, 0, len(payload.Findings))
 	for _, finding := range sortDiffAuditFindings(payload.Findings) {
 		vuln := output.FindingVulnerabilityInPackages(finding, payload.Packages)
-		pkg := finding.Package.DisplayLabel()
+		pkg := output.FindingLabel(finding)
 		if pkg == "" {
 			pkg = "-"
 		}
@@ -180,7 +183,7 @@ func scanDependencies(manifests []output.ScanManifest) []output.ScanDependency {
 	dependencies := make([]output.ScanDependency, 0)
 	for _, manifest := range manifests {
 		for _, dep := range manifest.Dependencies {
-			key := dep.Purl
+			key := dep.PURL
 			if key == "" {
 				key = dep.ID
 			}
@@ -210,7 +213,7 @@ func scanAuditSummaryMarkdown(summary *output.AuditSummary) string {
 	return formatAuditSummary(summary, true)
 }
 
-func scanReachabilitySummaryMarkdown(packages []output.ScanPackageEntry) string {
+func scanReachabilitySummaryMarkdown(packages []*model.Package) string {
 	var reachable, unreachable, unknown, notApplicable, total int
 	for _, pkg := range packages {
 		for _, vuln := range pkg.Vulnerabilities {

@@ -17,7 +17,9 @@ func parseJSONTag(tag string) (string, jsonTagOptions) {
 	name := parts[0]
 	options := jsonTagOptions{}
 	for _, part := range parts[1:] {
-		if part == "omitempty" {
+		// omitzero is what a struct-valued or time field declares to be
+		// optional; encoding/json omits it the same way.
+		if part == "omitempty" || part == "omitzero" {
 			options.omitEmpty = true
 		}
 	}

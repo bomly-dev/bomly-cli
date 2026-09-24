@@ -1483,7 +1483,7 @@ func maxSeverity(vulns []output.VulnerabilityRef) string {
 	best := ""
 	bestRank := severityRank("zzz")
 	for _, v := range vulns {
-		sev := strings.ToLower(strings.TrimSpace(string(v.Severity)))
+		sev := strings.ToLower(strings.TrimSpace(string(v.ParsedSeverity)))
 		if sev == "" {
 			sev = "unknown"
 		}
@@ -1919,7 +1919,7 @@ func renderLicenseList(licenses []output.LicenseRef) []string {
 		return out
 	}
 	for _, lic := range licenses {
-		id := lic.Identifier()
+		id := output.LicenseIdentifier(lic)
 		if id == "" {
 			id = "(empty)"
 		}
@@ -1958,7 +1958,7 @@ func renderLicenseDelta(before, after []output.LicenseRef) []string {
 func licenseIDSet(licenses []output.LicenseRef) map[string]bool {
 	out := make(map[string]bool, len(licenses))
 	for _, lic := range licenses {
-		if id := lic.Identifier(); id != "" {
+		if id := output.LicenseIdentifier(lic); id != "" {
 			out[id] = true
 		}
 	}
@@ -1973,7 +1973,7 @@ func renderVulnList(vulns []output.VulnerabilityRef) []string {
 		return out
 	}
 	for _, v := range vulns {
-		out = append(out, render.Style("  - ", render.Dim)+severityText(string(v.Severity))+" "+valueOrDash(v.ID))
+		out = append(out, render.Style("  - ", render.Dim)+severityText(string(v.ParsedSeverity))+" "+valueOrDash(v.ID))
 		if v.FixedIn != "" {
 			out = append(out, render.Style("      fixed in: ", render.Dim)+v.FixedIn)
 		}
@@ -1997,14 +1997,14 @@ func renderVulnDelta(before, after []output.VulnerabilityRef) []string {
 	for id, v := range afterSet {
 		switch {
 		case beforeSet[id] != nil:
-			out = append(out, render.Style("  = ", render.Dim)+severityText(string(v.Severity))+" "+id+render.Style("  (old)", render.Dim))
+			out = append(out, render.Style("  = ", render.Dim)+severityText(string(v.ParsedSeverity))+" "+id+render.Style("  (old)", render.Dim))
 		default:
-			out = append(out, render.Style("  + ", render.Red, render.Bold)+severityText(string(v.Severity))+" "+id+render.Style("  (new)", render.Dim))
+			out = append(out, render.Style("  + ", render.Red, render.Bold)+severityText(string(v.ParsedSeverity))+" "+id+render.Style("  (new)", render.Dim))
 		}
 	}
 	for id, v := range beforeSet {
 		if afterSet[id] == nil {
-			out = append(out, render.Style("  - ", render.Green, render.Bold)+severityText(string(v.Severity))+" "+id+render.Style("  (fixed)", render.Dim))
+			out = append(out, render.Style("  - ", render.Green, render.Bold)+severityText(string(v.ParsedSeverity))+" "+id+render.Style("  (fixed)", render.Dim))
 		}
 	}
 	return out
@@ -2055,7 +2055,7 @@ func (m *DiffModel) auditDeltas(keep func(output.AuditFinding) bool) []auditDelt
 			delta := auditDelta{status: status, finding: f, severity: string(f.Severity)}
 			delta.vuln = output.FindingVulnerabilityInPackages(f, m.payload.Packages)
 			for idx := range m.payload.Packages {
-				if m.payload.Packages[idx].Purl == f.Package.Purl && f.Package.Purl != "" {
+				if m.payload.Packages[idx].PURL == f.PackageRef && f.PackageRef != "" {
 					delta.licenses = m.payload.Packages[idx].Licenses
 					break
 				}
@@ -2568,7 +2568,7 @@ func auditGroupKey(d auditDelta, group string) string {
 		}
 		return sev
 	case "package":
-		name := d.finding.Package.DisplayLabel()
+		name := output.FindingLabel(d.finding)
 		if name == "" {
 			return "unknown"
 		}
@@ -2651,7 +2651,7 @@ func auditDeltaTitle(d auditDelta) string {
 	if id == "" {
 		id = "(no id)"
 	}
-	pkg := d.finding.Package.DisplayLabel()
+	pkg := output.FindingLabel(d.finding)
 	if pkg == "" {
 		return id
 	}
@@ -2691,9 +2691,9 @@ func auditDeltaDetails(d auditDelta) []string {
 		render.Style("  Source: ", render.Dim)+valueOrDash(f.Source),
 		"",
 		render.Style("Package", render.Bold, render.Magenta),
-		render.Style("  Display: ", render.Dim)+valueOrDash(f.Package.DisplayLabel()),
-		render.Style("  Purl: ", render.Dim)+valueOrDash(f.Package.Purl),
-		render.Style("  Org: ", render.Dim)+valueOrDash(f.Package.Org),
+		render.Style("  Display: ", render.Dim)+valueOrDash(output.FindingLabel(f)),
+		render.Style("  Purl: ", render.Dim)+valueOrDash(f.PackageRef),
+		render.Style("  Org: ", render.Dim)+valueOrDash(output.IdentityFromPackageRef(f.PackageRef).Org),
 	)
 	if len(f.Reasons) > 0 {
 		lines = append(lines, "", render.Style("Reasons", render.Bold, render.Magenta))
@@ -2800,7 +2800,7 @@ func (m *DiffModel) collectLicenseDeltas() []licenseDelta {
 	out := make([]licenseDelta, 0)
 	add := func(status, pkgLabel, manifestLabel string, licenses []output.LicenseRef) {
 		for _, lic := range licenses {
-			id := strings.TrimSpace(lic.Identifier())
+			id := strings.TrimSpace(output.LicenseIdentifier(lic))
 			if id == "" {
 				continue
 			}
@@ -2836,7 +2836,7 @@ func (m *DiffModel) collectLicenseDeltas() []licenseDelta {
 func licenseSet(licenses []output.LicenseRef) map[string]struct{} {
 	out := make(map[string]struct{}, len(licenses))
 	for _, l := range licenses {
-		id := strings.TrimSpace(l.Identifier())
+		id := strings.TrimSpace(output.LicenseIdentifier(l))
 		if id == "" {
 			continue
 		}

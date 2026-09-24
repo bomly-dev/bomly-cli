@@ -1,5 +1,10 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
   "manifests": [
     {
       "dependencies": [
@@ -10,7 +15,6 @@
             "pkg:composer/twig/twig@1.44.7"
           ],
           "id": "module:composer.json#root",
-          "licenses": [],
           "name": "root"
         },
         {
@@ -19,7 +23,6 @@
             "pkg:composer/guzzlehttp/psr7@1.9.1"
           ],
           "id": "pkg:composer/guzzlehttp/guzzle@6.2.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -44,9 +47,7 @@
           "version": "6.2.3"
         },
         {
-          "depends_on": [],
           "id": "pkg:composer/guzzlehttp/promises@1.5.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -76,7 +77,6 @@
             "pkg:composer/ralouphie/getallheaders@3.0.3"
           ],
           "id": "pkg:composer/guzzlehttp/psr7@1.9.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -101,9 +101,7 @@
           "version": "1.9.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:composer/phpunit/php-file-iterator@1.4.5",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -128,9 +126,7 @@
           "version": "1.4.5"
         },
         {
-          "depends_on": [],
           "id": "pkg:composer/phpunit/php-text-template@1.2.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -155,9 +151,7 @@
           "version": "1.2.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:composer/phpunit/php-timer@1.0.9",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -189,7 +183,6 @@
             "pkg:composer/symfony/yaml@v2.8.52"
           ],
           "id": "pkg:composer/phpunit/phpunit@4.8.36",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -214,9 +207,7 @@
           "version": "4.8.36"
         },
         {
-          "depends_on": [],
           "id": "pkg:composer/psr/http-message@1.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -241,9 +232,7 @@
           "version": "1.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:composer/ralouphie/getallheaders@3.0.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -268,9 +257,7 @@
           "version": "3.0.3"
         },
         {
-          "depends_on": [],
           "id": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -295,9 +282,7 @@
           "version": "v1.28.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:composer/symfony/yaml@v2.8.52",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -326,7 +311,6 @@
             "pkg:composer/symfony/polyfill-mbstring@v1.28.0"
           ],
           "id": "pkg:composer/twig/twig@1.44.7",
-          "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
@@ -359,126 +343,154 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "guzzlehttp/guzzle",
+      "id": "pkg:composer/guzzlehttp/guzzle@6.2.3",
+      "language": "php",
+      "name": "guzzle",
       "org": "guzzlehttp",
+      "package_manager": "composer",
       "purl": "pkg:composer/guzzlehttp/guzzle@6.2.3",
-      "version": "6.2.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "6.2.3"
     },
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "guzzlehttp/promises",
+      "id": "pkg:composer/guzzlehttp/promises@1.5.3",
+      "language": "php",
+      "name": "promises",
       "org": "guzzlehttp",
+      "package_manager": "composer",
       "purl": "pkg:composer/guzzlehttp/promises@1.5.3",
-      "version": "1.5.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.5.3"
     },
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "guzzlehttp/psr7",
+      "id": "pkg:composer/guzzlehttp/psr7@1.9.1",
+      "language": "php",
+      "name": "psr7",
       "org": "guzzlehttp",
+      "package_manager": "composer",
       "purl": "pkg:composer/guzzlehttp/psr7@1.9.1",
-      "version": "1.9.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.9.1"
     },
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "phpunit/php-file-iterator",
+      "id": "pkg:composer/phpunit/php-file-iterator@1.4.5",
+      "language": "php",
+      "name": "php-file-iterator",
       "org": "phpunit",
+      "package_manager": "composer",
       "purl": "pkg:composer/phpunit/php-file-iterator@1.4.5",
-      "version": "1.4.5",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.4.5"
     },
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "phpunit/php-text-template",
+      "id": "pkg:composer/phpunit/php-text-template@1.2.1",
+      "language": "php",
+      "name": "php-text-template",
       "org": "phpunit",
+      "package_manager": "composer",
       "purl": "pkg:composer/phpunit/php-text-template@1.2.1",
-      "version": "1.2.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.2.1"
     },
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "phpunit/php-timer",
+      "id": "pkg:composer/phpunit/php-timer@1.0.9",
+      "language": "php",
+      "name": "php-timer",
       "org": "phpunit",
+      "package_manager": "composer",
       "purl": "pkg:composer/phpunit/php-timer@1.0.9",
-      "version": "1.0.9",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.0.9"
     },
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "phpunit/phpunit",
+      "id": "pkg:composer/phpunit/phpunit@4.8.36",
+      "language": "php",
+      "name": "phpunit",
       "org": "phpunit",
+      "package_manager": "composer",
       "purl": "pkg:composer/phpunit/phpunit@4.8.36",
-      "version": "4.8.36",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "4.8.36"
     },
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "psr/http-message",
+      "id": "pkg:composer/psr/http-message@1.1",
+      "language": "php",
+      "name": "http-message",
       "org": "psr",
+      "package_manager": "composer",
       "purl": "pkg:composer/psr/http-message@1.1",
-      "version": "1.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.1"
     },
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "ralouphie/getallheaders",
+      "id": "pkg:composer/ralouphie/getallheaders@3.0.3",
+      "language": "php",
+      "name": "getallheaders",
       "org": "ralouphie",
+      "package_manager": "composer",
       "purl": "pkg:composer/ralouphie/getallheaders@3.0.3",
-      "version": "3.0.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.0.3"
     },
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "symfony/polyfill-mbstring",
+      "id": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
+      "language": "php",
+      "name": "polyfill-mbstring",
       "org": "symfony",
+      "package_manager": "composer",
       "purl": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
-      "version": "v1.28.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "v1.28.0"
     },
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "symfony/yaml",
+      "id": "pkg:composer/symfony/yaml@v2.8.52",
+      "language": "php",
+      "name": "yaml",
       "org": "symfony",
+      "package_manager": "composer",
       "purl": "pkg:composer/symfony/yaml@v2.8.52",
-      "version": "v2.8.52",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "v2.8.52"
     },
     {
       "ecosystem": "php",
-      "licenses": [],
-      "name": "twig/twig",
+      "id": "pkg:composer/twig/twig@1.44.7",
+      "language": "php",
+      "name": "twig",
       "org": "twig",
+      "package_manager": "composer",
       "purl": "pkg:composer/twig/twig@1.44.7",
-      "version": "1.44.7",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.44.7"
     }
   ],
-  "project": {
-    "ecosystem": "php",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "composer",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "5b1eb4575aa1f0927c8754780065fd7144da2cec",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-php-composer"
+  }
 }

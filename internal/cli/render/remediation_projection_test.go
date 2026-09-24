@@ -21,8 +21,8 @@ func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T)
 				Purl:     "pkg:npm/example@1.0.0",
 				Licenses: []output.LicenseRef{},
 				Vulnerabilities: []output.VulnerabilityRef{{
-					ID:       "GHSA-example",
-					Severity: model.SeverityHigh,
+					ID:             "GHSA-example",
+					ParsedSeverity: model.SeverityHigh,
 				}},
 			},
 			Remediation: &model.PackageRemediation{
@@ -113,7 +113,7 @@ func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 	var markdown bytes.Buffer
 	if err := ScanMarkdown(&markdown, output.ScanResponse{
 		Packages: output.PackagesFromRegistry(registry),
-	}); err != nil {
+	}, output.ProjectDescriptor{}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
 	}
 	wantTextBlock := "✓ Enriched via Example Matcher\n\n" +
@@ -196,12 +196,12 @@ func TestDiffTextAndMarkdownShowHeadRemediationAfterFindings(t *testing.T) {
 func TestRemediationOutputIsOmittedWithoutSuggestions(t *testing.T) {
 	var markdown bytes.Buffer
 	if err := ScanMarkdown(&markdown, output.ScanResponse{
-		Packages: []output.ScanPackageEntry{{
-			Purl:            "pkg:npm/example@1.0.0",
+		Packages: []*model.Package{{
+			PURL:            "pkg:npm/example@1.0.0",
 			Vulnerabilities: []output.VulnerabilityRef{{ID: "GHSA-example"}},
 			Remediation:     &model.PackageRemediation{Status: model.PackageRemediationUnknown},
 		}},
-	}); err != nil {
+	}, output.ProjectDescriptor{}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
 	}
 	if strings.Contains(markdown.String(), "## Remediation") {
@@ -243,7 +243,7 @@ func TestRemediationTextSummarizesAllSuggestionsAndPointsToJSON(t *testing.T) {
 }
 
 func TestRemediationSummaryCountsOnlyConcreteFixSuggestions(t *testing.T) {
-	packages := []output.ScanPackageEntry{
+	packages := []*model.Package{
 		remediationReportEntry(
 			"complete",
 			model.PackageRemediationComplete,
@@ -297,9 +297,9 @@ func remediationReportEntry(
 	name string,
 	status model.PackageRemediationStatus,
 	action model.RemediationAction,
-) output.ScanPackageEntry {
-	return output.ScanPackageEntry{
-		Purl:            "pkg:npm/" + name + "@1.0.0",
+) *model.Package {
+	return &model.Package{
+		PURL:            "pkg:npm/" + name + "@1.0.0",
 		Name:            name,
 		Version:         "1.0.0",
 		Vulnerabilities: []output.VulnerabilityRef{{ID: "GHSA-" + name}},

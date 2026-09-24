@@ -1,5 +1,10 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
   "manifests": [
     {
       "dependencies": [
@@ -17,13 +22,10 @@
             "pkg:maven/org.springframework/spring-core@5.3.16"
           ],
           "id": "module:build.sbt#root",
-          "licenses": [],
           "name": "root"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.10",
-          "licenses": [],
           "locations": [
             {
               "access_path": "build.sbt",
@@ -48,9 +50,7 @@
           "version": "2.9.10"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/com.typesafe.play/play_2.12@2.6.7",
-          "licenses": [],
           "name": "com.typesafe.play:play_2.12",
           "package_ref": "pkg:maven/com.typesafe.play/play_2.12@2.6.7",
           "purl": "pkg:maven/com.typesafe.play/play_2.12@2.6.7",
@@ -60,9 +60,7 @@
           "version": "2.6.7"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/commons-codec/commons-codec@1.11",
-          "licenses": [],
           "locations": [
             {
               "access_path": "build.sbt",
@@ -87,9 +85,7 @@
           "version": "1.11"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/commons-collections/commons-collections@3.2.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "build.sbt",
@@ -114,9 +110,7 @@
           "version": "3.2.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/log4j/log4j@1.2.17",
-          "licenses": [],
           "locations": [
             {
               "access_path": "build.sbt",
@@ -141,9 +135,7 @@
           "version": "1.2.17"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/net.liftweb/lift-webkit_2.12@3.2.0-M3",
-          "licenses": [],
           "name": "net.liftweb:lift-webkit_2.12",
           "package_ref": "pkg:maven/net.liftweb/lift-webkit_2.12@3.2.0-M3",
           "purl": "pkg:maven/net.liftweb/lift-webkit_2.12@3.2.0-M3",
@@ -153,9 +145,7 @@
           "version": "3.2.0-M3"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.mindrot/jbcrypt@0.3m",
-          "licenses": [],
           "locations": [
             {
               "access_path": "build.sbt",
@@ -180,9 +170,7 @@
           "version": "0.3m"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.mockito/mockito-core@4.11.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "build.sbt",
@@ -207,9 +195,7 @@
           "version": "4.11.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.scalatestplus.play/scalatestplus-play_2.12@3.1.2",
-          "licenses": [],
           "name": "org.scalatestplus.play:scalatestplus-play_2.12",
           "package_ref": "pkg:maven/org.scalatestplus.play/scalatestplus-play_2.12@3.1.2",
           "purl": "pkg:maven/org.scalatestplus.play/scalatestplus-play_2.12@3.1.2",
@@ -219,9 +205,7 @@
           "version": "3.1.2"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.springframework/spring-core@5.3.16",
-          "licenses": [],
           "locations": [
             {
               "access_path": "build.sbt",
@@ -261,110 +245,134 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "com.fasterxml.jackson.core:jackson-databind",
+      "id": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.10",
+      "language": "scala",
+      "name": "jackson-databind",
       "org": "com.fasterxml.jackson.core",
+      "package_manager": "sbt",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.10",
-      "version": "2.9.10",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.9.10"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "com.typesafe.play:play_2.12",
+      "id": "pkg:maven/com.typesafe.play/play_2.12@2.6.7",
+      "language": "scala",
+      "name": "play_2.12",
       "org": "com.typesafe.play",
+      "package_manager": "sbt",
       "purl": "pkg:maven/com.typesafe.play/play_2.12@2.6.7",
-      "version": "2.6.7",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.6.7"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "commons-codec:commons-codec",
+      "id": "pkg:maven/commons-codec/commons-codec@1.11",
+      "language": "scala",
+      "name": "commons-codec",
       "org": "commons-codec",
+      "package_manager": "sbt",
       "purl": "pkg:maven/commons-codec/commons-codec@1.11",
-      "version": "1.11",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.11"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "commons-collections:commons-collections",
+      "id": "pkg:maven/commons-collections/commons-collections@3.2.1",
+      "language": "scala",
+      "name": "commons-collections",
       "org": "commons-collections",
+      "package_manager": "sbt",
       "purl": "pkg:maven/commons-collections/commons-collections@3.2.1",
-      "version": "3.2.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.2.1"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "log4j:log4j",
+      "id": "pkg:maven/log4j/log4j@1.2.17",
+      "language": "scala",
+      "name": "log4j",
       "org": "log4j",
+      "package_manager": "sbt",
       "purl": "pkg:maven/log4j/log4j@1.2.17",
-      "version": "1.2.17",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.2.17"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "net.liftweb:lift-webkit_2.12",
+      "id": "pkg:maven/net.liftweb/lift-webkit_2.12@3.2.0-M3",
+      "language": "scala",
+      "name": "lift-webkit_2.12",
       "org": "net.liftweb",
+      "package_manager": "sbt",
       "purl": "pkg:maven/net.liftweb/lift-webkit_2.12@3.2.0-M3",
-      "version": "3.2.0-M3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.2.0-M3"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "org.mindrot:jbcrypt",
+      "id": "pkg:maven/org.mindrot/jbcrypt@0.3m",
+      "language": "scala",
+      "name": "jbcrypt",
       "org": "org.mindrot",
+      "package_manager": "sbt",
       "purl": "pkg:maven/org.mindrot/jbcrypt@0.3m",
-      "version": "0.3m",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.3m"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "org.mockito:mockito-core",
+      "id": "pkg:maven/org.mockito/mockito-core@4.11.0",
+      "language": "scala",
+      "name": "mockito-core",
       "org": "org.mockito",
+      "package_manager": "sbt",
       "purl": "pkg:maven/org.mockito/mockito-core@4.11.0",
-      "version": "4.11.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "4.11.0"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "org.scalatestplus.play:scalatestplus-play_2.12",
+      "id": "pkg:maven/org.scalatestplus.play/scalatestplus-play_2.12@3.1.2",
+      "language": "scala",
+      "name": "scalatestplus-play_2.12",
       "org": "org.scalatestplus.play",
+      "package_manager": "sbt",
       "purl": "pkg:maven/org.scalatestplus.play/scalatestplus-play_2.12@3.1.2",
-      "version": "3.1.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.1.2"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "org.springframework:spring-core",
+      "id": "pkg:maven/org.springframework/spring-core@5.3.16",
+      "language": "scala",
+      "name": "spring-core",
       "org": "org.springframework",
+      "package_manager": "sbt",
       "purl": "pkg:maven/org.springframework/spring-core@5.3.16",
-      "version": "5.3.16",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "5.3.16"
     }
   ],
-  "project": {
-    "ecosystem": "scala",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "sbt",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0",
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "9adaa81b1d775a61b6e9f436e4c1cd0203197ff5",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-scala-sbt"
+  },
   "warnings": [
     {
       "manifest": "build.sbt",

@@ -161,11 +161,10 @@ func TestScanRendersWarningNoticesWithoutControlSequences(t *testing.T) {
 
 func TestScanMarkdownRendersWarning(t *testing.T) {
 	payload := output.ScanResponse{
-		Project:  output.ProjectDescriptor{Name: "demo"},
 		Warnings: fallbackWarnings(),
 	}
 	var buf bytes.Buffer
-	if err := ScanMarkdown(&buf, payload); err != nil {
+	if err := ScanMarkdown(&buf, payload, output.ProjectDescriptor{Name: "demo"}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
 	}
 	if !strings.Contains(buf.String(), "> **Warning:** maven-detector unavailable") {
@@ -175,7 +174,6 @@ func TestScanMarkdownRendersWarning(t *testing.T) {
 
 func TestScanMarkdownEscapesUntrustedWarningText(t *testing.T) {
 	payload := output.ScanResponse{
-		Project: output.ProjectDescriptor{Name: "demo"},
 		Warnings: []plugin.DetectorWarning{{
 			Type:     plugin.DetectorWarningFallback,
 			Source:   "maven-detector",
@@ -184,7 +182,7 @@ func TestScanMarkdownEscapesUntrustedWarningText(t *testing.T) {
 		}},
 	}
 	var buf bytes.Buffer
-	if err := ScanMarkdown(&buf, payload); err != nil {
+	if err := ScanMarkdown(&buf, payload, output.ProjectDescriptor{}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
 	}
 	rendered := buf.String()

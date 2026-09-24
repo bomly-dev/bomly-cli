@@ -60,8 +60,8 @@ func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
 	payload := output.ScanResponse{
 		Metadata: output.Metadata{ReachabilityEnabled: true},
-		Packages: []output.ScanPackageEntry{{
-			Purl: libPURL,
+		Packages: []*sdkmodel.Package{{
+			PURL: libPURL,
 			Name: "lib",
 			Vulnerabilities: []output.VulnerabilityRef{{
 				ID:           "CVE-2024-0001",
@@ -73,11 +73,11 @@ func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
 			ID:              "CVE-2024-0001",
 			VulnerabilityID: "CVE-2024-0001",
 			Severity:        "high",
-			Package:         output.FindingPackageRef{Name: "lib", Purl: libPURL},
+			PackageRef:      libPURL,
 		}},
 	}
 	var out bytes.Buffer
-	if err := ScanMarkdown(&out, payload); err != nil {
+	if err := ScanMarkdown(&out, payload, output.ProjectDescriptor{}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
 	}
 	if !strings.Contains(out.String(), "Reachability") || !strings.Contains(out.String(), "reachable (package)") {
@@ -86,7 +86,7 @@ func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
 
 	payload.Metadata.ReachabilityEnabled = false
 	out.Reset()
-	if err := ScanMarkdown(&out, payload); err != nil {
+	if err := ScanMarkdown(&out, payload, output.ProjectDescriptor{}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
 	}
 	if strings.Contains(out.String(), "Reachability") || strings.Contains(out.String(), "reachable (package)") {
@@ -102,20 +102,20 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 				Added: []output.DiffVulnerabilityChange{{
 					Package: output.PackageRef{Name: "lib", Version: "1.0.0"},
 					Vulnerability: output.VulnerabilityRef{
-						ID:           "CVE-2024-0001",
-						Severity:     "high",
-						Reachability: &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
+						ID:             "CVE-2024-0001",
+						ParsedSeverity: "high",
+						Reachability:   &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
 					},
 				}},
 			},
 		},
-		Packages: []output.ScanPackageEntry{{
-			Purl: libPURL,
+		Packages: []*sdkmodel.Package{{
+			PURL: libPURL,
 			Name: "lib",
 			Vulnerabilities: []output.VulnerabilityRef{{
-				ID:           "CVE-2024-0001",
-				Severity:     "high",
-				Reachability: &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
+				ID:             "CVE-2024-0001",
+				ParsedSeverity: "high",
+				Reachability:   &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
 			}},
 		}},
 		Audit: &output.DiffAudit{
@@ -123,7 +123,7 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 				ID:              "CVE-2024-0001",
 				VulnerabilityID: "CVE-2024-0001",
 				Severity:        "high",
-				Package:         output.FindingPackageRef{Name: "lib", Version: "1.0.0", Purl: libPURL},
+				PackageRef:      libPURL,
 			}},
 		},
 	}
@@ -165,17 +165,17 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 		Dependency: output.ExplainDependency{PackageRef: output.PackageRef{
 			Name: "lib",
 			Vulnerabilities: []output.VulnerabilityRef{{
-				ID:           "CVE-2024-0001",
-				Source:       "osv",
-				Severity:     "high",
-				Reachability: &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
+				ID:             "CVE-2024-0001",
+				Source:         "osv",
+				ParsedSeverity: "high",
+				Reachability:   &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
 			}},
 		}},
 		Findings: []output.AuditFinding{{
 			ID:              "CVE-2024-0001",
 			VulnerabilityID: "CVE-2024-0001",
 			Severity:        "high",
-			Package:         output.FindingPackageRef{Name: "lib"},
+			PackageRef:      libPURL,
 		}},
 	}
 	// Compact text explain shows the CVE ID and severity but not the reachability

@@ -238,7 +238,7 @@ func diffVulnerabilityTable(title, status string, changes []output.DiffVulnerabi
 		vuln := change.Vulnerability
 		row := []string{
 			status,
-			strings.ToUpper(valueOrDash(string(vuln.Severity))),
+			strings.ToUpper(valueOrDash(string(vuln.ParsedSeverity))),
 			vuln.ID,
 			DiffPackageDisplayName(change.Package),
 		}
@@ -295,7 +295,7 @@ func persistedLicenseFindingCount(audit *output.DiffAudit) int {
 	packages := map[string]struct{}{}
 	for _, finding := range audit.Persisted {
 		if finding.Kind == model.FindingKindLicense {
-			packages[finding.Package.Purl] = struct{}{}
+			packages[finding.PackageRef] = struct{}{}
 		}
 	}
 	return len(packages)
@@ -367,7 +367,7 @@ func diffPolicySummary(audit *output.DiffAudit) string {
 	return "**Summary:** " + strings.Join(parts, ", ") + "."
 }
 
-func diffAuditFindingTable(title, status string, findings []output.AuditFinding, packages []output.ScanPackageEntry, includeReachability bool) []string {
+func diffAuditFindingTable(title, status string, findings []output.AuditFinding, packages []*model.Package, includeReachability bool) []string {
 	if len(findings) == 0 {
 		return nil
 	}
@@ -380,7 +380,7 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding,
 			valueOrDash(finding.Auditor),
 			strings.ToUpper(valueOrDash(string(finding.Severity))),
 			valueOrDash(finding.ID),
-			finding.Package.DisplayLabel(),
+			output.FindingLabel(finding),
 		}
 		if includeReachability {
 			reachability := ""
@@ -476,8 +476,8 @@ func sortChangedPackages(changes []output.DiffChangedPackage) []output.DiffChang
 func sortVulnerabilityChanges(changes []output.DiffVulnerabilityChange) []output.DiffVulnerabilityChange {
 	sorted := append([]output.DiffVulnerabilityChange(nil), changes...)
 	sort.Slice(sorted, func(i, j int) bool {
-		if severityRankTable(string(sorted[i].Vulnerability.Severity)) != severityRankTable(string(sorted[j].Vulnerability.Severity)) {
-			return severityRankTable(string(sorted[i].Vulnerability.Severity)) < severityRankTable(string(sorted[j].Vulnerability.Severity))
+		if severityRankTable(string(sorted[i].Vulnerability.ParsedSeverity)) != severityRankTable(string(sorted[j].Vulnerability.ParsedSeverity)) {
+			return severityRankTable(string(sorted[i].Vulnerability.ParsedSeverity)) < severityRankTable(string(sorted[j].Vulnerability.ParsedSeverity))
 		}
 		if sorted[i].Vulnerability.ID != sorted[j].Vulnerability.ID {
 			return sorted[i].Vulnerability.ID < sorted[j].Vulnerability.ID

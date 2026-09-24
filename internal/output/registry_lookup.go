@@ -170,6 +170,31 @@ func NodeVulnerabilities(registry *model.PackageRegistry, node model.GraphNode) 
 //
 // The return type is FindingPackageRef because findings were the first surface
 // to need this shape; it is the presentation identity of any package reference.
+// FindingPackageRef is the presentation identity of a package a finding
+// references: what a renderer prints for it. It is not part of any document
+// -- the scan record's findings reference their package by URL and the
+// packages collection carries the identity -- so it is derived here, from the
+// registry when the package is in it and from the package URL otherwise.
+type FindingPackageRef struct {
+	Name      string
+	Org       string
+	Version   string
+	Purl      string
+	Ecosystem string
+}
+
+// DisplayLabel returns a human-readable name@version label for the package.
+func (p FindingPackageRef) DisplayLabel() string {
+	switch {
+	case p.Name != "" && p.Version != "":
+		return p.Name + "@" + p.Version
+	case p.Name != "":
+		return p.Name
+	default:
+		return p.Purl
+	}
+}
+
 func IdentifyPackageRef(registry *model.PackageRegistry, packageRef string) FindingPackageRef {
 	packageRef = strings.TrimSpace(packageRef)
 	if pkg := RegistryPackage(registry, packageRef); pkg != nil {
@@ -186,6 +211,12 @@ func IdentifyPackageRef(registry *model.PackageRegistry, packageRef string) Find
 
 // identityFromPURL derives a display identity from a package URL, falling back
 // to the raw string when it is not one.
+// IdentityFromPackageRef derives a display identity from a package URL alone,
+// for a renderer that has no registry in scope.
+func IdentityFromPackageRef(packageRef string) FindingPackageRef {
+	return identityFromPURL(packageRef)
+}
+
 func identityFromPURL(packageRef string) FindingPackageRef {
 	parsed, err := purlkit.Parse(packageRef)
 	if err != nil || parsed.Name == "" {

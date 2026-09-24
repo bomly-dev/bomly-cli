@@ -132,9 +132,35 @@ func normalizeJSON(t *testing.T, raw []byte) []byte {
 	// legitimate golden content; timeouts never are.
 	failOnTimedOutResolution(t, obj)
 
-	// Zero out top-level metadata.duration_ms.
+	// Drop top-level metadata.duration_ms rather than zeroing it: the scan
+	// record omits it when a run took under a millisecond, and omits the
+	// whole metadata object when nothing else is in it, so a fast run and a
+	// slow one must normalize to the same bytes.
 	if md, ok := obj["metadata"].(map[string]any); ok {
-		md["duration_ms"] = 0
+		delete(md, "duration_ms")
+		if len(md) == 0 {
+			delete(obj, "metadata")
+		}
+	}
+
+	// The scan record's run block names the execution: a fresh id and two
+	// timestamps per run, which are the facts a golden must not pin.
+	// Everything else in it -- the tool, the options -- is deterministic.
+	if run, ok := obj["run"].(map[string]any); ok {
+		for _, key := range []string{"id", "started_at", "completed_at"} {
+			if _, present := run[key]; present {
+				run[key] = "<normalized>"
+			}
+		}
+	}
+	// The section digests are taken over the content as written, before any
+	// of the normalization below touches it, so a section that carries a
+	// volatile value -- an analyzer's timestamp -- has a digest that moves
+	// with it. The content is what a golden pins; the digest follows it.
+	if digests, ok := obj["digests"].(map[string]any); ok {
+		for key := range digests {
+			digests[key] = "<normalized>"
+		}
 	}
 
 	// Normalize project.path and project.name — replace with fixed placeholders.

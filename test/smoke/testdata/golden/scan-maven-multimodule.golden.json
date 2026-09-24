@@ -1,5 +1,10 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
   "manifests": [
     {
       "dependencies": [
@@ -8,15 +13,12 @@
             "pkg:maven/org.apache.commons/commons-lang3@3.12.0"
           ],
           "id": "module:core/pom.xml#pkg:maven/dev.bomly.example/core@1.0.0",
-          "licenses": [],
           "name": "dev.bomly.example:core",
           "purl": "pkg:maven/dev.bomly.example/core@1.0.0",
           "version": "1.0.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.apache.commons/commons-lang3@3.12.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "core/pom.xml",
@@ -48,9 +50,7 @@
     {
       "dependencies": [
         {
-          "depends_on": [],
           "id": "module:pom.xml#pkg:maven/dev.bomly.example/multimodule-parent@1.0.0",
-          "licenses": [],
           "name": "dev.bomly.example:multimodule-parent",
           "purl": "pkg:maven/dev.bomly.example/multimodule-parent@1.0.0",
           "version": "1.0.0"
@@ -70,7 +70,6 @@
             "pkg:maven/org.apache.commons/commons-lang3@3.12.0"
           ],
           "id": "module:core/pom.xml#pkg:maven/dev.bomly.example/core@1.0.0",
-          "licenses": [],
           "name": "dev.bomly.example:core",
           "purl": "pkg:maven/dev.bomly.example/core@1.0.0",
           "version": "1.0.0"
@@ -81,15 +80,12 @@
             "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0"
           ],
           "id": "module:web/pom.xml#pkg:maven/dev.bomly.example/web@1.0.0",
-          "licenses": [],
           "name": "dev.bomly.example:web",
           "purl": "pkg:maven/dev.bomly.example/web@1.0.0",
           "version": "1.0.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
-          "licenses": [],
           "name": "com.fasterxml.jackson.core:jackson-annotations",
           "package_ref": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
           "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
@@ -99,9 +95,7 @@
           "version": "2.13.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
-          "licenses": [],
           "name": "com.fasterxml.jackson.core:jackson-core",
           "package_ref": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
           "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
@@ -116,7 +110,6 @@
             "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0"
           ],
           "id": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "web/pom.xml",
@@ -141,9 +134,7 @@
           "version": "2.13.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:maven/org.apache.commons/commons-lang3@3.12.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "core/pom.xml",
@@ -173,54 +164,58 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "com.fasterxml.jackson.core:jackson-annotations",
+      "id": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
+      "name": "jackson-annotations",
       "org": "com.fasterxml.jackson.core",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
-      "version": "2.13.0",
-      "vulnerabilities": []
+      "version": "2.13.0"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "com.fasterxml.jackson.core:jackson-core",
+      "id": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
+      "name": "jackson-core",
       "org": "com.fasterxml.jackson.core",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
-      "version": "2.13.0",
-      "vulnerabilities": []
+      "version": "2.13.0"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "com.fasterxml.jackson.core:jackson-databind",
+      "id": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0",
+      "name": "jackson-databind",
       "org": "com.fasterxml.jackson.core",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0",
-      "version": "2.13.0",
-      "vulnerabilities": []
+      "version": "2.13.0"
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "org.apache.commons:commons-lang3",
+      "id": "pkg:maven/org.apache.commons/commons-lang3@3.12.0",
+      "name": "commons-lang3",
       "org": "org.apache.commons",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.commons/commons-lang3@3.12.0",
-      "version": "3.12.0",
-      "vulnerabilities": []
+      "version": "3.12.0"
     }
   ],
-  "project": {
-    "ecosystem": "maven",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "maven",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "178d4ef827eb74f90595654f5e4a43f98c2848fd",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-java-maven-multimodule"
+  }
 }

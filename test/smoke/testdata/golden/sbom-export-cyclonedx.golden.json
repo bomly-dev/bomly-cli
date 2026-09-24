@@ -40,6 +40,7 @@
       "licenses": [
         {
           "license": {
+            "acknowledgement": "declared",
             "id": "WTFPL"
           }
         }
@@ -73,6 +74,7 @@
       "licenses": [
         {
           "license": {
+            "acknowledgement": "declared",
             "id": "MIT"
           }
         }
@@ -106,6 +108,7 @@
       "licenses": [
         {
           "license": {
+            "acknowledgement": "declared",
             "id": "MIT"
           }
         }
@@ -139,6 +142,7 @@
       "licenses": [
         {
           "license": {
+            "acknowledgement": "declared",
             "id": "MIT"
           }
         }

@@ -56,7 +56,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 			return fmt.Errorf("write explain licenses header: %w", err)
 		}
 		for _, license := range target.Dependency.Licenses {
-			label := license.Identifier()
+			label := output.LicenseIdentifier(license)
 			if label == "" {
 				continue
 			}
@@ -98,7 +98,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 			if len(title) > 50 {
 				title = title[:47] + "..."
 			}
-			line := fmt.Sprintf("  %-*s  %s  %s", maxIDWidth, vuln.ID, severityLabelFixed(string(vuln.Severity)), title)
+			line := fmt.Sprintf("  %-*s  %s  %s", maxIDWidth, vuln.ID, severityLabelFixed(string(vuln.ParsedSeverity)), title)
 			if _, err := fmt.Fprintln(w, strings.TrimRight(line, " ")); err != nil {
 				return fmt.Errorf("write explain vulnerability entry: %w", err)
 			}

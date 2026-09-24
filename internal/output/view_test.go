@@ -44,7 +44,7 @@ func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, nil, findings, started)
+	response := output.BuildScanRecord(plugin.ExecutionTarget{}, output.NewScanRun("test", false, false, false, nil), false, consolidated, nil, findings, started)
 	if response.Command != "scan" {
 		t.Fatalf("expected scan command, got %q", response.Command)
 	}
@@ -93,7 +93,7 @@ func TestBuildScanResponseIncludesResolutionMetadata(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: "/repo"}, consolidated, nil, nil, time.Now().Add(-time.Second))
+	response := output.BuildScanRecord(plugin.ExecutionTarget{}, output.NewScanRun("test", false, false, false, nil), false, consolidated, nil, nil, time.Now().Add(-time.Second))
 	if len(response.Manifests) != 1 {
 		t.Fatalf("expected one manifest, got %d", len(response.Manifests))
 	}
@@ -154,7 +154,7 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 		Source:          "osv",
 	}
 
-	disabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, registry, []model.Finding{finding}, time.Now().Add(-time.Second))
+	disabled := output.BuildScanRecord(plugin.ExecutionTarget{}, output.NewScanRun("test", false, false, false, nil), false, consolidated, registry, []model.Finding{finding}, time.Now().Add(-time.Second))
 	if disabled.Metadata.ReachabilityEnabled {
 		t.Fatal("reachability metadata should be omitted when disabled")
 	}
@@ -165,7 +165,7 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 		t.Fatalf("disabled scan finding join leaked reachability: %#v", got)
 	}
 
-	enabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, registry, []model.Finding{finding}, time.Now().Add(-time.Second), output.ReportOptions{
+	enabled := output.BuildScanRecord(plugin.ExecutionTarget{}, output.NewScanRun("test", false, false, false, nil), false, consolidated, registry, []model.Finding{finding}, time.Now().Add(-time.Second), output.ReportOptions{
 		ReachabilityEnabled: true,
 		AnalyzerRuns:        []string{"jsreach"},
 		AnalyzerStats:       map[string]plugin.ReachabilityStats{"jsreach": {Reachable: 1}},
@@ -241,7 +241,7 @@ func TestBuildScanResponseDeduplicatesManifestAndPrefersNative(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: projectRoot}, consolidated, nil, nil, time.Now().Add(-time.Second))
+	response := output.BuildScanRecord(plugin.ExecutionTarget{}, output.NewScanRun("test", false, false, false, nil), false, consolidated, nil, nil, time.Now().Add(-time.Second))
 	if len(response.Manifests) != 1 {
 		t.Fatalf("expected 1 deduplicated manifest, got %d", len(response.Manifests))
 	}
@@ -306,7 +306,7 @@ func TestBuildScanResponseDeduplicatesSameManifestWhenMetadataDiffers(t *testing
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: projectRoot}, consolidated, nil, nil, time.Now().Add(-time.Second))
+	response := output.BuildScanRecord(plugin.ExecutionTarget{}, output.NewScanRun("test", false, false, false, nil), false, consolidated, nil, nil, time.Now().Add(-time.Second))
 	if len(response.Manifests) != 1 {
 		t.Fatalf("expected same manifest file to deduplicate despite metadata drift, got %#v", response.Manifests)
 	}
@@ -354,9 +354,9 @@ func TestBuildExplainResponseGatesReachability(t *testing.T) {
 			}},
 		}}}},
 		Findings: []output.AuditFinding{{
-			ID:      "OSV-REACH",
-			Kind:    model.FindingKindVulnerability,
-			Package: output.FindingPackageRef{Name: "react"},
+			ID:         "OSV-REACH",
+			Kind:       model.FindingKindVulnerability,
+			PackageRef: "pkg:npm/react",
 		}},
 	}}
 	disabled := output.BuildExplainResponse(output.ProjectDescriptor{Name: "demo"}, "react", targets, time.Now().Add(-time.Second))
@@ -646,7 +646,7 @@ func TestBuildDiffResponseGatesReachability(t *testing.T) {
 			ID:              "OSV-REACH",
 			VulnerabilityID: "OSV-REACH",
 			Kind:            model.FindingKindVulnerability,
-			Package:         output.FindingPackageRef{Name: "newpkg", Version: "1.0.0", Purl: pkg.NodeID()},
+			PackageRef:      "pkg:npm/newpkg@1.0.0",
 		}},
 	}
 	disabled := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, audit, time.Now().Add(-time.Second), output.ReportOptions{HeadRegistry: headRegistry})
@@ -940,7 +940,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	reactPkg.Licenses = []model.PackageLicense{{SPDXExpression: "MIT"}}
 	reactPkg.Matched = true
 
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: projectRoot}, consolidated, registry, nil, time.Now().Add(-time.Second))
+	response := output.BuildScanRecord(plugin.ExecutionTarget{}, output.NewScanRun("test", false, false, false, nil), false, consolidated, registry, nil, time.Now().Add(-time.Second))
 	if len(response.Manifests) != 2 {
 		t.Fatalf("expected 2 manifests, got %d", len(response.Manifests))
 	}
@@ -949,7 +949,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	// collection, carrying the registry-learned MIT license.
 	reactEntries := 0
 	for _, pkg := range response.Packages {
-		if pkg.Purl != "pkg:npm/react@18.2.0" {
+		if pkg.PURL != "pkg:npm/react@18.2.0" {
 			continue
 		}
 		reactEntries++
@@ -968,7 +968,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	for _, manifest := range response.Manifests {
 		found := false
 		for _, dep := range manifest.Dependencies {
-			if dep.Purl == "pkg:npm/react@18.2.0" {
+			if dep.PURL == "pkg:npm/react@18.2.0" {
 				found = true
 			}
 		}
@@ -1197,7 +1197,7 @@ func newViewTestGraph(t *testing.T) *model.Graph {
 	return g
 }
 
-func scanPackageByName(t *testing.T, packages []output.ScanPackageEntry, name string) output.ScanPackageEntry {
+func scanPackageByName(t *testing.T, packages []*model.Package, name string) *model.Package {
 	t.Helper()
 	for _, pkg := range packages {
 		if pkg.Name == name {
@@ -1205,7 +1205,7 @@ func scanPackageByName(t *testing.T, packages []output.ScanPackageEntry, name st
 		}
 	}
 	t.Fatalf("package %q not found in %#v", name, packages)
-	return output.ScanPackageEntry{}
+	return nil
 }
 
 func TestBuildScanResponseCarriesDetectorWarningsIntoJSON(t *testing.T) {
@@ -1238,7 +1238,7 @@ func TestBuildScanResponseCarriesDetectorWarningsIntoJSON(t *testing.T) {
 		}},
 	}
 
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, nil, nil, time.Now(),
+	response := output.BuildScanRecord(plugin.ExecutionTarget{}, output.NewScanRun("test", false, false, false, nil), false, consolidated, nil, nil, time.Now(),
 		output.ReportOptions{DetectorWarnings: warnings})
 	if len(response.Warnings) != 2 {
 		t.Fatalf("expected both warnings on the response, got %+v", response.Warnings)
@@ -1274,7 +1274,7 @@ func TestBuildScanResponseOmitsWarningsWhenClean(t *testing.T) {
 			Entry:        model.GraphEntry{Graph: graph, Manifest: model.ManifestMetadata{Path: "pnpm-lock.yaml"}},
 		}},
 	}
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, nil, nil, time.Now())
+	response := output.BuildScanRecord(plugin.ExecutionTarget{}, output.NewScanRun("test", false, false, false, nil), false, consolidated, nil, nil, time.Now())
 	encoded, err := json.Marshal(response)
 	if err != nil {
 		t.Fatalf("marshal response: %v", err)

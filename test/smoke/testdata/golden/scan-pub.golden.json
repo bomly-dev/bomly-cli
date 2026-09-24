@@ -1,5 +1,10 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
   "manifests": [
     {
       "dependencies": [
@@ -17,7 +22,6 @@
             "pkg:pub/yaml@3.1.3"
           ],
           "id": "module:pubspec.yaml#pkg:pub/example_dart_pub@1.0.0",
-          "licenses": [],
           "name": "example_dart_pub",
           "purl": "pkg:pub/example_dart_pub@1.0.0",
           "version": "1.0.0"
@@ -27,7 +31,6 @@
             "pkg:pub/meta@1.18.2"
           ],
           "id": "pkg:pub/_fe_analyzer_shared@67.0.0",
-          "licenses": [],
           "name": "_fe_analyzer_shared",
           "package_ref": "pkg:pub/_fe_analyzer_shared@67.0.0",
           "purl": "pkg:pub/_fe_analyzer_shared@67.0.0",
@@ -52,7 +55,6 @@
             "pkg:pub/yaml@3.1.3"
           ],
           "id": "pkg:pub/analyzer@6.4.1",
-          "licenses": [],
           "name": "analyzer",
           "package_ref": "pkg:pub/analyzer@6.4.1",
           "purl": "pkg:pub/analyzer@6.4.1",
@@ -67,7 +69,6 @@
             "pkg:pub/path@1.9.0"
           ],
           "id": "pkg:pub/archive@3.3.0",
-          "licenses": [],
           "name": "archive",
           "package_ref": "pkg:pub/archive@3.3.0",
           "purl": "pkg:pub/archive@3.3.0",
@@ -77,9 +78,7 @@
           "version": "3.3.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/args@2.7.0",
-          "licenses": [],
           "name": "args",
           "package_ref": "pkg:pub/args@2.7.0",
           "purl": "pkg:pub/args@2.7.0",
@@ -94,7 +93,6 @@
             "pkg:pub/meta@1.18.2"
           ],
           "id": "pkg:pub/async@2.13.1",
-          "licenses": [],
           "name": "async",
           "package_ref": "pkg:pub/async@2.13.1",
           "purl": "pkg:pub/async@2.13.1",
@@ -109,7 +107,6 @@
             "pkg:pub/string_scanner@1.4.1"
           ],
           "id": "pkg:pub/boolean_selector@2.1.2",
-          "licenses": [],
           "name": "boolean_selector",
           "package_ref": "pkg:pub/boolean_selector@2.1.2",
           "purl": "pkg:pub/boolean_selector@2.1.2",
@@ -131,7 +128,6 @@
             "pkg:pub/path@1.9.0"
           ],
           "id": "pkg:pub/build@2.4.1",
-          "licenses": [],
           "name": "build",
           "package_ref": "pkg:pub/build@2.4.1",
           "purl": "pkg:pub/build@2.4.1",
@@ -141,9 +137,7 @@
           "version": "2.4.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/built_collection@5.1.1",
-          "licenses": [],
           "name": "built_collection",
           "package_ref": "pkg:pub/built_collection@5.1.1",
           "purl": "pkg:pub/built_collection@5.1.1",
@@ -160,7 +154,6 @@
             "pkg:pub/meta@1.18.2"
           ],
           "id": "pkg:pub/built_value@8.12.6",
-          "licenses": [],
           "name": "built_value",
           "package_ref": "pkg:pub/built_value@8.12.6",
           "purl": "pkg:pub/built_value@8.12.6",
@@ -175,7 +168,6 @@
             "pkg:pub/yaml@3.1.3"
           ],
           "id": "pkg:pub/cli_config@0.2.0",
-          "licenses": [],
           "name": "cli_config",
           "package_ref": "pkg:pub/cli_config@0.2.0",
           "purl": "pkg:pub/cli_config@0.2.0",
@@ -185,9 +177,7 @@
           "version": "0.2.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/clock@1.1.2",
-          "licenses": [],
           "name": "clock",
           "package_ref": "pkg:pub/clock@1.1.2",
           "purl": "pkg:pub/clock@1.1.2",
@@ -205,7 +195,6 @@
             "pkg:pub/meta@1.18.2"
           ],
           "id": "pkg:pub/code_builder@4.10.1",
-          "licenses": [],
           "name": "code_builder",
           "package_ref": "pkg:pub/code_builder@4.10.1",
           "purl": "pkg:pub/code_builder@4.10.1",
@@ -215,9 +204,7 @@
           "version": "4.10.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/collection@1.18.0",
-          "licenses": [],
           "name": "collection",
           "package_ref": "pkg:pub/collection@1.18.0",
           "purl": "pkg:pub/collection@1.18.0",
@@ -232,7 +219,6 @@
             "pkg:pub/typed_data@1.4.0"
           ],
           "id": "pkg:pub/convert@3.1.2",
-          "licenses": [],
           "name": "convert",
           "package_ref": "pkg:pub/convert@3.1.2",
           "purl": "pkg:pub/convert@3.1.2",
@@ -256,7 +242,6 @@
             "pkg:pub/yaml@3.1.3"
           ],
           "id": "pkg:pub/coverage@1.15.0",
-          "licenses": [],
           "name": "coverage",
           "package_ref": "pkg:pub/coverage@1.15.0",
           "purl": "pkg:pub/coverage@1.15.0",
@@ -270,7 +255,6 @@
             "pkg:pub/typed_data@1.4.0"
           ],
           "id": "pkg:pub/crypto@3.0.7",
-          "licenses": [],
           "name": "crypto",
           "package_ref": "pkg:pub/crypto@3.0.7",
           "purl": "pkg:pub/crypto@3.0.7",
@@ -289,7 +273,6 @@
             "pkg:pub/source_span@1.10.2"
           ],
           "id": "pkg:pub/dart_style@2.3.6",
-          "licenses": [],
           "name": "dart_style",
           "package_ref": "pkg:pub/dart_style@2.3.6",
           "purl": "pkg:pub/dart_style@2.3.6",
@@ -304,7 +287,6 @@
             "pkg:pub/path@1.9.0"
           ],
           "id": "pkg:pub/file@7.0.1",
-          "licenses": [],
           "name": "file",
           "package_ref": "pkg:pub/file@7.0.1",
           "purl": "pkg:pub/file@7.0.1",
@@ -314,9 +296,7 @@
           "version": "7.0.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/fixnum@1.1.1",
-          "licenses": [],
           "name": "fixnum",
           "package_ref": "pkg:pub/fixnum@1.1.1",
           "purl": "pkg:pub/fixnum@1.1.1",
@@ -331,7 +311,6 @@
             "pkg:pub/path@1.9.0"
           ],
           "id": "pkg:pub/frontend_server_client@4.0.0",
-          "licenses": [],
           "name": "frontend_server_client",
           "package_ref": "pkg:pub/frontend_server_client@4.0.0",
           "purl": "pkg:pub/frontend_server_client@4.0.0",
@@ -349,7 +328,6 @@
             "pkg:pub/string_scanner@1.4.1"
           ],
           "id": "pkg:pub/glob@2.1.3",
-          "licenses": [],
           "name": "glob",
           "package_ref": "pkg:pub/glob@2.1.3",
           "purl": "pkg:pub/glob@2.1.3",
@@ -366,7 +344,6 @@
             "pkg:pub/web@1.1.1"
           ],
           "id": "pkg:pub/http@1.6.0",
-          "licenses": [],
           "name": "http",
           "package_ref": "pkg:pub/http@1.6.0",
           "purl": "pkg:pub/http@1.6.0",
@@ -380,7 +357,6 @@
             "pkg:pub/async@2.13.1"
           ],
           "id": "pkg:pub/http_multi_server@3.2.2",
-          "licenses": [],
           "name": "http_multi_server",
           "package_ref": "pkg:pub/http_multi_server@3.2.2",
           "purl": "pkg:pub/http_multi_server@3.2.2",
@@ -397,7 +373,6 @@
             "pkg:pub/typed_data@1.4.0"
           ],
           "id": "pkg:pub/http_parser@4.0.2",
-          "licenses": [],
           "name": "http_parser",
           "package_ref": "pkg:pub/http_parser@4.0.2",
           "purl": "pkg:pub/http_parser@4.0.2",
@@ -413,7 +388,6 @@
             "pkg:pub/path@1.9.0"
           ],
           "id": "pkg:pub/intl@0.18.1",
-          "licenses": [],
           "name": "intl",
           "package_ref": "pkg:pub/intl@0.18.1",
           "purl": "pkg:pub/intl@0.18.1",
@@ -429,7 +403,6 @@
             "pkg:pub/string_scanner@1.4.1"
           ],
           "id": "pkg:pub/io@1.0.5",
-          "licenses": [],
           "name": "io",
           "package_ref": "pkg:pub/io@1.0.5",
           "purl": "pkg:pub/io@1.0.5",
@@ -439,9 +412,7 @@
           "version": "1.0.5"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/js@0.7.2",
-          "licenses": [],
           "name": "js",
           "package_ref": "pkg:pub/js@0.7.2",
           "purl": "pkg:pub/js@0.7.2",
@@ -451,9 +422,7 @@
           "version": "0.7.2"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/lints@3.0.0",
-          "licenses": [],
           "name": "lints",
           "package_ref": "pkg:pub/lints@3.0.0",
           "purl": "pkg:pub/lints@3.0.0",
@@ -463,9 +432,7 @@
           "version": "3.0.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/logging@1.3.0",
-          "licenses": [],
           "name": "logging",
           "package_ref": "pkg:pub/logging@1.3.0",
           "purl": "pkg:pub/logging@1.3.0",
@@ -483,7 +450,6 @@
             "pkg:pub/test_api@0.7.3"
           ],
           "id": "pkg:pub/matcher@0.12.16%2B1",
-          "licenses": [],
           "name": "matcher",
           "package_ref": "pkg:pub/matcher@0.12.16%2B1",
           "purl": "pkg:pub/matcher@0.12.16%2B1",
@@ -493,9 +459,7 @@
           "version": "0.12.16+1"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/meta@1.18.2",
-          "licenses": [],
           "name": "meta",
           "package_ref": "pkg:pub/meta@1.18.2",
           "purl": "pkg:pub/meta@1.18.2",
@@ -505,9 +469,7 @@
           "version": "1.18.2"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/mime@2.0.0",
-          "licenses": [],
           "name": "mime",
           "package_ref": "pkg:pub/mime@2.0.0",
           "purl": "pkg:pub/mime@2.0.0",
@@ -530,7 +492,6 @@
             "pkg:pub/test_api@0.7.3"
           ],
           "id": "pkg:pub/mockito@5.4.4",
-          "licenses": [],
           "name": "mockito",
           "package_ref": "pkg:pub/mockito@5.4.4",
           "purl": "pkg:pub/mockito@5.4.4",
@@ -540,9 +501,7 @@
           "version": "5.4.4"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/node_preamble@2.0.2",
-          "licenses": [],
           "name": "node_preamble",
           "package_ref": "pkg:pub/node_preamble@2.0.2",
           "purl": "pkg:pub/node_preamble@2.0.2",
@@ -556,7 +515,6 @@
             "pkg:pub/path@1.9.0"
           ],
           "id": "pkg:pub/package_config@2.2.0",
-          "licenses": [],
           "name": "package_config",
           "package_ref": "pkg:pub/package_config@2.2.0",
           "purl": "pkg:pub/package_config@2.2.0",
@@ -566,9 +524,7 @@
           "version": "2.2.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/path@1.9.0",
-          "licenses": [],
           "name": "path",
           "package_ref": "pkg:pub/path@1.9.0",
           "purl": "pkg:pub/path@1.9.0",
@@ -583,7 +539,6 @@
             "pkg:pub/stack_trace@1.12.1"
           ],
           "id": "pkg:pub/pool@1.5.2",
-          "licenses": [],
           "name": "pool",
           "package_ref": "pkg:pub/pool@1.5.2",
           "purl": "pkg:pub/pool@1.5.2",
@@ -597,7 +552,6 @@
             "pkg:pub/collection@1.18.0"
           ],
           "id": "pkg:pub/pub_semver@2.2.0",
-          "licenses": [],
           "name": "pub_semver",
           "package_ref": "pkg:pub/pub_semver@2.2.0",
           "purl": "pkg:pub/pub_semver@2.2.0",
@@ -616,7 +570,6 @@
             "pkg:pub/stream_channel@2.1.4"
           ],
           "id": "pkg:pub/shelf@1.4.1",
-          "licenses": [],
           "name": "shelf",
           "package_ref": "pkg:pub/shelf@1.4.1",
           "purl": "pkg:pub/shelf@1.4.1",
@@ -632,7 +585,6 @@
             "pkg:pub/shelf_static@1.1.3"
           ],
           "id": "pkg:pub/shelf_packages_handler@3.0.2",
-          "licenses": [],
           "name": "shelf_packages_handler",
           "package_ref": "pkg:pub/shelf_packages_handler@3.0.2",
           "purl": "pkg:pub/shelf_packages_handler@3.0.2",
@@ -650,7 +602,6 @@
             "pkg:pub/shelf@1.4.1"
           ],
           "id": "pkg:pub/shelf_static@1.1.3",
-          "licenses": [],
           "name": "shelf_static",
           "package_ref": "pkg:pub/shelf_static@1.1.3",
           "purl": "pkg:pub/shelf_static@1.1.3",
@@ -666,7 +617,6 @@
             "pkg:pub/web_socket_channel@3.0.3"
           ],
           "id": "pkg:pub/shelf_web_socket@2.0.1",
-          "licenses": [],
           "name": "shelf_web_socket",
           "package_ref": "pkg:pub/shelf_web_socket@2.0.1",
           "purl": "pkg:pub/shelf_web_socket@2.0.1",
@@ -687,7 +637,6 @@
             "pkg:pub/yaml@3.1.3"
           ],
           "id": "pkg:pub/source_gen@1.5.0",
-          "licenses": [],
           "name": "source_gen",
           "package_ref": "pkg:pub/source_gen@1.5.0",
           "purl": "pkg:pub/source_gen@1.5.0",
@@ -703,7 +652,6 @@
             "pkg:pub/stack_trace@1.12.1"
           ],
           "id": "pkg:pub/source_map_stack_trace@2.1.2",
-          "licenses": [],
           "name": "source_map_stack_trace",
           "package_ref": "pkg:pub/source_map_stack_trace@2.1.2",
           "purl": "pkg:pub/source_map_stack_trace@2.1.2",
@@ -717,7 +665,6 @@
             "pkg:pub/source_span@1.10.2"
           ],
           "id": "pkg:pub/source_maps@0.10.13",
-          "licenses": [],
           "name": "source_maps",
           "package_ref": "pkg:pub/source_maps@0.10.13",
           "purl": "pkg:pub/source_maps@0.10.13",
@@ -733,7 +680,6 @@
             "pkg:pub/term_glyph@1.2.2"
           ],
           "id": "pkg:pub/source_span@1.10.2",
-          "licenses": [],
           "name": "source_span",
           "package_ref": "pkg:pub/source_span@1.10.2",
           "purl": "pkg:pub/source_span@1.10.2",
@@ -748,7 +694,6 @@
             "pkg:pub/path@1.9.0"
           ],
           "id": "pkg:pub/stack_trace@1.12.1",
-          "licenses": [],
           "name": "stack_trace",
           "package_ref": "pkg:pub/stack_trace@1.12.1",
           "purl": "pkg:pub/stack_trace@1.12.1",
@@ -762,7 +707,6 @@
             "pkg:pub/async@2.13.1"
           ],
           "id": "pkg:pub/stream_channel@2.1.4",
-          "licenses": [],
           "name": "stream_channel",
           "package_ref": "pkg:pub/stream_channel@2.1.4",
           "purl": "pkg:pub/stream_channel@2.1.4",
@@ -776,7 +720,6 @@
             "pkg:pub/source_span@1.10.2"
           ],
           "id": "pkg:pub/string_scanner@1.4.1",
-          "licenses": [],
           "name": "string_scanner",
           "package_ref": "pkg:pub/string_scanner@1.4.1",
           "purl": "pkg:pub/string_scanner@1.4.1",
@@ -786,9 +729,7 @@
           "version": "1.4.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/term_glyph@1.2.2",
-          "licenses": [],
           "name": "term_glyph",
           "package_ref": "pkg:pub/term_glyph@1.2.2",
           "purl": "pkg:pub/term_glyph@1.2.2",
@@ -828,7 +769,6 @@
             "pkg:pub/yaml@3.1.3"
           ],
           "id": "pkg:pub/test@1.25.8",
-          "licenses": [],
           "name": "test",
           "package_ref": "pkg:pub/test@1.25.8",
           "purl": "pkg:pub/test@1.25.8",
@@ -850,7 +790,6 @@
             "pkg:pub/term_glyph@1.2.2"
           ],
           "id": "pkg:pub/test_api@0.7.3",
-          "licenses": [],
           "name": "test_api",
           "package_ref": "pkg:pub/test_api@0.7.3",
           "purl": "pkg:pub/test_api@0.7.3",
@@ -884,7 +823,6 @@
             "pkg:pub/yaml@3.1.3"
           ],
           "id": "pkg:pub/test_core@0.6.5",
-          "licenses": [],
           "name": "test_core",
           "package_ref": "pkg:pub/test_core@0.6.5",
           "purl": "pkg:pub/test_core@0.6.5",
@@ -898,7 +836,6 @@
             "pkg:pub/collection@1.18.0"
           ],
           "id": "pkg:pub/typed_data@1.4.0",
-          "licenses": [],
           "name": "typed_data",
           "package_ref": "pkg:pub/typed_data@1.4.0",
           "purl": "pkg:pub/typed_data@1.4.0",
@@ -908,9 +845,7 @@
           "version": "1.4.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/vm_service@14.3.1",
-          "licenses": [],
           "name": "vm_service",
           "package_ref": "pkg:pub/vm_service@14.3.1",
           "purl": "pkg:pub/vm_service@14.3.1",
@@ -925,7 +860,6 @@
             "pkg:pub/path@1.9.0"
           ],
           "id": "pkg:pub/watcher@1.2.1",
-          "licenses": [],
           "name": "watcher",
           "package_ref": "pkg:pub/watcher@1.2.1",
           "purl": "pkg:pub/watcher@1.2.1",
@@ -935,9 +869,7 @@
           "version": "1.2.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:pub/web@1.1.1",
-          "licenses": [],
           "name": "web",
           "package_ref": "pkg:pub/web@1.1.1",
           "purl": "pkg:pub/web@1.1.1",
@@ -951,7 +883,6 @@
             "pkg:pub/web@1.1.1"
           ],
           "id": "pkg:pub/web_socket@1.0.1",
-          "licenses": [],
           "name": "web_socket",
           "package_ref": "pkg:pub/web_socket@1.0.1",
           "purl": "pkg:pub/web_socket@1.0.1",
@@ -969,7 +900,6 @@
             "pkg:pub/web_socket@1.0.1"
           ],
           "id": "pkg:pub/web_socket_channel@3.0.3",
-          "licenses": [],
           "name": "web_socket_channel",
           "package_ref": "pkg:pub/web_socket_channel@3.0.3",
           "purl": "pkg:pub/web_socket_channel@3.0.3",
@@ -983,7 +913,6 @@
             "pkg:pub/logging@1.3.0"
           ],
           "id": "pkg:pub/webkit_inspection_protocol@1.2.1",
-          "licenses": [],
           "name": "webkit_inspection_protocol",
           "package_ref": "pkg:pub/webkit_inspection_protocol@1.2.1",
           "purl": "pkg:pub/webkit_inspection_protocol@1.2.1",
@@ -999,7 +928,6 @@
             "pkg:pub/string_scanner@1.4.1"
           ],
           "id": "pkg:pub/yaml@3.1.3",
-          "licenses": [],
           "name": "yaml",
           "package_ref": "pkg:pub/yaml@3.1.3",
           "purl": "pkg:pub/yaml@3.1.3",
@@ -1017,506 +945,632 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/_fe_analyzer_shared@67.0.0",
+      "language": "dart",
       "name": "_fe_analyzer_shared",
+      "package_manager": "pub",
       "purl": "pkg:pub/_fe_analyzer_shared@67.0.0",
-      "version": "67.0.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "67.0.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/analyzer@6.4.1",
+      "language": "dart",
       "name": "analyzer",
+      "package_manager": "pub",
       "purl": "pkg:pub/analyzer@6.4.1",
-      "version": "6.4.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "6.4.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/archive@3.3.0",
+      "language": "dart",
       "name": "archive",
+      "package_manager": "pub",
       "purl": "pkg:pub/archive@3.3.0",
-      "version": "3.3.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.3.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/args@2.7.0",
+      "language": "dart",
       "name": "args",
+      "package_manager": "pub",
       "purl": "pkg:pub/args@2.7.0",
-      "version": "2.7.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.7.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/async@2.13.1",
+      "language": "dart",
       "name": "async",
+      "package_manager": "pub",
       "purl": "pkg:pub/async@2.13.1",
-      "version": "2.13.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.13.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/boolean_selector@2.1.2",
+      "language": "dart",
       "name": "boolean_selector",
+      "package_manager": "pub",
       "purl": "pkg:pub/boolean_selector@2.1.2",
-      "version": "2.1.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.1.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/build@2.4.1",
+      "language": "dart",
       "name": "build",
+      "package_manager": "pub",
       "purl": "pkg:pub/build@2.4.1",
-      "version": "2.4.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.4.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/built_collection@5.1.1",
+      "language": "dart",
       "name": "built_collection",
+      "package_manager": "pub",
       "purl": "pkg:pub/built_collection@5.1.1",
-      "version": "5.1.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "5.1.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/built_value@8.12.6",
+      "language": "dart",
       "name": "built_value",
+      "package_manager": "pub",
       "purl": "pkg:pub/built_value@8.12.6",
-      "version": "8.12.6",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "8.12.6"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/cli_config@0.2.0",
+      "language": "dart",
       "name": "cli_config",
+      "package_manager": "pub",
       "purl": "pkg:pub/cli_config@0.2.0",
-      "version": "0.2.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.2.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/clock@1.1.2",
+      "language": "dart",
       "name": "clock",
+      "package_manager": "pub",
       "purl": "pkg:pub/clock@1.1.2",
-      "version": "1.1.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.1.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/code_builder@4.10.1",
+      "language": "dart",
       "name": "code_builder",
+      "package_manager": "pub",
       "purl": "pkg:pub/code_builder@4.10.1",
-      "version": "4.10.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "4.10.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/collection@1.18.0",
+      "language": "dart",
       "name": "collection",
+      "package_manager": "pub",
       "purl": "pkg:pub/collection@1.18.0",
-      "version": "1.18.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.18.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/convert@3.1.2",
+      "language": "dart",
       "name": "convert",
+      "package_manager": "pub",
       "purl": "pkg:pub/convert@3.1.2",
-      "version": "3.1.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.1.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/coverage@1.15.0",
+      "language": "dart",
       "name": "coverage",
+      "package_manager": "pub",
       "purl": "pkg:pub/coverage@1.15.0",
-      "version": "1.15.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.15.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/crypto@3.0.7",
+      "language": "dart",
       "name": "crypto",
+      "package_manager": "pub",
       "purl": "pkg:pub/crypto@3.0.7",
-      "version": "3.0.7",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.0.7"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/dart_style@2.3.6",
+      "language": "dart",
       "name": "dart_style",
+      "package_manager": "pub",
       "purl": "pkg:pub/dart_style@2.3.6",
-      "version": "2.3.6",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.3.6"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/file@7.0.1",
+      "language": "dart",
       "name": "file",
+      "package_manager": "pub",
       "purl": "pkg:pub/file@7.0.1",
-      "version": "7.0.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "7.0.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/fixnum@1.1.1",
+      "language": "dart",
       "name": "fixnum",
+      "package_manager": "pub",
       "purl": "pkg:pub/fixnum@1.1.1",
-      "version": "1.1.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.1.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/frontend_server_client@4.0.0",
+      "language": "dart",
       "name": "frontend_server_client",
+      "package_manager": "pub",
       "purl": "pkg:pub/frontend_server_client@4.0.0",
-      "version": "4.0.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "4.0.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/glob@2.1.3",
+      "language": "dart",
       "name": "glob",
+      "package_manager": "pub",
       "purl": "pkg:pub/glob@2.1.3",
-      "version": "2.1.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.1.3"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/http@1.6.0",
+      "language": "dart",
       "name": "http",
+      "package_manager": "pub",
       "purl": "pkg:pub/http@1.6.0",
-      "version": "1.6.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.6.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/http_multi_server@3.2.2",
+      "language": "dart",
       "name": "http_multi_server",
+      "package_manager": "pub",
       "purl": "pkg:pub/http_multi_server@3.2.2",
-      "version": "3.2.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.2.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/http_parser@4.0.2",
+      "language": "dart",
       "name": "http_parser",
+      "package_manager": "pub",
       "purl": "pkg:pub/http_parser@4.0.2",
-      "version": "4.0.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "4.0.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/intl@0.18.1",
+      "language": "dart",
       "name": "intl",
+      "package_manager": "pub",
       "purl": "pkg:pub/intl@0.18.1",
-      "version": "0.18.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.18.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/io@1.0.5",
+      "language": "dart",
       "name": "io",
+      "package_manager": "pub",
       "purl": "pkg:pub/io@1.0.5",
-      "version": "1.0.5",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.0.5"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/js@0.7.2",
+      "language": "dart",
       "name": "js",
+      "package_manager": "pub",
       "purl": "pkg:pub/js@0.7.2",
-      "version": "0.7.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.7.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/lints@3.0.0",
+      "language": "dart",
       "name": "lints",
+      "package_manager": "pub",
       "purl": "pkg:pub/lints@3.0.0",
-      "version": "3.0.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.0.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/logging@1.3.0",
+      "language": "dart",
       "name": "logging",
+      "package_manager": "pub",
       "purl": "pkg:pub/logging@1.3.0",
-      "version": "1.3.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.3.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/matcher@0.12.16%2B1",
+      "language": "dart",
       "name": "matcher",
+      "package_manager": "pub",
       "purl": "pkg:pub/matcher@0.12.16%2B1",
-      "version": "0.12.16+1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.12.16+1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/meta@1.18.2",
+      "language": "dart",
       "name": "meta",
+      "package_manager": "pub",
       "purl": "pkg:pub/meta@1.18.2",
-      "version": "1.18.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.18.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/mime@2.0.0",
+      "language": "dart",
       "name": "mime",
+      "package_manager": "pub",
       "purl": "pkg:pub/mime@2.0.0",
-      "version": "2.0.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.0.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/mockito@5.4.4",
+      "language": "dart",
       "name": "mockito",
+      "package_manager": "pub",
       "purl": "pkg:pub/mockito@5.4.4",
-      "version": "5.4.4",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "5.4.4"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/node_preamble@2.0.2",
+      "language": "dart",
       "name": "node_preamble",
+      "package_manager": "pub",
       "purl": "pkg:pub/node_preamble@2.0.2",
-      "version": "2.0.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.0.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/package_config@2.2.0",
+      "language": "dart",
       "name": "package_config",
+      "package_manager": "pub",
       "purl": "pkg:pub/package_config@2.2.0",
-      "version": "2.2.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.2.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/path@1.9.0",
+      "language": "dart",
       "name": "path",
+      "package_manager": "pub",
       "purl": "pkg:pub/path@1.9.0",
-      "version": "1.9.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.9.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/pool@1.5.2",
+      "language": "dart",
       "name": "pool",
+      "package_manager": "pub",
       "purl": "pkg:pub/pool@1.5.2",
-      "version": "1.5.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.5.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/pub_semver@2.2.0",
+      "language": "dart",
       "name": "pub_semver",
+      "package_manager": "pub",
       "purl": "pkg:pub/pub_semver@2.2.0",
-      "version": "2.2.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.2.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/shelf@1.4.1",
+      "language": "dart",
       "name": "shelf",
+      "package_manager": "pub",
       "purl": "pkg:pub/shelf@1.4.1",
-      "version": "1.4.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.4.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/shelf_packages_handler@3.0.2",
+      "language": "dart",
       "name": "shelf_packages_handler",
+      "package_manager": "pub",
       "purl": "pkg:pub/shelf_packages_handler@3.0.2",
-      "version": "3.0.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.0.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/shelf_static@1.1.3",
+      "language": "dart",
       "name": "shelf_static",
+      "package_manager": "pub",
       "purl": "pkg:pub/shelf_static@1.1.3",
-      "version": "1.1.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.1.3"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/shelf_web_socket@2.0.1",
+      "language": "dart",
       "name": "shelf_web_socket",
+      "package_manager": "pub",
       "purl": "pkg:pub/shelf_web_socket@2.0.1",
-      "version": "2.0.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.0.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/source_gen@1.5.0",
+      "language": "dart",
       "name": "source_gen",
+      "package_manager": "pub",
       "purl": "pkg:pub/source_gen@1.5.0",
-      "version": "1.5.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.5.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/source_map_stack_trace@2.1.2",
+      "language": "dart",
       "name": "source_map_stack_trace",
+      "package_manager": "pub",
       "purl": "pkg:pub/source_map_stack_trace@2.1.2",
-      "version": "2.1.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.1.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/source_maps@0.10.13",
+      "language": "dart",
       "name": "source_maps",
+      "package_manager": "pub",
       "purl": "pkg:pub/source_maps@0.10.13",
-      "version": "0.10.13",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.10.13"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/source_span@1.10.2",
+      "language": "dart",
       "name": "source_span",
+      "package_manager": "pub",
       "purl": "pkg:pub/source_span@1.10.2",
-      "version": "1.10.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.10.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/stack_trace@1.12.1",
+      "language": "dart",
       "name": "stack_trace",
+      "package_manager": "pub",
       "purl": "pkg:pub/stack_trace@1.12.1",
-      "version": "1.12.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.12.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/stream_channel@2.1.4",
+      "language": "dart",
       "name": "stream_channel",
+      "package_manager": "pub",
       "purl": "pkg:pub/stream_channel@2.1.4",
-      "version": "2.1.4",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.1.4"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/string_scanner@1.4.1",
+      "language": "dart",
       "name": "string_scanner",
+      "package_manager": "pub",
       "purl": "pkg:pub/string_scanner@1.4.1",
-      "version": "1.4.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.4.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/term_glyph@1.2.2",
+      "language": "dart",
       "name": "term_glyph",
+      "package_manager": "pub",
       "purl": "pkg:pub/term_glyph@1.2.2",
-      "version": "1.2.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.2.2"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/test@1.25.8",
+      "language": "dart",
       "name": "test",
+      "package_manager": "pub",
       "purl": "pkg:pub/test@1.25.8",
-      "version": "1.25.8",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.25.8"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/test_api@0.7.3",
+      "language": "dart",
       "name": "test_api",
+      "package_manager": "pub",
       "purl": "pkg:pub/test_api@0.7.3",
-      "version": "0.7.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.7.3"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/test_core@0.6.5",
+      "language": "dart",
       "name": "test_core",
+      "package_manager": "pub",
       "purl": "pkg:pub/test_core@0.6.5",
-      "version": "0.6.5",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.6.5"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/typed_data@1.4.0",
+      "language": "dart",
       "name": "typed_data",
+      "package_manager": "pub",
       "purl": "pkg:pub/typed_data@1.4.0",
-      "version": "1.4.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.4.0"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/vm_service@14.3.1",
+      "language": "dart",
       "name": "vm_service",
+      "package_manager": "pub",
       "purl": "pkg:pub/vm_service@14.3.1",
-      "version": "14.3.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "14.3.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/watcher@1.2.1",
+      "language": "dart",
       "name": "watcher",
+      "package_manager": "pub",
       "purl": "pkg:pub/watcher@1.2.1",
-      "version": "1.2.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.2.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/web@1.1.1",
+      "language": "dart",
       "name": "web",
+      "package_manager": "pub",
       "purl": "pkg:pub/web@1.1.1",
-      "version": "1.1.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.1.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/web_socket@1.0.1",
+      "language": "dart",
       "name": "web_socket",
+      "package_manager": "pub",
       "purl": "pkg:pub/web_socket@1.0.1",
-      "version": "1.0.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.0.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/web_socket_channel@3.0.3",
+      "language": "dart",
       "name": "web_socket_channel",
+      "package_manager": "pub",
       "purl": "pkg:pub/web_socket_channel@3.0.3",
-      "version": "3.0.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.0.3"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/webkit_inspection_protocol@1.2.1",
+      "language": "dart",
       "name": "webkit_inspection_protocol",
+      "package_manager": "pub",
       "purl": "pkg:pub/webkit_inspection_protocol@1.2.1",
-      "version": "1.2.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.2.1"
     },
     {
       "ecosystem": "dart",
-      "licenses": [],
+      "id": "pkg:pub/yaml@3.1.3",
+      "language": "dart",
       "name": "yaml",
+      "package_manager": "pub",
       "purl": "pkg:pub/yaml@3.1.3",
-      "version": "3.1.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.1.3"
     }
   ],
-  "project": {
-    "ecosystem": "dart",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "pub",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "f3bf3bece530ac9847dc03db3cad365d95cbbe35",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-dart-pub"
+  }
 }

@@ -101,6 +101,7 @@ type DiffRequest struct {
 // internal/engine).
 type ScanRunResult struct {
 	Response    output.ScanResponse
+	Project     output.ProjectDescriptor
 	Findings    []model.Finding
 	Graph       *model.Graph
 	Registry    *model.PackageRegistry

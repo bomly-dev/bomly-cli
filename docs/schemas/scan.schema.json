@@ -23,24 +23,44 @@
           "type": "integer"
         }
       },
-      "required": [
-        "critical",
-        "high",
-        "medium",
-        "low",
-        "unknown",
-        "total"
-      ],
       "type": "object"
     },
     "command": {
       "type": "string"
+    },
+    "digests": {
+      "properties": {
+        "findings": {
+          "type": "string"
+        },
+        "manifests": {
+          "type": "string"
+        },
+        "packages": {
+          "type": "string"
+        }
+      },
+      "type": "object"
     },
     "findings": {
       "items": {
         "properties": {
           "auditor": {
             "type": "string"
+          },
+          "decision": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "type": "object"
           },
           "dependency_refs": {
             "items": {
@@ -54,28 +74,8 @@
           "kind": {
             "type": "string"
           },
-          "package": {
-            "properties": {
-              "ecosystem": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string"
-              },
-              "org": {
-                "type": "string"
-              },
-              "purl": {
-                "type": "string"
-              },
-              "version": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "name"
-            ],
-            "type": "object"
+          "package_ref": {
+            "type": "string"
           },
           "policy_status": {
             "type": "string"
@@ -98,17 +98,19 @@
           "title": {
             "type": "string"
           },
+          "vex_justification": {
+            "type": "string"
+          },
+          "vex_status": {
+            "type": "string"
+          },
           "vulnerability_id": {
             "type": "string"
           }
         },
         "required": [
           "id",
-          "kind",
-          "severity",
-          "package",
-          "title",
-          "source"
+          "kind"
         ],
         "type": "object"
       },
@@ -132,7 +134,16 @@
                 "licenses": {
                   "items": {
                     "properties": {
-                      "spdxExpression": {
+                      "extracted_text": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "spdx_expression": {
                         "type": "string"
                       },
                       "type": {
@@ -211,12 +222,6 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "id",
-                "name",
-                "depends_on",
-                "licenses"
-              ],
               "type": "object"
             },
             "type": "array"
@@ -277,9 +282,6 @@
             "type": "string"
           }
         },
-        "required": [
-          "dependencies"
-        ],
         "type": "object"
       },
       "type": "array"
@@ -322,17 +324,74 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "duration_ms"
-      ],
       "type": "object"
     },
     "packages": {
       "items": {
         "properties": {
+          "attestations": {
+            "items": {
+              "properties": {
+                "digest": {
+                  "properties": {
+                    "algorithm": {
+                      "type": "string"
+                    },
+                    "subject": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "issuer": {
+                  "type": "string"
+                },
+                "predicate_type": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                },
+                "verified": {
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "copyright": {
+            "type": "string"
+          },
           "cpes": {
             "items": {
               "type": "string"
+            },
+            "type": "array"
+          },
+          "description": {
+            "type": "string"
+          },
+          "detected_origins": {
+            "items": {
+              "properties": {
+                "artifact_url": {
+                  "type": "string"
+                },
+                "repository": {
+                  "type": "string"
+                },
+                "revision": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
             },
             "type": "array"
           },
@@ -382,10 +441,65 @@
             },
             "type": "object"
           },
+          "external_references": {
+            "items": {
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "comment": {
+                  "type": "string"
+                },
+                "hashes": {
+                  "items": {
+                    "properties": {
+                      "algorithm": {
+                        "type": "string"
+                      },
+                      "subject": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "locator": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "homepage": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
           "licenses": {
             "items": {
               "properties": {
-                "spdxExpression": {
+                "extracted_text": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "spdx_expression": {
                   "type": "string"
                 },
                 "type": {
@@ -410,6 +524,23 @@
             "type": "string"
           },
           "org": {
+            "type": "string"
+          },
+          "originator": {
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "package_manager": {
             "type": "string"
           },
           "purl": {
@@ -458,6 +589,9 @@
               "status"
             ],
             "type": "object"
+          },
+          "resolved_url": {
+            "type": "string"
           },
           "scorecard": {
             "properties": {
@@ -510,12 +644,85 @@
             ],
             "type": "object"
           },
+          "supplier": {
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "type": {
+            "type": "string"
+          },
           "version": {
             "type": "string"
           },
           "vulnerabilities": {
             "items": {
               "properties": {
+                "affected": {
+                  "items": {
+                    "properties": {
+                      "database_specific": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "ecosystem_specific": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "ranges": {
+                        "items": {
+                          "properties": {
+                            "events": {
+                              "items": {
+                                "properties": {
+                                  "fixed": {
+                                    "type": "string"
+                                  },
+                                  "introduced": {
+                                    "type": "string"
+                                  },
+                                  "last_affected": {
+                                    "type": "string"
+                                  },
+                                  "limit": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "repo": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "versions": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "affected_symbols": {
                   "items": {
                     "properties": {
@@ -561,6 +768,32 @@
                     "type": "string"
                   },
                   "type": "array"
+                },
+                "analysis": {
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    },
+                    "first_issued": {
+                      "type": "string"
+                    },
+                    "justification": {
+                      "type": "string"
+                    },
+                    "last_updated": {
+                      "type": "string"
+                    },
+                    "response": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "state": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
                 },
                 "cpes": {
                   "items": {
@@ -611,7 +844,11 @@
                 "data_source": {
                   "type": "string"
                 },
-                "description": {
+                "database_specific": {
+                  "additionalProperties": {},
+                  "type": "object"
+                },
+                "details": {
                   "type": "string"
                 },
                 "epss": {
@@ -716,7 +953,16 @@
                   },
                   "type": "array"
                 },
+                "modified": {
+                  "type": "string"
+                },
                 "namespace": {
+                  "type": "string"
+                },
+                "parsed_severity": {
+                  "type": "string"
+                },
+                "published": {
                   "type": "string"
                 },
                 "reachability": {
@@ -1047,11 +1293,28 @@
                   },
                   "type": "array"
                 },
+                "related": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
                 "risk_score": {
                   "type": "number"
                 },
                 "severity": {
-                  "type": "string"
+                  "items": {
+                    "properties": {
+                      "score": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
                 },
                 "severity_source": {
                   "type": "string"
@@ -1059,57 +1322,172 @@
                 "source": {
                   "type": "string"
                 },
+                "summary": {
+                  "type": "string"
+                },
                 "title": {
+                  "type": "string"
+                },
+                "withdrawn": {
                   "type": "string"
                 }
               },
               "required": [
-                "id",
-                "source"
+                "id"
               ],
               "type": "object"
             },
             "type": "array"
           }
         },
-        "required": [
-          "purl",
-          "licenses",
-          "vulnerabilities"
-        ],
         "type": "object"
       },
       "type": "array"
     },
-    "project": {
+    "policy": {
       "properties": {
-        "ecosystem": {
+        "digest": {
           "type": "string"
+        },
+        "evaluated_at": {
+          "properties": {},
+          "type": "object"
         },
         "name": {
           "type": "string"
-        },
-        "package_manager": {
-          "type": "string"
-        },
-        "path": {
-          "type": "string"
-        },
-        "target_ref": {
-          "type": "string"
-        },
-        "target_type": {
-          "type": "string"
         }
       },
-      "required": [
-        "path",
-        "ecosystem"
-      ],
+      "type": "object"
+    },
+    "run": {
+      "properties": {
+        "completed_at": {
+          "properties": {},
+          "type": "object"
+        },
+        "components": {
+          "items": {
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "origin": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "correlator": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "options": {
+          "properties": {
+            "analyze": {
+              "type": "boolean"
+            },
+            "audit": {
+              "type": "boolean"
+            },
+            "enrich": {
+              "type": "boolean"
+            },
+            "fail_on": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "started_at": {
+          "properties": {},
+          "type": "object"
+        },
+        "tool": {
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
       "type": "object"
     },
     "schema_version": {
       "type": "string"
+    },
+    "subject": {
+      "properties": {
+        "commit_sha": {
+          "type": "string"
+        },
+        "image_digest": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "ref": {
+          "type": "string"
+        },
+        "repository_url": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "verdict": {
+      "type": "string"
+    },
+    "waivers": {
+      "items": {
+        "properties": {
+          "approved_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "properties": {},
+            "type": "object"
+          },
+          "expires_at": {
+            "properties": {},
+            "type": "object"
+          },
+          "id": {
+            "type": "string"
+          },
+          "justification": {
+            "type": "string"
+          },
+          "package_ref": {
+            "type": "string"
+          },
+          "rule_id": {
+            "type": "string"
+          },
+          "vulnerability_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
     },
     "warnings": {
       "items": {
@@ -1143,12 +1521,7 @@
     }
   },
   "required": [
-    "schema_version",
-    "command",
-    "project",
-    "manifests",
-    "packages",
-    "metadata"
+    "schema_version"
   ],
   "title": "Bomly scan output",
   "type": "object"

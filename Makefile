@@ -8,7 +8,7 @@ GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
 GUARDCHECK=bin/guardcheck$(EXE_SUFFIX)
 FUZZTIME?=60s
 
-.PHONY: build build-full build-lite fmt fmt-check lint guardcheck install-hooks test smoke fuzz verify run generate evidence benchmark benchmark-report licenses
+.PHONY: build build-full build-lite fmt fmt-check lint guardcheck install-hooks test smoke fuzz verify run generate evidence sdk-local sdk-pinned sdk-status benchmark benchmark-report licenses
 
 build: build-full build-lite
 
@@ -61,19 +61,13 @@ smoke:
 fuzz:
 	FUZZTIME="$(FUZZTIME)" scripts/run-fuzz.sh
 
-# verify runs everything that gates a push and records that it passed.
+# verify runs every check CI gates on, locally, for when you want the full
+# picture before pushing. The pre-push hook runs only `make test`; CI runs the
+# rest on the pull request, and the smoke suite runs in CI on its own schedule.
 #
-# The stamp is what .githooks/pre-push reads: a push is refused unless a
-# passing stamp exists and is newer than every tracked source file. Keeping
-# the run here rather than in the hook means it happens once, deliberately,
-# instead of on every push attempt -- a six-minute hook gets bypassed, and a
-# bypassed hook enforces nothing.
-#
-# SMOKE=1 adds the network-driven smoke suite and records that it ran.
-# Generated-docs drift is checked too: it is a CI job, and it fails for edits
-# that look unrelated to it.
+# SMOKE=1 adds the network-driven smoke suite. Generated-docs drift is checked
+# too: it is a CI job, and it fails for edits that look unrelated to it.
 verify:
-	@rm -f .verify-stamp
 	$(MAKE) fmt-check
 	$(MAKE) lint
 	go vet ./...
@@ -93,14 +87,19 @@ verify:
 		exit 1; \
 	}
 	@if [ "$(SMOKE)" = "1" ]; then $(MAKE) smoke; fi
-	@{ \
-		echo "VERIFY_STATUS=pass"; \
-		echo "VERIFY_AT=$$(date +%s)"; \
-		echo "VERIFY_AT_HUMAN=$$(date -u +%Y-%m-%dT%H:%M:%SZ)"; \
-		echo "VERIFY_SNAPSHOT=$$(./scripts/verify-snapshot.sh)"; \
-		if [ "$(SMOKE)" = "1" ]; then echo "VERIFY_SMOKE=yes"; else echo "VERIFY_SMOKE=no"; fi; \
-	} > .verify-stamp
-	@echo "verify: passed; stamp written to .verify-stamp"
+	@echo "verify: passed"
+
+# Build against a local bomly-sdk checkout (SDK=<dir>, default ../bomly-sdk)
+# through an ignored go.work, so an SDK change is tested here before it is
+# tagged; sdk-pinned returns to the released version go.mod pins.
+sdk-local:
+	scripts/sdk-workspace.sh on $(SDK)
+
+sdk-pinned:
+	scripts/sdk-workspace.sh off
+
+sdk-status:
+	scripts/sdk-workspace.sh status
 
 evidence:
 	go run ./internal/tools/publicevidence $(if $(CASE),-case $(CASE),)

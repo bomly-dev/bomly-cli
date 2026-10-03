@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
@@ -150,7 +152,7 @@ func TestToolDescriptionsExplainRemediationWorkflow(t *testing.T) {
 func TestScanTool_ReturnsCompactJSONResult(t *testing.T) {
 	adapter := &mockAdapter{
 		scanResult: mcp.ScanRunResult{
-			Response: output.ScanResponse{Command: "scan", SchemaVersion: "1"},
+			Response: scan.Record{Command: "scan", SchemaVersion: "1"},
 		},
 	}
 	c := newTestClient(t, adapter)
@@ -178,7 +180,7 @@ func TestScanTool_ReturnsCompactJSONResult(t *testing.T) {
 func TestScanTool_PropagatesScope(t *testing.T) {
 	adapter := &mockAdapter{
 		scanResult: mcp.ScanRunResult{
-			Response: output.ScanResponse{Command: "scan", SchemaVersion: "1"},
+			Response: scan.Record{Command: "scan", SchemaVersion: "1"},
 		},
 	}
 	c := newTestClient(t, adapter)
@@ -196,7 +198,7 @@ func TestToolsDoNotEnableNetworkOrAnalysisByDefault(t *testing.T) {
 	t.Run("scan", func(t *testing.T) {
 		adapter := &mockAdapter{
 			scanResult: mcp.ScanRunResult{
-				Response: output.ScanResponse{Command: "scan"},
+				Response: scan.Record{Command: "scan"},
 			},
 		}
 		c := newTestClient(t, adapter)
@@ -250,7 +252,7 @@ func TestToolsDoNotEnableNetworkOrAnalysisByDefault(t *testing.T) {
 }
 
 func TestScanTool_PropagatesPolicyArguments(t *testing.T) {
-	adapter := &mockAdapter{scanResult: mcp.ScanRunResult{Response: output.ScanResponse{Command: "scan"}}}
+	adapter := &mockAdapter{scanResult: mcp.ScanRunResult{Response: scan.Record{Command: "scan"}}}
 	c := newTestClient(t, adapter)
 	arguments := map[string]any{
 		"path": "/tmp", "enrich": true, "audit": true, "fail_on": "high",
@@ -629,7 +631,7 @@ func TestPluginsTool_ReturnsJSONResult(t *testing.T) {
 func TestTools_PropagateRecursiveDiscoveryArgs(t *testing.T) {
 	args := map[string]any{"recursive": true, "max_depth": 2, "exclude": "fixtures/*,dist"}
 
-	adapter := &mockAdapter{scanResult: mcp.ScanRunResult{Response: output.ScanResponse{Command: "scan"}}}
+	adapter := &mockAdapter{scanResult: mcp.ScanRunResult{Response: scan.Record{Command: "scan"}}}
 	c := newTestClient(t, adapter)
 	if result := callTool(t, c, "bomly_scan", args); result.IsError {
 		t.Fatalf("unexpected scan tool error: %v", result.Content)

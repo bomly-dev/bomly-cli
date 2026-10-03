@@ -1,5 +1,11 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -85,9 +91,6 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "digests": [
@@ -97,9 +100,13 @@
         }
       ],
       "ecosystem": "github-actions",
+      "id": "pkg:githubactions/.github%2Factions%2Fbomly@local",
+      "language": "yaml",
       "licenses": [],
       "name": ".github/actions/bomly",
+      "package_manager": "github-actions",
       "purl": "pkg:githubactions/.github%2Factions%2Fbomly@local",
+      "type": "action",
       "version": "local",
       "vulnerabilities": []
     },
@@ -111,29 +118,46 @@
         }
       ],
       "ecosystem": "github-actions",
+      "id": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
+      "language": "yaml",
       "licenses": [],
       "name": ".github/workflows/main.yml",
+      "package_manager": "github-actions",
       "purl": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
+      "type": "workflow",
       "version": "local",
       "vulnerabilities": []
     },
     {
       "ecosystem": "github-actions",
+      "id": "pkg:githubactions/actions/checkout@v1",
+      "language": "yaml",
       "licenses": [],
-      "name": "actions:checkout",
+      "name": "checkout",
       "org": "actions",
+      "package_manager": "github-actions",
       "purl": "pkg:githubactions/actions/checkout@v1",
+      "type": "action",
       "version": "v1",
       "vulnerabilities": []
     }
   ],
-  "project": {
-    "ecosystem": "github-actions",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "github-actions",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "f0a3d236727c15020a8767b3dba8818178adfc22",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-github-actions"
+  },
+  "waivers": [],
+  "warnings": []
 }

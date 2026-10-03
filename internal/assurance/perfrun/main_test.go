@@ -72,3 +72,40 @@ func TestMedianHandlesEvenAndEmptyInputs(t *testing.T) {
 		t.Fatalf("single sample statistics = %f, %f", mean, deviation)
 	}
 }
+
+// TestNormalizeOutputUsesTheRecordsOwnDigests pins the rule that a scan
+// record is compared by the section digests it carries, so a field the record
+// gains later cannot make two identical scans look different.
+func TestNormalizeOutputUsesTheRecordsOwnDigests(t *testing.T) {
+	record := func(runID, completed string) []byte {
+		return []byte(`{"schema_version":"x","run":{"id":"` + runID + `","completed_at":"` + completed +
+			`","a_field_added_later":"` + runID + `"},"digests":{"manifests":"sha256:aa","packages":"sha256:bb","findings":"sha256:cc"}}`)
+	}
+	first := normalizeOutput(record("run-1", "2026-10-03T00:00:00Z"))
+	second := normalizeOutput(record("run-2", "2026-10-03T00:00:09Z"))
+	if string(first) != string(second) {
+		t.Fatalf("two runs of the same content normalized differently:\n%s\n%s", first, second)
+	}
+
+	changed := normalizeOutput([]byte(`{"run":{"id":"run-1"},"digests":{"manifests":"sha256:aa","packages":"sha256:ZZ","findings":"sha256:cc"}}`))
+	if string(changed) == string(first) {
+		t.Fatal("a different packages digest must normalize differently")
+	}
+
+	// A malformed digests block is not trusted as a record; the whole document
+	// is compared instead, so the difference is still seen.
+	for _, malformed := range []string{`{"digests":{}}`, `{"digests":{"packages":7}}`, `{"digests":"sha256:aa"}`} {
+		if _, ok := recordDigests(mustDecode(t, malformed)); ok {
+			t.Fatalf("%s was accepted as record digests", malformed)
+		}
+	}
+}
+
+func mustDecode(t *testing.T, text string) any {
+	t.Helper()
+	var value any
+	if err := json.Unmarshal([]byte(text), &value); err != nil {
+		t.Fatalf("decode fixture: %v", err)
+	}
+	return value
+}

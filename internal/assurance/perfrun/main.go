@@ -23,7 +23,7 @@ import (
 
 const (
 	runSchemaVersion   = "bomly.benchmark-run/v1"
-	normalizationV1    = "bomly.benchmark-normalization/v1"
+	normalizationV2    = "bomly.benchmark-normalization/v2"
 	defaultSamples     = 5
 	defaultOutput      = ".benchmark-runs/performance"
 	defaultNetworkMode = "unknown"
@@ -163,7 +163,7 @@ func run(outputDir, caseName string, sampleCount int, networkState string, outpu
 	hostname, _ := os.Hostname()
 	manifest := runManifest{
 		SchemaVersion:        runSchemaVersion,
-		NormalizationVersion: normalizationV1,
+		NormalizationVersion: normalizationV2,
 		GeneratedAt:          time.Now().UTC().Format(time.RFC3339Nano),
 		Source:               sourceInfo{Revision: revision, Dirty: dirty},
 		Tool:                 tool,
@@ -260,10 +260,30 @@ func executeSample(outputDir, mode string, index int, cacheDir, executable strin
 	return current, nil
 }
 
+// normalizeOutput reduces a command's output to the part that should be the
+// same on every run of the same input.
+//
+// A scan record answers that itself: it carries a digest per section
+// (`digests.manifests`, `digests.packages`, `digests.findings`) taken over the
+// ordered content, and ADR-0046 tells a consumer to compare those rather than
+// the document, which has its own run id and times on every run. So when the
+// output is a record, the digests are the normalized form — the SDK decides
+// what identifies a scan, and no list of volatile field names is kept here to
+// drift behind it. Version 1 kept such a list, and it went stale the day the
+// record gained `run.id`.
+//
+// Output that is not a scan record (an SBOM export, for one) has no digests,
+// and falls back to dropping the common timestamp and duration keys.
 func normalizeOutput(data []byte) []byte {
 	var value any
 	if json.Unmarshal(data, &value) != nil {
 		return data
+	}
+	if digests, ok := recordDigests(value); ok {
+		normalized, err := json.Marshal(digests)
+		if err == nil {
+			return normalized
+		}
 	}
 	removeVolatile(value)
 	normalized, err := json.Marshal(value)
@@ -271,6 +291,27 @@ func normalizeOutput(data []byte) []byte {
 		return data
 	}
 	return normalized
+}
+
+// recordDigests returns a scan record's section digests, when value is one.
+func recordDigests(value any) (map[string]string, bool) {
+	document, ok := value.(map[string]any)
+	if !ok {
+		return nil, false
+	}
+	raw, ok := document["digests"].(map[string]any)
+	if !ok || len(raw) == 0 {
+		return nil, false
+	}
+	digests := make(map[string]string, len(raw))
+	for section, digest := range raw {
+		text, isText := digest.(string)
+		if !isText || text == "" {
+			return nil, false
+		}
+		digests[section] = text
+	}
+	return digests, true
 }
 
 func removeVolatile(value any) {

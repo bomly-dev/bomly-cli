@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"time"
 )
 
 // WriteCommandSchemaDocs writes markdown schema references for the supported command payloads.
@@ -105,6 +106,9 @@ func flatFields(t reflect.Type) []reflect.StructField {
 
 func jsonTypeName(t reflect.Type) string {
 	t = derefType(t)
+	if t == reflect.TypeFor[time.Time]() {
+		return "`string` (RFC 3339 timestamp)"
+	}
 	switch t.Kind() {
 	case reflect.String:
 		return "`string`"
@@ -129,6 +133,10 @@ func jsonTypeName(t reflect.Type) string {
 
 func collectStructTypes(t reflect.Type, visited map[reflect.Type]bool) {
 	t = derefType(t)
+	// A time is a string on the wire; it gets no type table of its own.
+	if t == reflect.TypeFor[time.Time]() {
+		return
+	}
 	if t.Kind() != reflect.Struct {
 		if t.Kind() == reflect.Slice || t.Kind() == reflect.Pointer {
 			collectStructTypes(t.Elem(), visited)

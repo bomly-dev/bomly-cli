@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-sdk/scan"
 )
 
 func TestGenerateConfigReference(t *testing.T) {
@@ -44,7 +44,7 @@ func TestGenerateJSONSchemaUsesSharedCommandModels(t *testing.T) {
 	if _, ok := properties["metadata"]; !ok {
 		t.Fatalf("expected scan schema to expose metadata property: %#v", properties)
 	}
-	if commandOutputSpecs()[0].typ != reflect.TypeFor[output.ScanResponse]() {
+	if commandOutputSpecs()[0].typ != reflect.TypeFor[scan.Record]() {
 		t.Fatal("expected command schema list to use canonical output types")
 	}
 }

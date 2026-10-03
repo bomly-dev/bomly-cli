@@ -1,5 +1,11 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -35,6 +41,22 @@
         }
       ],
       "detector": "sbom-detector",
+      "document": {
+        "checksum": {
+          "algorithm": "sha256",
+          "value": "99bd846daec887cfcb61d6d5384ccff91c6045482652f4719fab8b312192fe0e"
+        },
+        "created": "2025-01-15T10:00:00Z",
+        "data_license": "CC0-1.0",
+        "format": "spdx-2.3+json",
+        "identity": "https://example.com/spdx/test-go-project",
+        "name": "test-go-project",
+        "tools": [
+          {
+            "name": "bomly-cli-test"
+          }
+        ]
+      },
       "ecosystem": "sbom",
       "kind": "go.spdx.json",
       "package_manager": "sbom",
@@ -42,44 +64,54 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "go",
+      "id": "pkg:golang/example.com/app@1.0.0",
       "licenses": [],
-      "name": "example.com/app",
+      "name": "app",
       "org": "example.com",
+      "package_manager": "gomod",
       "purl": "pkg:golang/example.com/app@1.0.0",
       "version": "1.0.0",
       "vulnerabilities": []
     },
     {
       "ecosystem": "go",
+      "id": "pkg:golang/github.com/google/uuid@1.6.0",
       "licenses": [],
-      "name": "github.com/google/uuid",
+      "name": "uuid",
       "org": "github.com/google",
+      "package_manager": "gomod",
       "purl": "pkg:golang/github.com/google/uuid@1.6.0",
       "version": "1.6.0",
       "vulnerabilities": []
     },
     {
       "ecosystem": "go",
+      "id": "pkg:golang/github.com/pkg/errors@0.9.1",
       "licenses": [],
-      "name": "github.com/pkg/errors",
+      "name": "errors",
       "org": "github.com/pkg",
+      "package_manager": "gomod",
       "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
       "version": "0.9.1",
       "vulnerabilities": []
     }
   ],
-  "project": {
-    "ecosystem": "sbom",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "sbom",
-    "path": "\u003cnormalized\u003e",
-    "target_type": "filesystem"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "kind": "filesystem"
+  },
+  "waivers": [],
+  "warnings": []
 }

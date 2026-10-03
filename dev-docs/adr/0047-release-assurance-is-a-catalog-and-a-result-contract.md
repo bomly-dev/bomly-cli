@@ -1,6 +1,6 @@
-# ADR-0046: Release assurance is a declarative catalog plus a per-check result contract
+# ADR-0047: Release assurance is a declarative catalog plus a per-check result contract
 
-- **Date:** 2026-09-17
+- **Date:** 2026-10-03
 - **Status:** Accepted
 
 ## Context

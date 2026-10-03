@@ -1,5 +1,11 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -333,106 +339,156 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "elixir",
+      "id": "pkg:hex/bunt@1.0.0",
+      "language": "elixir",
       "licenses": [],
       "name": "bunt",
+      "package_manager": "mix",
       "purl": "pkg:hex/bunt@1.0.0",
+      "type": "package",
       "version": "1.0.0",
       "vulnerabilities": []
     },
     {
       "ecosystem": "elixir",
+      "id": "pkg:hex/cowboy@2.9.0",
+      "language": "elixir",
       "licenses": [],
       "name": "cowboy",
+      "package_manager": "mix",
       "purl": "pkg:hex/cowboy@2.9.0",
+      "type": "package",
       "version": "2.9.0",
       "vulnerabilities": []
     },
     {
       "ecosystem": "elixir",
+      "id": "pkg:hex/cowlib@2.11.0",
+      "language": "elixir",
       "licenses": [],
       "name": "cowlib",
+      "package_manager": "mix",
       "purl": "pkg:hex/cowlib@2.11.0",
+      "type": "package",
       "version": "2.11.0",
       "vulnerabilities": []
     },
     {
       "ecosystem": "elixir",
+      "id": "pkg:hex/credo@1.7.7",
+      "language": "elixir",
       "licenses": [],
       "name": "credo",
+      "package_manager": "mix",
       "purl": "pkg:hex/credo@1.7.7",
+      "type": "package",
       "version": "1.7.7",
       "vulnerabilities": []
     },
     {
       "ecosystem": "elixir",
+      "id": "pkg:hex/decimal@2.1.1",
+      "language": "elixir",
       "licenses": [],
       "name": "decimal",
+      "package_manager": "mix",
       "purl": "pkg:hex/decimal@2.1.1",
+      "type": "package",
       "version": "2.1.1",
       "vulnerabilities": []
     },
     {
       "ecosystem": "elixir",
+      "id": "pkg:hex/file_system@1.0.1",
+      "language": "elixir",
       "licenses": [],
       "name": "file_system",
+      "package_manager": "mix",
       "purl": "pkg:hex/file_system@1.0.1",
+      "type": "package",
       "version": "1.0.1",
       "vulnerabilities": []
     },
     {
       "ecosystem": "elixir",
+      "id": "pkg:hex/jason@1.2.2",
+      "language": "elixir",
       "licenses": [],
       "name": "jason",
+      "package_manager": "mix",
       "purl": "pkg:hex/jason@1.2.2",
+      "type": "package",
       "version": "1.2.2",
       "vulnerabilities": []
     },
     {
       "ecosystem": "elixir",
+      "id": "pkg:hex/mime@1.6.0",
+      "language": "elixir",
       "licenses": [],
       "name": "mime",
+      "package_manager": "mix",
       "purl": "pkg:hex/mime@1.6.0",
+      "type": "package",
       "version": "1.6.0",
       "vulnerabilities": []
     },
     {
       "ecosystem": "elixir",
+      "id": "pkg:hex/plug@1.7.0",
+      "language": "elixir",
       "licenses": [],
       "name": "plug",
+      "package_manager": "mix",
       "purl": "pkg:hex/plug@1.7.0",
+      "type": "package",
       "version": "1.7.0",
       "vulnerabilities": []
     },
     {
       "ecosystem": "elixir",
+      "id": "pkg:hex/plug_crypto@0.2.3",
+      "language": "elixir",
       "licenses": [],
       "name": "plug_crypto",
+      "package_manager": "mix",
       "purl": "pkg:hex/plug_crypto@0.2.3",
+      "type": "package",
       "version": "0.2.3",
       "vulnerabilities": []
     },
     {
       "ecosystem": "elixir",
+      "id": "pkg:hex/ranch@1.8.0",
+      "language": "elixir",
       "licenses": [],
       "name": "ranch",
+      "package_manager": "mix",
       "purl": "pkg:hex/ranch@1.8.0",
+      "type": "package",
       "version": "1.8.0",
       "vulnerabilities": []
     }
   ],
-  "project": {
-    "ecosystem": "elixir",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "mix",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "2827ac98c5a2dd99f5ad3f28022deaa21a82f24b",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-elixir-mix"
+  },
+  "waivers": [],
+  "warnings": []
 }

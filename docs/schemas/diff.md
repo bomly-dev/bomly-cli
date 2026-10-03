@@ -12,12 +12,21 @@ Complete reference for the `bomly diff` JSON output.
 | `comparison` | [`DiffComparison`](#diffcomparison) | |
 | `results` | [`DiffResults`](#diffresults) | |
 | `summary` | [`DiffSummary`](#diffsummary) | |
-| `packages` | Array<[`ScanPackageEntry`](#scanpackageentry)> | |
+| `packages` | Array<[`Package`](#package)> | |
 | `audit` | [`DiffAudit`](#diffaudit) | |
 | `warnings` | Array<[`DetectorWarning`](#detectorwarning)> | |
 | `metadata` | [`Metadata`](#metadata) | |
 
 ## Types
+
+### `Affected`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ranges` | Array<[`VersionRange`](#versionrange)> | |
+| `versions` | Array<`string`> | |
+| `ecosystem_specific` | `object` | |
+| `database_specific` | `object` | |
 
 ### `AffectedSymbol`
 
@@ -29,22 +38,19 @@ Complete reference for the `bomly diff` JSON output.
 | `module` | `string` | |
 | `definition` | [`SourcePosition`](#sourceposition) | |
 
-### `AuditFinding`
+### `Assertions`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | `string` | |
-| `kind` | `string` | |
-| `severity` | `string` | |
-| `package` | [`FindingPackageRef`](#findingpackageref) | |
-| `title` | `string` | |
-| `reasons` | Array<`string`> | |
-| `source` | `string` | |
-| `auditor` | `string` | |
-| `rule_id` | `string` | |
-| `policy_status` | `string` | |
-| `vulnerability_id` | `string` | |
-| `dependency_refs` | Array<`string`> | |
+| `description` | `string` | |
+| `homepage` | `string` | |
+| `supplier` | [`Contact`](#contact) | |
+| `originator` | [`Contact`](#contact) | |
+| `external_references` | Array<[`ExternalReference`](#externalreference)> | |
+| `cpes` | Array<`string`> | |
+| `digests` | Array<[`Digest`](#digest)> | |
+| `licenses` | Array<[`PackageLicense`](#packagelicense)> | |
+| `copyright` | `string` | |
 
 ### `AuditSummary`
 
@@ -91,6 +97,35 @@ Complete reference for the `bomly diff` JSON output.
 | `sink` | [`AffectedSymbol`](#affectedsymbol) | |
 | `frames` | Array<[`CallFrame`](#callframe)> | |
 
+### `Contact`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `kind` | `string` | |
+| `name` | `string` | |
+| `url` | `string` | |
+
+### `Coordinates`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `purl` | `string` | |
+| `ecosystem` | `string` | |
+| `package_manager` | `string` | |
+| `type` | `string` | |
+| `org` | `string` | |
+| `name` | `string` | |
+| `version` | `string` | |
+| `language` | `string` | |
+
+### `DependencyOrigin`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `artifact_url` | `string` | |
+| `repository` | `string` | |
+| `revision` | `string` | |
+
 ### `DetectorWarning`
 
 | Field | Type | Description |
@@ -106,9 +141,9 @@ Complete reference for the `bomly diff` JSON output.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `introduced` | Array<[`AuditFinding`](#auditfinding)> | |
-| `resolved` | Array<[`AuditFinding`](#auditfinding)> | |
-| `persisted` | Array<[`AuditFinding`](#auditfinding)> | |
+| `introduced` | Array<[`Finding`](#finding)> | |
+| `resolved` | Array<[`Finding`](#finding)> | |
+| `persisted` | Array<[`Finding`](#finding)> | |
 | `audit_summary` | [`AuditSummary`](#auditsummary) | |
 
 ### `DiffChangedPackage`
@@ -160,15 +195,15 @@ Complete reference for the `bomly diff` JSON output.
 | Field | Type | Description |
 |-------|------|-------------|
 | `package` | [`PackageRef`](#packageref) | |
-| `licenses` | Array<[`LicenseRef`](#licenseref)> | |
+| `licenses` | Array<[`PackageLicense`](#packagelicense)> | |
 
 ### `DiffLicenseDelta`
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `package` | [`PackageRef`](#packageref) | |
-| `before` | Array<[`LicenseRef`](#licenseref)> | |
-| `after` | Array<[`LicenseRef`](#licenseref)> | |
+| `before` | Array<[`PackageLicense`](#packagelicense)> | |
+| `after` | Array<[`PackageLicense`](#packagelicense)> | |
 
 ### `DiffLicenseResults`
 
@@ -229,7 +264,7 @@ Complete reference for the `bomly diff` JSON output.
 | Field | Type | Description |
 |-------|------|-------------|
 | `package` | [`PackageRef`](#packageref) | |
-| `vulnerability` | [`VulnerabilityRef`](#vulnerabilityref) | |
+| `vulnerability` | [`Vulnerability`](#vulnerability) | |
 
 ### `DiffVulnerabilityResults`
 
@@ -256,15 +291,43 @@ Complete reference for the `bomly diff` JSON output.
 | `percentile` | `number` | |
 | `date` | `string` | |
 
-### `FindingPackageRef`
+### `ExternalReference`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `name` | `string` | |
-| `org` | `string` | |
-| `version` | `string` | |
-| `purl` | `string` | |
-| `ecosystem` | `string` | |
+| `category` | `string` | |
+| `type` | `string` | |
+| `locator` | `string` | |
+| `comment` | `string` | |
+| `hashes` | Array<[`Digest`](#digest)> | |
+
+### `Finding`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | |
+| `kind` | `string` | |
+| `title` | `string` | |
+| `severity` | `string` | |
+| `policy_status` | `string` | |
+| `reasons` | Array<`string`> | |
+| `source` | `string` | |
+| `auditor` | `string` | |
+| `rule_id` | `string` | |
+| `vex_status` | `string` | |
+| `vex_justification` | `string` | |
+| `package_ref` | `string` | |
+| `dependency_refs` | Array<`string`> | |
+| `vulnerability_id` | `string` | |
+| `decision` | [`FindingPolicyDecision`](#findingpolicydecision) | |
+
+### `FindingPolicyDecision`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | |
+| `source` | `string` | |
+| `reason` | `string` | |
 
 ### `FixAvailable`
 
@@ -289,25 +352,6 @@ Complete reference for the `bomly diff` JSON output.
 | `urls` | Array<`string`> | |
 | `cwes` | Array<`string`> | |
 
-### `LicenseRef`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `value` | `string` | |
-| `spdxExpression` | `string` | |
-| `type` | `string` | |
-
-### `LocationRef`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `real_path` | `string` | |
-| `access_path` | `string` | |
-| `position` | [`PositionRef`](#positionref) | |
-| `module_root` | `string` | |
-| `scopes` | Array<`string`> | |
-| `relationship` | `string` | |
-
 ### `Metadata`
 
 | Field | Type | Description |
@@ -317,6 +361,49 @@ Complete reference for the `bomly diff` JSON output.
 | `scorecard_enabled` | `boolean` | |
 | `analyzer_runs` | Array<`string`> | |
 | `analyzer_stats` | `object` | |
+
+### `Package`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `purl` | `string` | |
+| `ecosystem` | `string` | |
+| `package_manager` | `string` | |
+| `type` | `string` | |
+| `org` | `string` | |
+| `name` | `string` | |
+| `version` | `string` | |
+| `language` | `string` | |
+| `description` | `string` | |
+| `homepage` | `string` | |
+| `supplier` | [`Contact`](#contact) | |
+| `originator` | [`Contact`](#contact) | |
+| `external_references` | Array<[`ExternalReference`](#externalreference)> | |
+| `cpes` | Array<`string`> | |
+| `digests` | Array<[`Digest`](#digest)> | |
+| `licenses` | Array<[`PackageLicense`](#packagelicense)> | |
+| `copyright` | `string` | |
+| `id` | `string` | |
+| `resolved_url` | `string` | |
+| `detected_origins` | Array<[`DependencyOrigin`](#dependencyorigin)> | |
+| `vulnerabilities` | Array<[`Vulnerability`](#vulnerability)> | |
+| `attestations` | Array<[`PackageAttestation`](#packageattestation)> | |
+| `scorecard` | [`PackageScorecard`](#packagescorecard) | |
+| `eol` | [`PackageEOL`](#packageeol) | |
+| `remediation` | [`PackageRemediation`](#packageremediation) | |
+| `matched` | `boolean` | |
+| `metadata` | `object` | |
+
+### `PackageAttestation`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `predicate_type` | `string` | |
+| `source` | `string` | |
+| `url` | `string` | |
+| `digest` | [`Digest`](#digest) | |
+| `issuer` | `string` | |
+| `verified` | `boolean` | |
 
 ### `PackageEOL`
 
@@ -330,6 +417,28 @@ Complete reference for the `bomly diff` JSON output.
 | `release_date` | `string` | |
 | `supported` | `boolean` | |
 
+### `PackageLicense`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `value` | `string` | |
+| `spdx_expression` | `string` | |
+| `type` | `string` | |
+| `source` | `string` | |
+| `name` | `string` | |
+| `extracted_text` | `string` | |
+
+### `PackageLocation`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `real_path` | `string` | |
+| `access_path` | `string` | |
+| `position` | [`SourcePosition`](#sourceposition) | |
+| `module_root` | `string` | |
+| `scopes` | Array<`string`> | |
+| `relationship` | `string` | |
+
 ### `PackageRef`
 
 | Field | Type | Description |
@@ -340,9 +449,9 @@ Complete reference for the `bomly diff` JSON output.
 | `purl` | `string` | |
 | `id` | `string` | |
 | `metadata` | `object` | |
-| `locations` | Array<[`LocationRef`](#locationref)> | |
-| `licenses` | Array<[`LicenseRef`](#licenseref)> | |
-| `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
+| `locations` | Array<[`PackageLocation`](#packagelocation)> | |
+| `licenses` | Array<[`PackageLicense`](#packagelicense)> | |
+| `vulnerabilities` | Array<[`Vulnerability`](#vulnerability)> | |
 | `scorecard` | [`PackageScorecard`](#packagescorecard) | |
 | `relationship` | `string` | |
 | `direct` | `boolean` | |
@@ -373,7 +482,7 @@ Complete reference for the `bomly diff` JSON output.
 | `repository` | `string` | |
 | `commitSha` | `string` | |
 | `scorecardVersion` | `string` | |
-| `runDate` | [`Time`](#time) | |
+| `runDate` | `string` (RFC 3339 timestamp) | |
 | `aggregateScore` | `number` | |
 | `checks` | Array<[`PackageScorecardCheck`](#packagescorecardcheck)> | |
 
@@ -386,15 +495,6 @@ Complete reference for the `bomly diff` JSON output.
 | `reason` | `string` | |
 | `documentation` | `string` | |
 
-### `PositionRef`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `file` | `string` | |
-| `line` | `integer` | |
-| `column` | `integer` | |
-| `end_line` | `integer` | |
-
 ### `ProjectDescriptor`
 
 | Field | Type | Description |
@@ -405,6 +505,15 @@ Complete reference for the `bomly diff` JSON output.
 | `target_ref` | `string` | |
 | `ecosystem` | `string` | |
 | `package_manager` | `string` | |
+
+### `RangeEvent`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `introduced` | `string` | |
+| `fixed` | `string` | |
+| `last_affected` | `string` | |
+| `limit` | `string` | |
 
 ### `Reachability`
 
@@ -446,24 +555,12 @@ Complete reference for the `bomly diff` JSON output.
 | `url` | `string` | |
 | `type` | `string` | |
 
-### `ScanPackageEntry`
+### `Severity`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `purl` | `string` | |
-| `name` | `string` | |
-| `org` | `string` | |
-| `version` | `string` | |
-| `ecosystem` | `string` | |
-| `matched` | `boolean` | |
-| `licenses` | Array<[`LicenseRef`](#licenseref)> | |
-| `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
-| `scorecard` | [`PackageScorecard`](#packagescorecard) | |
-| `eol` | [`PackageEOL`](#packageeol) | |
-| `remediation` | [`PackageRemediation`](#packageremediation) | |
-| `cpes` | Array<`string`> | |
-| `digests` | Array<[`Digest`](#digest)> | |
-| `metadata` | `object` | |
+| `type` | `string` | |
+| `score` | `string` | |
 
 ### `SourcePosition`
 
@@ -474,35 +571,62 @@ Complete reference for the `bomly diff` JSON output.
 | `column` | `integer` | |
 | `end_line` | `integer` | |
 
-### `Time`
+### `VersionRange`
 
-### `VulnerabilityRef`
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `string` | |
+| `repo` | `string` | |
+| `events` | Array<[`RangeEvent`](#rangeevent)> | |
+
+### `Vulnerability`
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `id` | `string` | |
-| `source` | `string` | |
-| `title` | `string` | |
-| `severity` | `string` | |
-| `severity_source` | `string` | |
 | `aliases` | Array<`string`> | |
-| `description` | `string` | |
-| `reasons` | Array<`string`> | |
-| `cvss` | Array<[`CVSSScore`](#cvssscore)> | |
-| `fixed_in` | `string` | |
-| `fixed_versions` | Array<`string`> | |
-| `fix_state` | `string` | |
-| `fix_available` | Array<[`FixAvailable`](#fixavailable)> | |
-| `affected_version_range` | `string` | |
+| `related` | Array<`string`> | |
+| `summary` | `string` | |
+| `details` | `string` | |
+| `severity` | Array<[`Severity`](#severity)> | |
+| `affected` | Array<[`Affected`](#affected)> | |
 | `references` | Array<[`Reference`](#reference)> | |
-| `kev_exploited` | `boolean` | |
-| `known_exploited` | Array<[`KnownExploited`](#knownexploited)> | |
-| `epss` | Array<[`EPSSScore`](#epssscore)> | |
-| `cwes` | Array<[`CWE`](#cwe)> | |
-| `risk_score` | `number` | |
+| `published` | `string` | |
+| `modified` | `string` | |
+| `withdrawn` | `string` | |
+| `database_specific` | `object` | |
+| `source` | `string` | |
 | `data_source` | `string` | |
 | `namespace` | `string` | |
+| `title` | `string` | |
+| `reasons` | Array<`string`> | |
+| `parsed_severity` | `string` | |
+| `severity_source` | `string` | |
+| `cvss` | Array<[`CVSSScore`](#cvssscore)> | |
+| `epss` | Array<[`EPSSScore`](#epssscore)> | |
+| `cwes` | Array<[`CWE`](#cwe)> | |
+| `kev_exploited` | `boolean` | |
+| `known_exploited` | Array<[`KnownExploited`](#knownexploited)> | |
+| `risk_score` | `number` | |
+| `fix_state` | `string` | |
+| `fixed_in` | `string` | |
+| `fixed_versions` | Array<`string`> | |
+| `fix_available` | Array<[`FixAvailable`](#fixavailable)> | |
+| `affected_version_range` | `string` | |
 | `cpes` | Array<`string`> | |
 | `affected_symbols` | Array<[`AffectedSymbol`](#affectedsymbol)> | |
 | `reachability` | [`Reachability`](#reachability) | |
+| `analysis` | [`VulnerabilityAnalysis`](#vulnerabilityanalysis) | |
+| `recommendation` | `string` | |
+
+### `VulnerabilityAnalysis`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `state` | `string` | |
+| `justification` | `string` | |
+| `response` | Array<`string`> | |
+| `detail` | `string` | |
+| `first_issued` | `string` | |
+| `last_updated` | `string` | |
 

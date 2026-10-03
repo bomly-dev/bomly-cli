@@ -391,7 +391,7 @@ func (m *DiffModel) diffAggregateCounts() diffAggregateCounts {
 		PackageDeltas:  diffPackageChangeCount(m.payload.Results.Manifests),
 	}
 	if m.payload.Audit != nil {
-		for _, bucket := range [][]output.AuditFinding{m.payload.Audit.Introduced, m.payload.Audit.Persisted, m.payload.Audit.Resolved} {
+		for _, bucket := range [][]model.Finding{m.payload.Audit.Introduced, m.payload.Audit.Persisted, m.payload.Audit.Resolved} {
 			for _, f := range bucket {
 				if isVulnerabilityFinding(f) {
 					out.VulnDeltas++
@@ -583,7 +583,7 @@ type diffOverviewStats struct {
 
 	// findingsByKind: kind ("vulnerability", "license", "package") ->
 	// total count across all three audit-delta buckets. Reads
-	// AuditFinding.Kind directly. Powers the "Findings" summary card
+	// model.Finding.Kind directly. Powers the "Findings" summary card
 	// in the Overview's top row.
 	findingsByKind map[string]int
 
@@ -737,7 +737,7 @@ func (m *DiffModel) computeOverviewStats() diffOverviewStats {
 			out.auditSummaryTotal = m.payload.Audit.AuditSummary.Total
 		}
 		bucketStatus := []string{"introduced", "persisted", "resolved"}
-		buckets := [][]output.AuditFinding{m.payload.Audit.Introduced, m.payload.Audit.Persisted, m.payload.Audit.Resolved}
+		buckets := [][]model.Finding{m.payload.Audit.Introduced, m.payload.Audit.Persisted, m.payload.Audit.Resolved}
 		for bIdx, bucket := range buckets {
 			status := bucketStatus[bIdx]
 			for _, f := range bucket {
@@ -808,7 +808,7 @@ func auditStatusTitle(status string) string {
 // (older diff outputs, external plugins). The fallback mirrors the
 // classification done by isVulnerabilityFinding so this function and that
 // predicate never disagree.
-func findingKindOf(f output.AuditFinding) string {
+func findingKindOf(f model.Finding) string {
 	if k := strings.ToLower(strings.TrimSpace(string(f.Kind))); k != "" {
 		switch k {
 		case "vuln", "advisory", "cve":
@@ -834,7 +834,7 @@ func findingKindOf(f output.AuditFinding) string {
 // 2nd colon-separated field; we additionally strip a trailing "-license"
 // / "-package" so callers see consistent short keys ("unknown" instead
 // of "unknown-license", "denied" instead of "denied-license").
-func findingRule(f output.AuditFinding, fallback string) string {
+func findingRule(f model.Finding, fallback string) string {
 	id := strings.TrimSpace(f.ID)
 	if id == "" {
 		return fallback
@@ -1220,7 +1220,7 @@ func diffVulnTotal(p output.DiffResponse) int {
 		return 0
 	}
 	n := 0
-	for _, group := range [][]output.AuditFinding{p.Audit.Introduced, p.Audit.Persisted, p.Audit.Resolved} {
+	for _, group := range [][]model.Finding{p.Audit.Introduced, p.Audit.Persisted, p.Audit.Resolved} {
 		for _, f := range group {
 			if isVulnerabilityFinding(f) {
 				n++
@@ -1234,7 +1234,7 @@ func diffVulnCount(p output.DiffResponse, status string) int {
 	if p.Audit == nil {
 		return 0
 	}
-	var bucket []output.AuditFinding
+	var bucket []model.Finding
 	switch status {
 	case "introduced":
 		bucket = p.Audit.Introduced
@@ -1465,8 +1465,8 @@ func packageRefFromTransitionState(state output.DiffDependencyTransitionState) o
 		Purl:            state.Purl,
 		Scope:           state.Scope,
 		Relationship:    string(state.Relationship),
-		Licenses:        []output.LicenseRef{},
-		Vulnerabilities: []output.VulnerabilityRef{},
+		Licenses:        []model.PackageLicense{},
+		Vulnerabilities: []model.Vulnerability{},
 	}
 	switch state.Relationship {
 	case model.DependencyRelationshipDirect:
@@ -1479,11 +1479,11 @@ func packageRefFromTransitionState(state output.DiffDependencyTransitionState) o
 	return ref
 }
 
-func maxSeverity(vulns []output.VulnerabilityRef) string {
+func maxSeverity(vulns []model.Vulnerability) string {
 	best := ""
 	bestRank := severityRank("zzz")
 	for _, v := range vulns {
-		sev := strings.ToLower(strings.TrimSpace(string(v.Severity)))
+		sev := strings.ToLower(strings.TrimSpace(string(v.ParsedSeverity)))
 		if sev == "" {
 			sev = "unknown"
 		}
@@ -1912,14 +1912,14 @@ func tuiRegistryEligibilityLabel(eligible bool) string {
 }
 
 // renderLicenseList renders one package's license inventory.
-func renderLicenseList(licenses []output.LicenseRef) []string {
+func renderLicenseList(licenses []model.PackageLicense) []string {
 	out := []string{"", render.Style("Licenses", render.Bold, render.Yellow)}
 	if len(licenses) == 0 {
 		out = append(out, render.Style("  (none)", render.Dim))
 		return out
 	}
 	for _, lic := range licenses {
-		id := lic.Identifier()
+		id := output.LicenseIdentifier(lic)
 		if id == "" {
 			id = "(empty)"
 		}
@@ -1933,7 +1933,7 @@ func renderLicenseList(licenses []output.LicenseRef) []string {
 }
 
 // renderLicenseDelta shows before/after license sets for a changed package.
-func renderLicenseDelta(before, after []output.LicenseRef) []string {
+func renderLicenseDelta(before, after []model.PackageLicense) []string {
 	beforeSet, afterSet := licenseIDSet(before), licenseIDSet(after)
 	if len(beforeSet) == 0 && len(afterSet) == 0 {
 		return nil
@@ -1955,10 +1955,10 @@ func renderLicenseDelta(before, after []output.LicenseRef) []string {
 	return out
 }
 
-func licenseIDSet(licenses []output.LicenseRef) map[string]bool {
+func licenseIDSet(licenses []model.PackageLicense) map[string]bool {
 	out := make(map[string]bool, len(licenses))
 	for _, lic := range licenses {
-		if id := lic.Identifier(); id != "" {
+		if id := output.LicenseIdentifier(lic); id != "" {
 			out[id] = true
 		}
 	}
@@ -1966,14 +1966,14 @@ func licenseIDSet(licenses []output.LicenseRef) map[string]bool {
 }
 
 // renderVulnList renders one package's full vulnerability inventory.
-func renderVulnList(vulns []output.VulnerabilityRef) []string {
+func renderVulnList(vulns []model.Vulnerability) []string {
 	out := []string{"", render.Style("Vulnerabilities", render.Bold, render.Red)}
 	if len(vulns) == 0 {
 		out = append(out, render.Style("  (none)", render.Dim))
 		return out
 	}
 	for _, v := range vulns {
-		out = append(out, render.Style("  - ", render.Dim)+severityText(string(v.Severity))+" "+valueOrDash(v.ID))
+		out = append(out, render.Style("  - ", render.Dim)+severityText(string(v.ParsedSeverity))+" "+valueOrDash(v.ID))
 		if v.FixedIn != "" {
 			out = append(out, render.Style("      fixed in: ", render.Dim)+v.FixedIn)
 		}
@@ -1988,7 +1988,7 @@ func renderVulnList(vulns []output.VulnerabilityRef) []string {
 }
 
 // renderVulnDelta shows before/after vulnerabilities for a changed package.
-func renderVulnDelta(before, after []output.VulnerabilityRef) []string {
+func renderVulnDelta(before, after []model.Vulnerability) []string {
 	beforeSet, afterSet := vulnIDSet(before), vulnIDSet(after)
 	if len(beforeSet) == 0 && len(afterSet) == 0 {
 		return nil
@@ -1997,21 +1997,21 @@ func renderVulnDelta(before, after []output.VulnerabilityRef) []string {
 	for id, v := range afterSet {
 		switch {
 		case beforeSet[id] != nil:
-			out = append(out, render.Style("  = ", render.Dim)+severityText(string(v.Severity))+" "+id+render.Style("  (old)", render.Dim))
+			out = append(out, render.Style("  = ", render.Dim)+severityText(string(v.ParsedSeverity))+" "+id+render.Style("  (old)", render.Dim))
 		default:
-			out = append(out, render.Style("  + ", render.Red, render.Bold)+severityText(string(v.Severity))+" "+id+render.Style("  (new)", render.Dim))
+			out = append(out, render.Style("  + ", render.Red, render.Bold)+severityText(string(v.ParsedSeverity))+" "+id+render.Style("  (new)", render.Dim))
 		}
 	}
 	for id, v := range beforeSet {
 		if afterSet[id] == nil {
-			out = append(out, render.Style("  - ", render.Green, render.Bold)+severityText(string(v.Severity))+" "+id+render.Style("  (fixed)", render.Dim))
+			out = append(out, render.Style("  - ", render.Green, render.Bold)+severityText(string(v.ParsedSeverity))+" "+id+render.Style("  (fixed)", render.Dim))
 		}
 	}
 	return out
 }
 
-func vulnIDSet(vulns []output.VulnerabilityRef) map[string]*output.VulnerabilityRef {
-	out := make(map[string]*output.VulnerabilityRef, len(vulns))
+func vulnIDSet(vulns []model.Vulnerability) map[string]*model.Vulnerability {
+	out := make(map[string]*model.Vulnerability, len(vulns))
 	for i := range vulns {
 		v := &vulns[i]
 		if v.ID == "" {
@@ -2030,24 +2030,24 @@ func diffManifestKey(mf output.DiffManifestResult) string {
 
 type auditDelta struct {
 	status   string // "introduced", "persisted", "resolved"
-	finding  output.AuditFinding
+	finding  model.Finding
 	severity string
 	// vuln and licenses are resolved against payload.Packages at collection
 	// time (findings reference advisory data by purl + vulnerability_id).
-	vuln     *output.VulnerabilityRef
-	licenses []output.LicenseRef
+	vuln     *model.Vulnerability
+	licenses []model.PackageLicense
 }
 
 // auditDeltas walks the three diff buckets and returns the subset
 // matching `keep`. A nil predicate keeps every finding — used by the
 // Findings tab which spans every FindingKind. The Vulnerabilities tab
 // passes isVulnerabilityFinding.
-func (m *DiffModel) auditDeltas(keep func(output.AuditFinding) bool) []auditDelta {
+func (m *DiffModel) auditDeltas(keep func(model.Finding) bool) []auditDelta {
 	out := make([]auditDelta, 0)
 	if m.payload.Audit == nil {
 		return out
 	}
-	collect := func(status string, findings []output.AuditFinding) {
+	collect := func(status string, findings []model.Finding) {
 		for _, f := range findings {
 			if keep != nil && !keep(f) {
 				continue
@@ -2055,7 +2055,7 @@ func (m *DiffModel) auditDeltas(keep func(output.AuditFinding) bool) []auditDelt
 			delta := auditDelta{status: status, finding: f, severity: string(f.Severity)}
 			delta.vuln = output.FindingVulnerabilityInPackages(f, m.payload.Packages)
 			for idx := range m.payload.Packages {
-				if m.payload.Packages[idx].Purl == f.Package.Purl && f.Package.Purl != "" {
+				if m.payload.Packages[idx].PURL == f.PackageRef && f.PackageRef != "" {
 					delta.licenses = m.payload.Packages[idx].Licenses
 					break
 				}
@@ -2069,7 +2069,7 @@ func (m *DiffModel) auditDeltas(keep func(output.AuditFinding) bool) []auditDelt
 	return out
 }
 
-func isVulnerabilityFinding(f output.AuditFinding) bool {
+func isVulnerabilityFinding(f model.Finding) bool {
 	// Prefer the explicit Auditor name when present — it's what the diff
 	// engine sets and is the most reliable signal.
 	switch strings.ToLower(strings.TrimSpace(f.Auditor)) {
@@ -2151,7 +2151,7 @@ func (m *DiffModel) buildFindingsTab() *listModel {
 
 // auditTabConfig collects everything buildAuditTab needs.
 type auditTabConfig struct {
-	keep       func(output.AuditFinding) bool // nil keeps every finding
+	keep       func(model.Finding) bool // nil keeps every finding
 	group      string
 	groupHints string // shown after "g cycles group "
 	expanded   map[string]bool
@@ -2201,7 +2201,7 @@ func (m *DiffModel) auditVerdict() auditVerdict {
 	if m.payload.Audit.AuditSummary != nil {
 		v.Total = m.payload.Audit.AuditSummary.Total
 	}
-	classify := func(bucket []output.AuditFinding) (total, vuln, nonVuln int) {
+	classify := func(bucket []model.Finding) (total, vuln, nonVuln int) {
 		for _, f := range bucket {
 			total++
 			if isVulnerabilityFinding(f) {
@@ -2317,7 +2317,7 @@ func (m *DiffModel) findingsOutcomePanels() []listPanel {
 	// tab's grouping axis when they press `g` to group by kind, so the
 	// numbers stay consistent across the entire UI.
 	byKind := map[string]int{}
-	for _, bucket := range [][]output.AuditFinding{m.payload.Audit.Introduced, m.payload.Audit.Persisted, m.payload.Audit.Resolved} {
+	for _, bucket := range [][]model.Finding{m.payload.Audit.Introduced, m.payload.Audit.Persisted, m.payload.Audit.Resolved} {
 		for _, f := range bucket {
 			byKind[findingKindOf(f)]++
 		}
@@ -2414,7 +2414,7 @@ func (m *DiffModel) vulnsOutcomePanels() []listPanel {
 	// By-severity scoped to vuln-kind across all three buckets — gives the
 	// reader a quick read of what kinds of severities the diff touched.
 	severity := map[string]int{}
-	for _, bucket := range [][]output.AuditFinding{m.payload.Audit.Introduced, m.payload.Audit.Persisted, m.payload.Audit.Resolved} {
+	for _, bucket := range [][]model.Finding{m.payload.Audit.Introduced, m.payload.Audit.Persisted, m.payload.Audit.Resolved} {
 		for _, f := range bucket {
 			if !isVulnerabilityFinding(f) {
 				continue
@@ -2568,7 +2568,7 @@ func auditGroupKey(d auditDelta, group string) string {
 		}
 		return sev
 	case "package":
-		name := d.finding.Package.DisplayLabel()
+		name := output.FindingLabel(d.finding)
 		if name == "" {
 			return "unknown"
 		}
@@ -2651,7 +2651,7 @@ func auditDeltaTitle(d auditDelta) string {
 	if id == "" {
 		id = "(no id)"
 	}
-	pkg := d.finding.Package.DisplayLabel()
+	pkg := output.FindingLabel(d.finding)
 	if pkg == "" {
 		return id
 	}
@@ -2691,9 +2691,9 @@ func auditDeltaDetails(d auditDelta) []string {
 		render.Style("  Source: ", render.Dim)+valueOrDash(f.Source),
 		"",
 		render.Style("Package", render.Bold, render.Magenta),
-		render.Style("  Display: ", render.Dim)+valueOrDash(f.Package.DisplayLabel()),
-		render.Style("  Purl: ", render.Dim)+valueOrDash(f.Package.Purl),
-		render.Style("  Org: ", render.Dim)+valueOrDash(f.Package.Org),
+		render.Style("  Display: ", render.Dim)+valueOrDash(output.FindingLabel(f)),
+		render.Style("  Purl: ", render.Dim)+valueOrDash(f.PackageRef),
+		render.Style("  Org: ", render.Dim)+valueOrDash(output.IdentityFromPackageRef(f.PackageRef).Org),
 	)
 	if len(f.Reasons) > 0 {
 		lines = append(lines, "", render.Style("Reasons", render.Bold, render.Magenta))
@@ -2798,9 +2798,9 @@ type licenseDelta struct {
 
 func (m *DiffModel) collectLicenseDeltas() []licenseDelta {
 	out := make([]licenseDelta, 0)
-	add := func(status, pkgLabel, manifestLabel string, licenses []output.LicenseRef) {
+	add := func(status, pkgLabel, manifestLabel string, licenses []model.PackageLicense) {
 		for _, lic := range licenses {
-			id := strings.TrimSpace(lic.Identifier())
+			id := strings.TrimSpace(output.LicenseIdentifier(lic))
 			if id == "" {
 				continue
 			}
@@ -2833,10 +2833,10 @@ func (m *DiffModel) collectLicenseDeltas() []licenseDelta {
 	return out
 }
 
-func licenseSet(licenses []output.LicenseRef) map[string]struct{} {
+func licenseSet(licenses []model.PackageLicense) map[string]struct{} {
 	out := make(map[string]struct{}, len(licenses))
 	for _, l := range licenses {
-		id := strings.TrimSpace(l.Identifier())
+		id := strings.TrimSpace(output.LicenseIdentifier(l))
 		if id == "" {
 			continue
 		}

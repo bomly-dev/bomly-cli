@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 
 	"github.com/bomly-dev/bomly-sdk/model"
@@ -51,7 +53,7 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 					},
 				}},
 			}},
-			Metadata: output.Metadata{},
+			Metadata: scan.Metadata{},
 		},
 		// lib-a's finding is introduced by head; deep's persists; the
 		// old-lib finding only existed on base (resolved by this ref).
@@ -176,7 +178,7 @@ func TestBuildCompactDiffEnrichedWithoutAuditReturnsHeadRemediation(t *testing.T
 
 func TestBuildCompactExplainAttachesRemediationAndDetail(t *testing.T) {
 	in := remediationFixture(t)
-	deepVulns := output.VulnerabilityRefsFromPackageVulnerabilities(mustRegistryVulns(t, in.Registry, "pkg:npm/@scope/deep@2.0.0"))
+	deepVulns := mustRegistryVulns(t, in.Registry, "pkg:npm/@scope/deep@2.0.0")
 	run := ExplainRunResult{
 		Response: output.ExplainResponse{
 			Command: "explain",
@@ -244,7 +246,7 @@ func TestBuildCompactExplainEnrichedWithoutAuditReturnsRemediation(t *testing.T)
 					Name:            "@scope/deep",
 					Version:         "2.0.0",
 					Purl:            purl,
-					Vulnerabilities: output.VulnerabilityRefsFromPackageVulnerabilities(mustRegistryVulns(t, in.Registry, purl)),
+					Vulnerabilities: mustRegistryVulns(t, in.Registry, purl),
 				}},
 			}},
 		},
@@ -279,7 +281,7 @@ func TestBuildCompactExplainTreatsAuditOmissionAsSuppressed(t *testing.T) {
 						Name:            "lib-a",
 						Version:         "1.0.0",
 						Purl:            purl,
-						Vulnerabilities: output.VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
+						Vulnerabilities: pkg.Vulnerabilities,
 					},
 					Remediation: pkg.Remediation.Clone(),
 				},

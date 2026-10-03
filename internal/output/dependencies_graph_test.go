@@ -6,6 +6,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 
 	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/scan"
 )
 
 // Every depends_on ID must name a record the same document defines.
@@ -39,7 +40,7 @@ func TestDependenciesFromGraphResolveThroughStructuralNodes(t *testing.T) {
 	}
 
 	entries := DependenciesFromGraph(g, nil)
-	byID := make(map[string]ScanDependency, len(entries))
+	byID := make(map[string]scan.Dependency, len(entries))
 	for _, entry := range entries {
 		byID[entry.ID] = entry
 	}

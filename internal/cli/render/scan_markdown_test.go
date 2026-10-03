@@ -4,19 +4,21 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
 func TestScanMarkdownDedupsSharedModuleDependencies(t *testing.T) {
-	shared := output.ScanDependency{ID: "pkg:npm/lodash@4.17.21", Name: "lodash", Version: "4.17.21", Purl: "pkg:npm/lodash@4.17.21"}
-	payload := output.ScanResponse{
-		Manifests: []output.ScanManifest{
-			{Path: "package-lock.json", Subproject: ".", Dependencies: []output.ScanDependency{shared}},
-			{Path: "apps/web/package.json", Subproject: ".", Dependencies: []output.ScanDependency{shared}},
+	shared := scan.Dependency{ID: "pkg:npm/lodash@4.17.21", Name: "lodash", Version: "4.17.21", PURL: "pkg:npm/lodash@4.17.21"}
+	payload := scan.Record{
+		Manifests: []scan.Manifest{
+			{Path: "package-lock.json", Subproject: ".", Dependencies: []scan.Dependency{shared}},
+			{Path: "apps/web/package.json", Subproject: ".", Dependencies: []scan.Dependency{shared}},
 		},
 	}
 	var b strings.Builder
-	if err := ScanMarkdown(&b, payload); err != nil {
+	if err := ScanMarkdown(&b, payload, output.ProjectDescriptor{}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
 	}
 	out := b.String()

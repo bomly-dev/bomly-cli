@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/scan"
 )
 
 func TestClassifyManifest(t *testing.T) {
@@ -37,7 +38,7 @@ func TestClassifyManifest(t *testing.T) {
 }
 
 func TestBuildHierarchySingleRootHasNoGroups(t *testing.T) {
-	hierarchy := BuildHierarchy([]ScanManifest{
+	hierarchy := BuildHierarchy([]scan.Manifest{
 		{Path: "package-lock.json", Subproject: "."},
 		{Path: "go.mod", Subproject: "."},
 	})
@@ -50,7 +51,7 @@ func TestBuildHierarchySingleRootHasNoGroups(t *testing.T) {
 }
 
 func TestBuildHierarchyRootLockfileWithModuleSiblings(t *testing.T) {
-	hierarchy := BuildHierarchy([]ScanManifest{
+	hierarchy := BuildHierarchy([]scan.Manifest{
 		{Path: "package-lock.json", Subproject: "."},
 		{Path: "apps/web/package.json", Subproject: "."},
 		{Path: "packages/lib/package.json", Subproject: "."},
@@ -70,7 +71,7 @@ func TestBuildHierarchyRootLockfileWithModuleSiblings(t *testing.T) {
 }
 
 func TestBuildHierarchySubprojectsAndModules(t *testing.T) {
-	hierarchy := BuildHierarchy([]ScanManifest{
+	hierarchy := BuildHierarchy([]scan.Manifest{
 		{Path: "requirements.txt", Subproject: "."},
 		{Path: "apps/web/package.json", Subproject: "."},
 		{Path: "services/api/pom.xml", Subproject: "services/api"},
@@ -120,7 +121,7 @@ func TestBuildHierarchySubprojectsAndModules(t *testing.T) {
 }
 
 func TestBuildHierarchyAttachesModulesToParentManifest(t *testing.T) {
-	hierarchy := BuildHierarchy([]ScanManifest{
+	hierarchy := BuildHierarchy([]scan.Manifest{
 		{Path: "package-lock.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Ecosystem: model.EcosystemNPM},
 		{Path: "go.mod", Subproject: ".", PackageManager: model.PackageManagerGoMod, Ecosystem: model.EcosystemGo},
 		{Path: "apps/web/package.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Ecosystem: model.EcosystemNPM},
@@ -137,7 +138,7 @@ func TestBuildHierarchyAttachesModulesToParentManifest(t *testing.T) {
 }
 
 func TestBuildHierarchyModuleWithoutParentManifestUnattached(t *testing.T) {
-	hierarchy := BuildHierarchy([]ScanManifest{
+	hierarchy := BuildHierarchy([]scan.Manifest{
 		{Path: "package-lock.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Ecosystem: model.EcosystemNPM},
 		{Path: "yarn.lock", Subproject: ".", PackageManager: model.PackageManagerYarn, Ecosystem: model.EcosystemNPM},
 		{Path: "crates/api/Cargo.toml", Subproject: ".", PackageManager: model.PackageManagerCargo, Ecosystem: model.EcosystemRust},

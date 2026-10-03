@@ -33,6 +33,10 @@ func resolveFindingPolicyStatuses(ctx context.Context, findings []model.Finding,
 		}
 		if matched {
 			out[idx].PolicyStatus = selected.Status
+			// The decision rides the finding so a reader can see which
+			// resolver settled the status, and why, after the run has ended.
+			decision := selected
+			out[idx].Decision = &decision
 		}
 	}
 	return out

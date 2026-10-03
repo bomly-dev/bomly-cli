@@ -109,9 +109,11 @@ func newScanCmd() *cobra.Command {
 				prog.CompleteStep("Evaluated policy", auditProgressChildren(pipeResult.AuditorRuns, pipeResult.AuditorFindings, pipeResult.AuditWarnings))
 			}
 			reportOptions := reportOptionsFromPipelineResults(commandCtx.ResolvedConfig.Analyze, pipeResult)
-			payload := output.BuildScanResponse(commandCtx.ProjectDescriptor(), consolidated, pipeResult.Registry, findings, started, reportOptions)
+			project := commandCtx.ProjectDescriptor()
+			run := output.NewScanRun(cmd.Root().Version, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Analyze, commandCtx.ResolvedConfig.Audit, failOnTokens(commandCtx.ResolvedConfig.FailOn))
+			payload := output.BuildScanRecord(commandCtx.ExecutionTarget(), run, commandCtx.ResolvedConfig.Audit, consolidated, pipeResult.Registry, findings, started, reportOptions)
 			markdownRenderer := func(w io.Writer) error {
-				return render.ScanMarkdown(w, payload)
+				return render.ScanMarkdown(w, payload, project)
 			}
 			scanManifests := output.ScanManifestsFromConsolidated(consolidated, pipeResult.Registry)
 			// Notices ride the report itself, not just the progress stream, so
@@ -140,7 +142,7 @@ func newScanCmd() *cobra.Command {
 			if pipeResult.Consolidated.Graphs != nil {
 				sbomEntries = pipeResult.Consolidated.Graphs.Entries
 			}
-			sbomBuildOpts := scanSBOMBuildOptions(logger, payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, coverageDegraded(pipeResult.DetectorWarnings))
+			sbomBuildOpts := scanSBOMBuildOptions(logger, project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, coverageDegraded(pipeResult.DetectorWarnings))
 
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -190,7 +192,7 @@ func newScanCmd() *cobra.Command {
 
 			if commandCtx.ResolvedConfig.Interactive {
 				prog.Stop()
-				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScan(payload.Project, consolidated, selectedGraph, findings).WithRegistry(pipeResult.Registry).WithEnrichEnabled(commandCtx.ResolvedConfig.Enrich).WithReachabilityEnabled(commandCtx.ResolvedConfig.Analyze)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScan(project, consolidated, selectedGraph, findings).WithRegistry(pipeResult.Registry).WithEnrichEnabled(commandCtx.ResolvedConfig.Enrich).WithReachabilityEnabled(commandCtx.ResolvedConfig.Analyze)))
 			}
 
 			writer, closeWriter, err := commandCtx.Writer(streams.reportWriter())
@@ -354,4 +356,10 @@ func sbomToolNames(results []plugin.DetectionResult) []string {
 		tools = append(tools, name)
 	}
 	return tools
+}
+
+// failOnTokens renders the resolved fail-on constraints as the tokens the
+// user wrote, for the record's run options.
+func failOnTokens(failOn []string) []string {
+	return append([]string(nil), failOn...)
 }

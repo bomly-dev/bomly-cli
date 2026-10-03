@@ -677,13 +677,14 @@ for _, dep := range req.Graph.DependencyNodes() {
 ### Output: resolve references at projection time
 
 ```go
-af := output.AuditFinding{ID: f.ID, Kind: string(f.Kind), Severity: f.Severity}
-if pkg, ok := registry.Get(f.PackageRef); ok && pkg != nil {
-    af.Package = output.PackageRef{Purl: pkg.PURL, Name: pkg.Name, Version: pkg.Version, ...}
-    if vuln := lookupVulnerability(pkg, f.VulnerabilityID, f.ID); vuln != nil {
-        af.CVSS, af.EPSS, af.CWEs = vuln.CVSS, vuln.EPSS, vuln.CWEs
-        af.FixedIn, af.FixedVersions = vuln.FixedIn, vuln.FixedVersions
-        af.Reachability = vuln.Reachability.Clone()
+// A finding in a document is the SDK's model.Finding, referencing its
+// package by URL. The advisory's detail is read from the registry where it
+// is rendered, not copied onto the finding; only a severity the finding did
+// not state is filled in from the advisory it references.
+findings := output.FindingsWithSeverity(result.Findings, registry)
+for _, f := range findings {
+    if pkg, vuln := output.FindingAdvisory(registry, f); vuln != nil {
+        render(f, pkg, vuln) // CVSS, EPSS, fixed versions, reachability live on vuln
     }
 }
 ```

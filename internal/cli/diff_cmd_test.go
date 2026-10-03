@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
@@ -23,9 +25,9 @@ func TestRenderDiffTextShowsFindingsSummaryLine(t *testing.T) {
 			UnchangedManifestCount: 1,
 		},
 		Audit: &output.DiffAudit{
-			AuditSummary: &output.AuditSummary{High: 1, Total: 1},
+			AuditSummary: &scan.AuditSummary{High: 1, Total: 1},
 		},
-		Metadata: output.Metadata{DurationMS: time.Second.Milliseconds()},
+		Metadata: scan.Metadata{DurationMS: time.Second.Milliseconds()},
 	}
 
 	var out bytes.Buffer
@@ -109,7 +111,7 @@ func TestDiffPolicyExit_NoAuditNoExit(t *testing.T) {
 func TestRenderDiffTextShowsHighFindingsWhenIntroduced(t *testing.T) {
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
-			Introduced: []output.AuditFinding{
+			Introduced: []model.Finding{
 				{ID: "CVE-2024-1234", Severity: "high"},
 				{ID: "CVE-2024-5678", Severity: "critical"},
 			},
@@ -128,9 +130,9 @@ func TestRenderDiffTextShowsHighFindingsWhenIntroduced(t *testing.T) {
 func TestRenderDiffTextShowsPersistedFindings(t *testing.T) {
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
-			Persisted: []output.AuditFinding{
-				{ID: "CVE-2024-1234", Severity: "high", Package: output.FindingPackageRef{Name: "minimist", Version: "0.0.10"}},
-				{ID: "CVE-2024-5678", Severity: "medium", Package: output.FindingPackageRef{Name: "minimist", Version: "1.2.8"}},
+			Persisted: []model.Finding{
+				{ID: "CVE-2024-1234", Severity: "high", PackageRef: "pkg:npm/minimist@0.0.10"},
+				{ID: "CVE-2024-5678", Severity: "medium", PackageRef: "pkg:npm/minimist@1.2.8"},
 			},
 		},
 	}
@@ -156,11 +158,11 @@ func TestRenderDiffTextShowsPersistedFindings(t *testing.T) {
 func TestRenderDiffTextShowsIntroducedAndPersistedFindings(t *testing.T) {
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
-			Introduced: []output.AuditFinding{
-				{ID: "CVE-NEW", Severity: "critical", Package: output.FindingPackageRef{Name: "react", Version: "19.0.0"}},
+			Introduced: []model.Finding{
+				{ID: "CVE-NEW", Severity: "critical", PackageRef: "pkg:npm/react@19.0.0"},
 			},
-			Persisted: []output.AuditFinding{
-				{ID: "CVE-KEPT", Severity: "high", Package: output.FindingPackageRef{Name: "minimist", Version: "1.2.8"}},
+			Persisted: []model.Finding{
+				{ID: "CVE-KEPT", Severity: "high", PackageRef: "pkg:npm/minimist@1.2.8"},
 			},
 		},
 	}
@@ -191,33 +193,33 @@ func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
 			Vulnerabilities: output.DiffVulnerabilityResults{
 				Added: []output.DiffVulnerabilityChange{{
 					Package: output.PackageRef{Name: "react", Version: "18.2.0"},
-					Vulnerability: output.VulnerabilityRef{
-						ID:       "OSV-123",
-						Severity: "high",
-						Source:   "osv",
-						Title:    "Prototype pollution in react",
-						FixedIn:  "18.2.1",
+					Vulnerability: model.Vulnerability{
+						ID:             "OSV-123",
+						ParsedSeverity: "high",
+						Source:         "osv",
+						Title:          "Prototype pollution in react",
+						FixedIn:        "18.2.1",
 					},
 				}},
 			},
 		},
-		Packages: []output.ScanPackageEntry{{
-			Purl: "pkg:npm/react@18.2.0",
+		Packages: []*model.Package{{
+			PURL: "pkg:npm/react@18.2.0",
 			Name: "react",
-			Vulnerabilities: []output.VulnerabilityRef{{
+			Vulnerabilities: []model.Vulnerability{{
 				ID:      "OSV-123",
 				Source:  "osv",
 				FixedIn: "18.2.1",
 			}},
 		}},
 		Audit: &output.DiffAudit{
-			Introduced: []output.AuditFinding{{
+			Introduced: []model.Finding{{
 				ID:              "OSV-123",
 				VulnerabilityID: "OSV-123",
 				Severity:        "high",
 				Auditor:         "vulnerability",
 				PolicyStatus:    "fail",
-				Package:         output.FindingPackageRef{Name: "react", Version: "18.2.0", Purl: "pkg:npm/react@18.2.0"},
+				PackageRef:      "pkg:npm/react@18.2.0",
 				Title:           "Prototype pollution in react",
 			}},
 		},
@@ -258,20 +260,20 @@ func TestRenderDiffMarkdownRendersScopedPolicyPayloadDirectly(t *testing.T) {
 			},
 		},
 		Audit: &output.DiffAudit{
-			Introduced: []output.AuditFinding{{
+			Introduced: []model.Finding{{
 				ID:           "license:unknown",
 				Auditor:      "license",
 				PolicyStatus: "warn",
-				Package:      output.FindingPackageRef{Name: "new-package", Version: "1.0.0"},
+				PackageRef:   "pkg:npm/new-package@1.0.0",
 				Title:        "Package license is unknown",
 			}},
-			Persisted: []output.AuditFinding{
-				{ID: "CVE-REACT", Auditor: "vulnerability", Severity: "medium", Package: output.FindingPackageRef{Name: "react", Version: "18.2.1"}, Title: "React finding"},
-				{ID: "CVE-LODASH", Auditor: "vulnerability", Severity: "medium", Package: output.FindingPackageRef{Name: "lodash", Version: "4.17.20"}, Title: "Unrelated finding"},
+			Persisted: []model.Finding{
+				{ID: "CVE-REACT", Auditor: "vulnerability", Severity: "medium", PackageRef: "pkg:npm/react@18.2.1", Title: "React finding"},
+				{ID: "CVE-LODASH", Auditor: "vulnerability", Severity: "medium", PackageRef: "pkg:npm/lodash@4.17.20", Title: "Unrelated finding"},
 			},
-			Resolved: []output.AuditFinding{
-				{ID: "CVE-REACT-OLD", Auditor: "vulnerability", Severity: "medium", Package: output.FindingPackageRef{Name: "react", Version: "18.2.0"}, Title: "Old React finding"},
-				{ID: "CVE-MINIMIST", Auditor: "vulnerability", Severity: "medium", Package: output.FindingPackageRef{Name: "minimist", Version: "1.2.5"}, Title: "Unrelated resolved finding"},
+			Resolved: []model.Finding{
+				{ID: "CVE-REACT-OLD", Auditor: "vulnerability", Severity: "medium", PackageRef: "pkg:npm/react@18.2.0", Title: "Old React finding"},
+				{ID: "CVE-MINIMIST", Auditor: "vulnerability", Severity: "medium", PackageRef: "pkg:npm/minimist@1.2.5", Title: "Unrelated resolved finding"},
 			},
 		},
 	}
@@ -325,13 +327,13 @@ func TestRenderDiffTextShowsHighFindingCountWhenIntroducedFindings(t *testing.T)
 	payload := output.DiffResponse{
 		Comparison: output.DiffComparison{Base: "base.spdx", Head: "head.spdx"},
 		Audit: &output.DiffAudit{
-			Introduced: []output.AuditFinding{
-				{ID: "OSV-123", Severity: "high", Package: output.FindingPackageRef{Name: "react", Version: "18.2.0"}, Title: "Prototype pollution in react"},
+			Introduced: []model.Finding{
+				{ID: "OSV-123", Severity: "high", PackageRef: "pkg:npm/react@18.2.0", Title: "Prototype pollution in react"},
 			},
-			Resolved: []output.AuditFinding{
-				{ID: "OSV-345", Severity: "low", Package: output.FindingPackageRef{Name: "minimist", Version: "1.2.5"}},
+			Resolved: []model.Finding{
+				{ID: "OSV-345", Severity: "low", PackageRef: "pkg:npm/minimist@1.2.5"},
 			},
-			AuditSummary: &output.AuditSummary{High: 1, Medium: 1, Total: 2},
+			AuditSummary: &scan.AuditSummary{High: 1, Medium: 1, Total: 2},
 		},
 	}
 

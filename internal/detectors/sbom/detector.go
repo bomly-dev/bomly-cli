@@ -125,7 +125,13 @@ func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (
 			zap.Strings("tokens", doc.UnknownScopeTokens))
 	}
 
-	depsGraph, err := sbom.ToGraph(doc)
+	// One entry, built by the codec: the graph, what the document said about
+	// itself (so a later export can restate it instead of crediting only
+	// Bomly for a document Bomly only converted, ADR-0037), and what it said
+	// about its packages -- advisories, their VEX analysis, end-of-life --
+	// which consolidation folds into the registry. Before ToGraphEntry the
+	// last of those was read from the document and dropped here.
+	entry, err := sbom.ToGraphEntry(doc, detectorkit.InferManifestMetadata(req, evidencePatterns))
 	if err != nil {
 		return plugin.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)
 	}
@@ -135,14 +141,7 @@ func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (
 	// something else, and the paths in the document are the producer's, not
 	// this scan's -- so an empty module root is the honest record of an
 	// unattributed site.
-	graphs := model.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns))
-	// What the document said about itself rides the entry it became, so a
-	// later export can restate it instead of crediting only Bomly for a
-	// document Bomly only converted (ADR-0037). The codec decides what that
-	// record contains, including for a document that asserted nothing.
-	if len(graphs.Entries) == 1 {
-		graphs.Entries[0].Document = sbom.DocumentAssertionsFor(doc)
-	}
+	graphs := &model.GraphContainer{Entries: []model.GraphEntry{entry}}
 
 	logger.Debug("resolved explicit sbom file", zap.String("path", sbomPath), zap.String("format", string(target)))
 	return detectors.Unattributed(plugin.DetectionResult{
@@ -170,6 +169,7 @@ func normalizeSBOMManifestMetadata(container *model.GraphContainer, req plugin.D
 		normalized.Entries = append(normalized.Entries, model.GraphEntry{
 			Graph:    entry.Graph,
 			Manifest: manifest,
+			Packages: entry.Packages,
 			Document: entry.Document,
 		})
 	}
@@ -189,6 +189,7 @@ func normalizeSBOMGraphContainer(container *model.GraphContainer) *model.GraphCo
 		normalized.Entries = append(normalized.Entries, model.GraphEntry{
 			Graph:    normalizedGraph,
 			Manifest: entry.Manifest,
+			Packages: entry.Packages,
 			Document: entry.Document,
 		})
 	}

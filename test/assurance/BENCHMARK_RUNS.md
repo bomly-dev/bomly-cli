@@ -32,10 +32,15 @@ exceeded. It does not fail simply because one machine ran more slowly or used
 more memory. Timing and memory measurements are evidence for people to review,
 not fixed pass-or-fail limits.
 
-Some JSON fields, such as timestamps and durations, naturally change on every
-run. The comparison removes only those documented fields before calculating a
-checksum. This comparison format is named
-`bomly.benchmark-normalization/v1`. The saved raw output is never changed.
+A scan's output is not byte-identical from one run to the next: every run has
+its own identifier and its own start and finish times. What should not change
+is what the scan found. A scan result carries a checksum for each of its three
+sections — manifests, packages, and findings — and the comparison uses those,
+so Bomly itself decides what identifies a scan and no list of "fields that
+change" has to be kept up to date here. Output that is not a scan result, such
+as an SBOM export, is compared after removing its timestamp and duration
+fields. This comparison format is named `bomly.benchmark-normalization/v2`.
+The saved raw output is never changed.
 
 ## Checking supported systems
 

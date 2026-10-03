@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 
@@ -17,7 +19,7 @@ type remediationInput struct {
 	Findings  []model.Finding
 	Graph     *model.Graph
 	Registry  *model.PackageRegistry
-	Manifests []output.ScanManifest
+	Manifests []scan.Manifest
 	// FocusedRemediation limits explain projections to suggestions already
 	// filtered for the focused dependency occurrence.
 	FocusedRemediation *model.PackageRemediation
@@ -626,7 +628,7 @@ func dependencyLabel(node model.GraphNode) string {
 	return name + "@" + version
 }
 
-func manifestForDependency(manifests []output.ScanManifest, dependencyID string) *output.ScanManifest {
+func manifestForDependency(manifests []scan.Manifest, dependencyID string) *scan.Manifest {
 	if dependencyID == "" {
 		return nil
 	}

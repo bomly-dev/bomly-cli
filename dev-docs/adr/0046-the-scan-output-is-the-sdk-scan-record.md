@@ -54,5 +54,10 @@ not written into the document.
   live in the SDK (`scan/record_test.go`). The CLI keeps the builders that
   need pipeline context -- manifest paths relative to the subproject, the
   `Matched` flag from the registry -- and the renderers.
-- The scan JSON is stable across runs of the same content: `scan.Encode`
-  orders every collection, so a digest over it identifies what was found.
+- The three collections are stable across runs of the same content:
+  `scan.Encode` orders every collection and records a digest per section
+  (`digests.manifests`, `digests.packages`, `digests.findings`), so those
+  identify what was found. The document as a whole is not: every run has
+  its own `run.id` and its own start and completion times, so a consumer
+  that hashes or byte-compares the full document sees a change on every
+  run and should compare the section digests instead.

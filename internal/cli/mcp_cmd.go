@@ -440,7 +440,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 			PackageManager: target.Manifest.Subproject.PrimaryPackageManager(),
 			Dependency:     explainPackageRef(target.Dependency, explainResult.Registry),
 			Paths:          explainPathsWithLinks(target.Paths),
-			Findings:       target.Findings,
+			Findings:       output.FindingsWithSeverity(target.Findings, explainResult.Registry),
 			AuditSummary:   output.SummaryFromFindings(target.Findings),
 		})
 	}

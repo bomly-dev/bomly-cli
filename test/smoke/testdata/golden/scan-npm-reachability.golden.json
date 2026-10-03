@@ -3964,7 +3964,7 @@
     "analyzer_stats": {
       "jsreach": {
         "reachable": 25,
-        "unreachable": 30
+        "unreachable": 31
       }
     },
     "reachability_enabled": true
@@ -5284,16 +5284,14 @@
       "name": "braces",
       "purl": "pkg:npm/braces@3.0.2",
       "remediation": {
-        "recommended_version": "\u003cnormalized\u003e",
-        "status": "complete",
+        "status": "partial",
         "suggestions": [
           {
-            "action": "transitive-override",
+            "action": "manual-review",
             "affected_dependency_refs": [
               "pkg:npm/braces@3.0.2"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "\u003cnormalized\u003e",
             "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -5343,6 +5341,72 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-grv7-fg5c-xmjg",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jsreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+          "epss": [
+            {
+              "cve": "CVE-2026-93687",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-vfj7-8cjw-p6xm",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "high",
           "reachability": {

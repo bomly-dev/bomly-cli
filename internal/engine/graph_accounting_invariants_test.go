@@ -311,8 +311,10 @@ func assertStructuredAndCompactAccounting(
 	wantOccurrences, wantPackages int,
 ) {
 	t.Helper()
-	response := output.BuildScanResponse(
-		output.ProjectDescriptor{Name: "fixture", Path: "/repo"},
+	response := output.BuildScanRecord(
+		plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/repo"},
+		output.NewScanRun("test", false, false, false, nil),
+		false,
 		consolidated,
 		registry,
 		nil,

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -75,6 +76,34 @@ func cloneTemp(ctx context.Context, logger *zap.Logger, repoURL, ref, tempRoot s
 		return "", fmt.Errorf("validate cloned repository: %w", err)
 	}
 	return tempDir, nil
+}
+
+// HeadCommit returns the commit path's checkout is at, or "" when path is
+// not inside a git repository, git is not available, or HEAD does not
+// resolve -- a scan of a plain directory has no commit to record, and that
+// is not an error. The value is what a scan record names as the commit it
+// ran against: for a clone, the commit CloneTemp checked out; for a local
+// path, whatever the working tree is at, which is the best a scan can say.
+func HeadCommit(ctx context.Context, logger *zap.Logger, path string) string {
+	return headCommitWithRunner(ctx, logger, path, runGitContext)
+}
+
+func headCommitWithRunner(ctx context.Context, logger *zap.Logger, path string, runner gitContextRunner) string {
+	if ensureGitAvailable() != nil {
+		return ""
+	}
+	if path == "" {
+		path = "."
+	}
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return ""
+	}
+	stdout, err := runner(ctx, logger, absPath, "rev-parse", "--verify", "HEAD^{commit}")
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(stdout)
 }
 
 // FindRepoRoot resolves the git repository root for path.
@@ -472,4 +501,26 @@ func normalizeDiffPath(path string) string {
 	path = strings.TrimPrefix(path, "a/")
 	path = strings.TrimPrefix(path, "b/")
 	return filepath.ToSlash(path)
+}
+
+// PublicURL returns a repository URL as a public identity: without the
+// userinfo, the query and the fragment it may carry. A token or password in
+// the userinfo, or in a query parameter, is what git needs to fetch and is
+// never what a scan record, a plugin request or a log should repeat, and
+// neither a query nor a fragment names a repository. A value that does not
+// parse as a URL with a scheme -- the scp-like git@host:org/repo form, a
+// bare path -- is returned as it was; net/url owns what a URL is and how it
+// re-serializes.
+func PublicURL(raw string) string {
+	trimmed := strings.TrimSpace(raw)
+	parsed, err := url.Parse(trimmed)
+	if err != nil || parsed.Scheme == "" {
+		return trimmed
+	}
+	parsed.User = nil
+	parsed.RawQuery = ""
+	parsed.ForceQuery = false
+	parsed.Fragment = ""
+	parsed.RawFragment = ""
+	return parsed.String()
 }

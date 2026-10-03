@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-sdk/scan"
 
 	"github.com/bomly-dev/bomly-sdk/model"
 )
@@ -155,13 +156,13 @@ func findingsForPackage(findings []model.Finding, purl string) []model.Finding {
 }
 
 // manifestForPurl finds the first manifest declaring a dependency with purl.
-func manifestForPurl(manifests []output.ScanManifest, purl string) *output.ScanManifest {
+func manifestForPurl(manifests []scan.Manifest, purl string) *scan.Manifest {
 	if purl == "" {
 		return nil
 	}
 	for idx := range manifests {
 		for _, dep := range manifests[idx].Dependencies {
-			if dep.Purl == purl {
+			if dep.PURL == purl {
 				return &manifests[idx]
 			}
 		}

@@ -25,7 +25,7 @@ func TestScanAndDiffJSONKeepRemediationOnTopLevelPackages(t *testing.T) {
 		},
 	})
 
-	scan := BuildScanResponse(ProjectDescriptor{Name: "demo"}, plugin.ConsolidatedGraph{}, registry, nil, time.Now())
+	scan := BuildScanRecord(plugin.ExecutionTarget{}, NewScanRun("test", true, false, false, nil), false, plugin.ConsolidatedGraph{}, registry, nil, time.Now())
 	assertOnlyPackageRemediation(t, scan, 1)
 
 	diff := BuildDiffResponse(

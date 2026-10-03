@@ -1257,7 +1257,7 @@ func TestScanInteractiveModel_TopBarUsesBrandBadge(t *testing.T) {
 }
 
 func TestFindingRule_ClassifiesCompactUnknownLicenseID(t *testing.T) {
-	if got := findingRule(output.AuditFinding{ID: "UNKNOWN-as12-1235-fqwe"}, "fallback"); got != "unknown" {
+	if got := findingRule(sdkmodel.Finding{ID: "UNKNOWN-as12-1235-fqwe"}, "fallback"); got != "unknown" {
 		t.Fatalf("findingRule() = %q, want unknown", got)
 	}
 }

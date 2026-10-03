@@ -4,6 +4,8 @@ import (
 	"path"
 	"sort"
 	"strings"
+
+	"github.com/bomly-dev/bomly-sdk/scan"
 )
 
 // ManifestNodeKind labels one level of the derived project hierarchy.
@@ -114,7 +116,7 @@ func hasHiddenPathSegment(dir string) bool {
 // subproject nodes are its children (modules first, then subprojects, each
 // sorted by directory); a subproject's own manifests attach to its node with
 // its modules as children.
-func BuildHierarchy(manifests []ScanManifest) HierarchyNode {
+func BuildHierarchy(manifests []scan.Manifest) HierarchyNode {
 	root := HierarchyNode{Kind: ManifestNodeProject, Dir: ".", Label: ".", AttachedManifest: -1}
 	subprojects := map[string]*HierarchyNode{}
 	modules := map[string]map[string]*HierarchyNode{} // parent dir → module dir → node
@@ -223,7 +225,7 @@ func BuildHierarchy(manifests []ScanManifest) HierarchyNode {
 // the project/module's own name (web, core-lib) — or "" when the manifest has
 // no single unambiguous root. The root is the one dependency no other
 // dependency in the manifest depends on.
-func ManifestRootName(manifest ScanManifest) string {
+func ManifestRootName(manifest scan.Manifest) string {
 	referenced := map[string]struct{}{}
 	for _, dep := range manifest.Dependencies {
 		for _, id := range dep.DependsOn {

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"time"
 )
 
 // WriteCommandSchemas writes JSON schema files for the supported command payloads.
@@ -44,6 +45,14 @@ func GenerateJSONSchema(t reflect.Type) map[string]any {
 
 func typeSchema(t reflect.Type, visited map[reflect.Type]bool) map[string]any {
 	t = derefType(t)
+
+	// A time encodes as an RFC 3339 string, not as the struct it is; the
+	// scan record's run timestamps are the first such fields a document
+	// carries, and a reflection walk would otherwise publish them as empty
+	// objects every emitted record fails to match.
+	if t == reflect.TypeFor[time.Time]() {
+		return map[string]any{"type": "string", "format": "date-time"}
+	}
 
 	switch t.Kind() {
 	case reflect.String:

@@ -30,7 +30,7 @@ func scopedNPMRegistry(t *testing.T) *model.PackageRegistry {
 
 func TestFindingsFromScanPreservesScopedIdentity(t *testing.T) {
 	registry := scopedNPMRegistry(t)
-	findings := FindingsFromScan([]model.Finding{{
+	findings := findingIdentities([]model.Finding{{
 		ID:              "GHSA-scoped",
 		Kind:            model.FindingKindVulnerability,
 		PackageRef:      "pkg:npm/@tailwindcss/postcss@4.0.0",
@@ -74,7 +74,7 @@ func TestFindingsFromScanPreservesScopedIdentity(t *testing.T) {
 // "pkg:npm/%40scope/deep@2.0.0" where the enriched rows say "@scope/deep" is
 // showing the reader a lookup key.
 func TestFindingsFromScanWithoutRegistryIdentifiesFromThePurl(t *testing.T) {
-	findings := FindingsFromScan([]model.Finding{{
+	findings := findingIdentities([]model.Finding{{
 		ID:         "GHSA-x",
 		Kind:       model.FindingKindVulnerability,
 		PackageRef: "pkg:npm/%40scope/deep@2.0.0",
@@ -95,7 +95,7 @@ func TestFindingsFromScanWithoutRegistryIdentifiesFromThePurl(t *testing.T) {
 // A reference that is not a package URL has nothing better behind it, so the
 // raw string stays the name. This is the case the fallback must not lose.
 func TestFindingsFromScanKeepsANonPurlReferenceVerbatim(t *testing.T) {
-	findings := FindingsFromScan([]model.Finding{{
+	findings := findingIdentities([]model.Finding{{
 		ID:         "POLICY-1",
 		Kind:       model.FindingKindPackage,
 		PackageRef: "not-a-purl",
@@ -109,11 +109,11 @@ func TestFindingsFromScanKeepsANonPurlReferenceVerbatim(t *testing.T) {
 func TestFindingVulnerabilityInPackagesJoinsByPurlAndAlias(t *testing.T) {
 	registry := scopedNPMRegistry(t)
 	packages := PackagesFromRegistry(registry)
-	finding := AuditFinding{
+	finding := model.Finding{
 		ID:              "CVE-2026-0001",
 		Kind:            model.FindingKindVulnerability,
 		VulnerabilityID: "CVE-2026-0001", // alias of GHSA-scoped
-		Package:         FindingPackageRef{Purl: "pkg:npm/@tailwindcss/postcss@4.0.0"},
+		PackageRef:      "pkg:npm/@tailwindcss/postcss@4.0.0",
 	}
 	vuln := FindingVulnerabilityInPackages(finding, packages)
 	if vuln == nil || vuln.ID != "GHSA-scoped" {
@@ -123,10 +123,10 @@ func TestFindingVulnerabilityInPackagesJoinsByPurlAndAlias(t *testing.T) {
 		t.Fatalf("advisory detail missing on joined ref: got %#v", vuln)
 	}
 
-	if got := FindingVulnerabilityInPackages(AuditFinding{Package: FindingPackageRef{Purl: "pkg:npm/other@1.0.0"}, VulnerabilityID: "GHSA-scoped"}, packages); got != nil {
+	if got := FindingVulnerabilityInPackages(model.Finding{PackageRef: "pkg:npm/other@1.0.0", VulnerabilityID: "GHSA-scoped"}, packages); got != nil {
 		t.Fatalf("expected nil for unknown package, got %#v", got)
 	}
-	if got := FindingVulnerabilityInPackages(AuditFinding{}, packages); got != nil {
+	if got := FindingVulnerabilityInPackages(model.Finding{}, packages); got != nil {
 		t.Fatalf("expected nil for empty purl, got %#v", got)
 	}
 }
@@ -145,8 +145,10 @@ func TestPackagesFromRegistryUsesEcosystemNativeNames(t *testing.T) {
 	if len(packages) != 1 {
 		t.Fatalf("expected one package, got %d", len(packages))
 	}
-	if packages[0].Name != "@tailwindcss/postcss" || packages[0].Org != "tailwindcss" {
-		t.Fatalf("scoped identity mangled: got name=%q org=%q", packages[0].Name, packages[0].Org)
+	// The document carries the package's coordinates as they are; the
+	// ecosystem-native spelling is what DisplayName renders from them.
+	if packages[0].DisplayName() != "@tailwindcss/postcss" || packages[0].Name != "postcss" || packages[0].Org != "tailwindcss" {
+		t.Fatalf("scoped identity mangled: got display=%q name=%q org=%q", packages[0].DisplayName(), packages[0].Name, packages[0].Org)
 	}
 	if packages[0].Remediation == nil ||
 		packages[0].Remediation.Status != model.PackageRemediationComplete ||
@@ -178,9 +180,9 @@ func TestPackagesFromRegistriesPrefersHeadAndKeepsBaseOnly(t *testing.T) {
 	if len(merged) != 2 {
 		t.Fatalf("expected two packages, got %d", len(merged))
 	}
-	byPurl := map[string]ScanPackageEntry{}
+	byPurl := map[string]*model.Package{}
 	for _, entry := range merged {
-		byPurl[entry.Purl] = entry
+		byPurl[entry.PURL] = entry
 	}
 	shared, ok := byPurl["pkg:npm/shared@1.0.0"]
 	if !ok || len(shared.Vulnerabilities) != 1 || shared.Vulnerabilities[0].ID != "GHSA-head-view" {
@@ -189,4 +191,20 @@ func TestPackagesFromRegistriesPrefersHeadAndKeepsBaseOnly(t *testing.T) {
 	if _, ok := byPurl["pkg:npm/base-only@1.0.0"]; !ok {
 		t.Fatal("base-only package missing from union")
 	}
+}
+
+// findingIdentities is what the deleted projection did for its Package
+// field: the presentation identity of each finding's package, from the
+// registry when it holds the package and from the package URL otherwise.
+type findingIdentity struct {
+	model.Finding
+	Package FindingPackageRef
+}
+
+func findingIdentities(findings []model.Finding, registry *model.PackageRegistry) []findingIdentity {
+	out := make([]findingIdentity, 0, len(findings))
+	for _, f := range FindingsWithSeverity(findings, registry) {
+		out = append(out, findingIdentity{Finding: f, Package: IdentifyPackageRef(registry, f.PackageRef)})
+	}
+	return out
 }

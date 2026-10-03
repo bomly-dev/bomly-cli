@@ -39,14 +39,17 @@ func TestStructuredAndSARIFFindingContractsAgree(t *testing.T) {
 		VulnerabilityID: "GHSA-contract",
 	}}
 
-	structured := FindingsFromScan(findings, registry)
+	// The structured document carries findings through FindingsWithSeverity;
+	// the SARIF document is written from the same findings. Both must keep
+	// the fields a baseline entry is authored against.
+	structured := FindingsWithSeverity(findings, registry)
 	if len(structured) != 1 {
 		t.Fatalf("structured finding count = %d", len(structured))
 	}
 	if structured[0].ID != findings[0].ID ||
 		structured[0].PolicyStatus != findings[0].PolicyStatus ||
 		structured[0].RuleID != findings[0].RuleID ||
-		structured[0].Package.Purl != purl {
+		structured[0].PackageRef != purl {
 		t.Fatalf("structured finding lost canonical fields: %#v", structured[0])
 	}
 

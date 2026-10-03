@@ -1,5 +1,11 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -180,7 +186,6 @@
         "unreachable": 3
       }
     },
-    "duration_ms": 0,
     "reachability_enabled": true
   },
   "packages": [
@@ -192,15 +197,17 @@
         }
       ],
       "ecosystem": "go",
+      "id": "pkg:golang/github.com/google/go-cmp@v0.5.2",
       "licenses": [
         {
-          "spdxExpression": "BSD-3-Clause",
+          "source": "external-depsdev",
+          "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
-      "name": "github.com/google/go-cmp",
+      "name": "go-cmp",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
       "version": "v0.5.2",
@@ -214,8 +221,9 @@
         }
       ],
       "ecosystem": "go",
+      "id": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
       "licenses": [],
-      "name": "github.com/google/go-github",
+      "name": "go-github",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
       "version": "v17.0.0+incompatible",
@@ -229,15 +237,17 @@
         }
       ],
       "ecosystem": "go",
+      "id": "pkg:golang/github.com/google/go-querystring@v1.1.0",
       "licenses": [
         {
-          "spdxExpression": "BSD-3-Clause",
+          "source": "external-depsdev",
+          "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
-      "name": "github.com/google/go-querystring",
+      "name": "go-querystring",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-querystring@v1.1.0",
       "version": "v1.1.0",
@@ -251,15 +261,17 @@
         }
       ],
       "ecosystem": "go",
+      "id": "pkg:golang/github.com/google/uuid@v1.6.0",
       "licenses": [
         {
-          "spdxExpression": "BSD-3-Clause",
+          "source": "external-depsdev",
+          "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
-      "name": "github.com/google/uuid",
+      "name": "uuid",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/uuid@v1.6.0",
       "version": "v1.6.0",
@@ -273,15 +285,17 @@
         }
       ],
       "ecosystem": "go",
+      "id": "pkg:golang/golang.org/x/text@v0.3.5",
       "licenses": [
         {
-          "spdxExpression": "BSD-3-Clause",
+          "source": "external-depsdev",
+          "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
-      "name": "golang.org/x/text",
+      "name": "text",
       "org": "golang.org/x",
       "purl": "pkg:golang/golang.org/x/text@v0.3.5",
       "remediation": {
@@ -321,7 +335,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-32149",
@@ -344,6 +358,7 @@
           ],
           "id": "GHSA-69ch-w2m2-3vjp",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",
@@ -371,7 +386,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -397,7 +411,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-38561",
@@ -420,6 +434,7 @@
           ],
           "id": "GHSA-ppp9-7jff-5vj2",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",
@@ -447,7 +462,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -473,7 +487,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-56852",
@@ -496,6 +510,7 @@
           ],
           "id": "GO-2026-5970",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",
@@ -523,7 +538,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -538,28 +552,43 @@
         }
       ],
       "ecosystem": "go",
+      "id": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
       "licenses": [
         {
-          "spdxExpression": "BSD-3-Clause",
+          "source": "external-depsdev",
+          "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
-      "name": "golang.org/x/xerrors",
+      "name": "xerrors",
       "org": "golang.org/x",
       "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
       "version": "v0.0.0-20191204190536-9bdfabe68543",
       "vulnerabilities": []
     }
   ],
-  "project": {
-    "ecosystem": "go",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "gomod",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "options": {
+      "analyze": true,
+      "enrich": true
+    },
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "97f0e49268e11fda722e41e28176ce10f66bc491",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-go-gomod"
+  },
+  "waivers": [],
+  "warnings": []
 }

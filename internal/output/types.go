@@ -4,25 +4,25 @@ import (
 	"maps"
 	"slices"
 	"sort"
-	"strings"
 
 	"github.com/bomly-dev/bomly-sdk/graphview"
 
 	"github.com/bomly-dev/bomly-sdk/model"
 	"github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/scan"
 )
 
-// SchemaVersion is the current CLI output schema version.
+// SchemaVersion is the schema version of the diff and explain documents,
+// which keep the CLI's own numbering. The scan document is the SDK's scan
+// record and carries scan.SchemaVersion.
 const SchemaVersion = "1.0"
 
-// Metadata captures execution metadata shared by all command outputs.
-type Metadata struct {
-	DurationMS          int64                               `json:"duration_ms"`
-	ReachabilityEnabled bool                                `json:"reachability_enabled,omitempty"`
-	ScorecardEnabled    bool                                `json:"scorecard_enabled,omitempty"`
-	AnalyzerRuns        []string                            `json:"analyzer_runs,omitempty"`
-	AnalyzerStats       map[string]plugin.ReachabilityStats `json:"analyzer_stats,omitempty"`
-}
+// The collections of the scan document are the SDK's own types, not
+// projections of them: a manifest and its dependencies are scan.Manifest and
+// scan.Dependency, a package is model.Package with its enrichment, a finding
+// is model.Finding referencing its package by URL, a license is
+// model.PackageLicense and a location model.PackageLocation. Callers name
+// those types directly; this package defines none of its own for them.
 
 // ReportOptions controls optional experimental data in structured command
 // outputs.
@@ -49,54 +49,6 @@ type ProjectDescriptor struct {
 	PackageManager model.PackageManager `json:"package_manager,omitempty"`
 }
 
-// LicenseRef identifies one package license in command outputs.
-type LicenseRef struct {
-	Value          string            `json:"value,omitempty"`
-	SPDXExpression string            `json:"spdxExpression,omitempty"`
-	Type           model.LicenseType `json:"type,omitempty"`
-}
-
-// Identifier returns the most useful license identifier for display.
-func (l LicenseRef) Identifier() string {
-	switch {
-	case strings.TrimSpace(l.SPDXExpression) != "":
-		return strings.TrimSpace(l.SPDXExpression)
-	case strings.TrimSpace(l.Value) != "":
-		return strings.TrimSpace(l.Value)
-	default:
-		return ""
-	}
-}
-
-// VulnerabilityRef identifies one package vulnerability in command outputs.
-type VulnerabilityRef struct {
-	ID                   string                 `json:"id"`
-	Source               string                 `json:"source"`
-	Title                string                 `json:"title,omitempty"`
-	Severity             model.SeverityLevel    `json:"severity,omitempty"`
-	SeveritySource       string                 `json:"severity_source,omitempty"`
-	Aliases              []string               `json:"aliases,omitempty"`
-	Description          string                 `json:"description,omitempty"`
-	Reasons              []string               `json:"reasons,omitempty"`
-	CVSS                 []model.CVSSScore      `json:"cvss,omitempty"`
-	FixedIn              string                 `json:"fixed_in,omitempty"`
-	FixedVersions        []string               `json:"fixed_versions,omitempty"`
-	FixState             model.FixState         `json:"fix_state,omitempty"`
-	FixAvailable         []model.FixAvailable   `json:"fix_available,omitempty"`
-	AffectedVersionRange string                 `json:"affected_version_range,omitempty"`
-	References           []model.Reference      `json:"references,omitempty"`
-	KEVExploited         bool                   `json:"kev_exploited,omitempty"`
-	KnownExploited       []model.KnownExploited `json:"known_exploited,omitempty"`
-	EPSS                 []model.EPSSScore      `json:"epss,omitempty"`
-	CWEs                 []model.CWE            `json:"cwes,omitempty"`
-	RiskScore            float64                `json:"risk_score,omitempty"`
-	DataSource           string                 `json:"data_source,omitempty"`
-	Namespace            string                 `json:"namespace,omitempty"`
-	CPEs                 []string               `json:"cpes,omitempty"`
-	AffectedSymbols      []model.AffectedSymbol `json:"affected_symbols,omitempty"`
-	Reachability         *model.Reachability    `json:"reachability,omitempty"`
-}
-
 // PackageRef identifies a package in command outputs.
 type PackageRef struct {
 	Name            string                  `json:"name"`
@@ -105,9 +57,9 @@ type PackageRef struct {
 	Purl            string                  `json:"purl,omitempty"`
 	ID              string                  `json:"id,omitempty"`
 	Metadata        map[string]any          `json:"metadata,omitempty"`
-	Locations       []LocationRef           `json:"locations,omitempty"`
-	Licenses        []LicenseRef            `json:"licenses"`
-	Vulnerabilities []VulnerabilityRef      `json:"vulnerabilities"`
+	Locations       []model.PackageLocation `json:"locations"`
+	Licenses        []model.PackageLicense  `json:"licenses"`
+	Vulnerabilities []model.Vulnerability   `json:"vulnerabilities"`
 	Scorecard       *model.PackageScorecard `json:"scorecard,omitempty"`
 	Relationship    string                  `json:"relationship,omitempty"`
 	// Direct reports whether the package is a direct dependency of a project
@@ -127,85 +79,6 @@ type ExplainDependency struct {
 func (p ExplainDependency) withoutReachability() ExplainDependency {
 	p.PackageRef = p.PackageRef.withoutReachability()
 	return p
-}
-
-// LocationRef points at where a package was declared in a lockfile
-// or manifest. Detectors populate this when their input format makes
-// position cheaply recoverable; consumers (SARIF / explain output /
-// IDE plugins) use it to deep-link into the source.
-type LocationRef struct {
-	RealPath   string       `json:"real_path,omitempty"`
-	AccessPath string       `json:"access_path,omitempty"`
-	Position   *PositionRef `json:"position,omitempty"`
-
-	// ModuleRoot, Scopes and Relationship say which usage this site is,
-	// rather than only where it is (ADR-0037).
-	//
-	// A workspace reaches one lockfile line from several members, so the same
-	// path appears once per member. Without these, those records are
-	// byte-identical and the reader sees the same file listed twice with no
-	// way to tell why -- which is what the projection produced before they
-	// were carried. They are also what makes a conjunctive question
-	// answerable: "reachable, runtime and direct" has to hold of one usage,
-	// not of three different ones summarized onto the same package.
-	//
-	// Empty means the producer did not attribute the site, which several
-	// detectors legitimately cannot.
-	//
-	// Carrying a slice costs this type its comparability, the same break the
-	// SDK took on PackageLocation for the same reason. Nothing compares a
-	// LocationRef or keys a map by one; compare the paths, or the whole value
-	// with reflect.DeepEqual.
-	ModuleRoot   string   `json:"module_root,omitempty"`
-	Scopes       []string `json:"scopes,omitempty"`
-	Relationship string   `json:"relationship,omitempty"`
-}
-
-// PositionRef is the JSON shape of model.SourcePosition.
-type PositionRef struct {
-	File    string `json:"file,omitempty"`
-	Line    int    `json:"line,omitempty"`
-	Column  int    `json:"column,omitempty"`
-	EndLine int    `json:"end_line,omitempty"`
-}
-
-// LocationRefsFromGraphLocations converts SDK locations into
-// output-friendly values, dropping entries with no useful content.
-func LocationRefsFromGraphLocations(locations []model.PackageLocation) []LocationRef {
-	if len(locations) == 0 {
-		return nil
-	}
-	out := make([]LocationRef, 0, len(locations))
-	for _, loc := range locations {
-		ref := LocationRef{
-			RealPath:     loc.RealPath,
-			AccessPath:   loc.AccessPath,
-			ModuleRoot:   loc.ModuleRoot,
-			Relationship: string(loc.Relationship),
-		}
-		for _, scope := range loc.Scopes {
-			ref.Scopes = append(ref.Scopes, string(scope))
-		}
-		if loc.Position != nil {
-			ref.Position = &PositionRef{
-				File:    loc.Position.File,
-				Line:    loc.Position.Line,
-				Column:  loc.Position.Column,
-				EndLine: loc.Position.EndLine,
-			}
-		}
-		// An attributed site is worth reporting even with no path: it still
-		// says which module reached the package and how.
-		if ref.RealPath == "" && ref.AccessPath == "" && ref.Position == nil &&
-			ref.ModuleRoot == "" && len(ref.Scopes) == 0 && ref.Relationship == "" {
-			continue
-		}
-		out = append(out, ref)
-	}
-	if len(out) == 0 {
-		return nil
-	}
-	return out
 }
 
 // DependencyPath describes one resolved dependency path returned by the explain command.
@@ -246,9 +119,9 @@ func PackageFromGraphNode(node model.GraphNode) PackageRef {
 		Name:            model.NodeDisplayName(node),
 		Version:         model.NodeVersion(node),
 		ID:              node.NodeID(),
-		Locations:       LocationRefsFromGraphLocations(node.NodeLocations()),
-		Licenses:        []LicenseRef{},
-		Vulnerabilities: []VulnerabilityRef{},
+		Locations:       append([]model.PackageLocation(nil), node.NodeLocations()...),
+		Licenses:        []model.PackageLicense{},
+		Vulnerabilities: []model.Vulnerability{},
 	}
 	ref.Purl = PurlFromGraphNode(node)
 	return ref
@@ -268,7 +141,7 @@ func PurlFromGraphNode(node model.GraphNode) string {
 // detection-only projection.
 func PackageFromDependencyAndRegistry(dep *model.DependencyNode, registry *model.PackageRegistry) PackageRef {
 	if dep == nil {
-		return PackageRef{Licenses: []LicenseRef{}, Vulnerabilities: []VulnerabilityRef{}}
+		return PackageRef{Licenses: []model.PackageLicense{}, Vulnerabilities: []model.Vulnerability{}}
 	}
 	ref := PackageRef{
 		Name:            dep.DisplayName(),
@@ -278,18 +151,18 @@ func PackageFromDependencyAndRegistry(dep *model.DependencyNode, registry *model
 		ID:              dep.NodeID(),
 		Relationship:    string(dep.Relationship),
 		Metadata:        cloneRefMetadata(dep.Metadata),
-		Locations:       LocationRefsFromGraphLocations(dep.Locations),
-		Licenses:        LicenseRefsFromGraphLicenses(model.DetectionLicenses(dep)),
-		Vulnerabilities: []VulnerabilityRef{},
+		Locations:       append([]model.PackageLocation(nil), dep.Locations...),
+		Licenses:        cloneLicenses(model.DetectionLicenses(dep)),
+		Vulnerabilities: []model.Vulnerability{},
 	}
 	pkg := RegistryPackageForNode(registry, dep)
 	if pkg != nil {
 		// Prefer registry-learned licenses when detection produced none.
 		if len(ref.Licenses) == 0 && len(pkg.Licenses) > 0 {
-			ref.Licenses = LicenseRefsFromGraphLicenses(pkg.Licenses)
+			ref.Licenses = cloneLicenses(pkg.Licenses)
 		}
 		if len(pkg.Vulnerabilities) > 0 {
-			ref.Vulnerabilities = VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities)
+			ref.Vulnerabilities = cloneVulnerabilities(pkg.Vulnerabilities)
 		}
 		if pkg.Scorecard != nil {
 			scorecardCopy := pkg.Scorecard.Clone()
@@ -305,7 +178,7 @@ func PackageFromDependencyAndRegistry(dep *model.DependencyNode, registry *model
 
 func (p PackageRef) withoutReachability() PackageRef {
 	if len(p.Vulnerabilities) > 0 {
-		p.Vulnerabilities = append([]VulnerabilityRef(nil), p.Vulnerabilities...)
+		p.Vulnerabilities = cloneVulnerabilities(p.Vulnerabilities)
 		for idx := range p.Vulnerabilities {
 			p.Vulnerabilities[idx].Reachability = nil
 		}
@@ -351,185 +224,6 @@ func cloneKnownExploited(src []model.KnownExploited) []model.KnownExploited {
 	return out
 }
 
-// LicenseRefsFromGraphLicenses converts graph licenses into output-friendly values.
-func LicenseRefsFromGraphLicenses(licenses []model.PackageLicense) []LicenseRef {
-	if len(licenses) == 0 {
-		return []LicenseRef{}
-	}
-	out := make([]LicenseRef, 0, len(licenses))
-	for _, license := range licenses {
-		out = append(out, LicenseRef{
-			Value:          license.Value,
-			SPDXExpression: license.SPDXExpression,
-			Type:           license.Type,
-		})
-	}
-	return out
-}
-
-// VulnerabilityRefsFromPackageVulnerabilities converts package vulnerability enrichment into output-friendly values.
-func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []model.Vulnerability) []VulnerabilityRef {
-	if len(vulnerabilities) == 0 {
-		return []VulnerabilityRef{}
-	}
-	out := make([]VulnerabilityRef, 0, len(vulnerabilities))
-	for _, vulnerability := range vulnerabilities {
-		out = append(out, VulnerabilityRef{
-			ID:                   vulnerability.ID,
-			Source:               vulnerability.Source,
-			Title:                vulnerability.Title,
-			Severity:             vulnerability.ParsedSeverity,
-			SeveritySource:       vulnerability.SeveritySource,
-			Aliases:              append([]string(nil), vulnerability.Aliases...),
-			Description:          vulnerability.Details,
-			Reasons:              append([]string(nil), vulnerability.Reasons...),
-			CVSS:                 append([]model.CVSSScore(nil), vulnerability.CVSS...),
-			FixedIn:              vulnerability.FixedIn,
-			FixedVersions:        append([]string(nil), vulnerability.FixedVersions...),
-			FixState:             vulnerability.FixState,
-			FixAvailable:         append([]model.FixAvailable(nil), vulnerability.FixAvailable...),
-			AffectedSymbols:      cloneAffectedSymbols(vulnerability.AffectedSymbols),
-			Reachability:         vulnerability.Reachability.Clone(),
-			AffectedVersionRange: vulnerability.AffectedVersionRange,
-			References:           append([]model.Reference(nil), vulnerability.References...),
-			KEVExploited:         vulnerability.KEVExploited,
-			KnownExploited:       cloneKnownExploited(vulnerability.KnownExploited),
-			EPSS:                 append([]model.EPSSScore(nil), vulnerability.EPSS...),
-			CWEs:                 append([]model.CWE(nil), vulnerability.CWEs...),
-			RiskScore:            vulnerability.RiskScore,
-			DataSource:           vulnerability.DataSource,
-			Namespace:            vulnerability.Namespace,
-			CPEs:                 append([]string(nil), vulnerability.CPEs...),
-		})
-	}
-	return out
-}
-
-// FindingPackageRef is an identity-only reference from a finding into the
-// top-level packages collection (join key: purl). Advisory enrichment lives
-// once, on the referenced ScanPackageEntry — findings never re-embed it.
-type FindingPackageRef struct {
-	Name      string `json:"name"`
-	Org       string `json:"org,omitempty"`
-	Version   string `json:"version,omitempty"`
-	Purl      string `json:"purl,omitempty"`
-	Ecosystem string `json:"ecosystem,omitempty"`
-}
-
-// DisplayLabel returns a human-readable name@version label for the package.
-func (p FindingPackageRef) DisplayLabel() string {
-	switch {
-	case p.Name != "" && p.Version != "":
-		return p.Name + "@" + p.Version
-	case p.Name != "":
-		return p.Name
-	default:
-		return p.Purl
-	}
-}
-
-// AuditFinding is the serialized form of one normalized scan finding. It
-// mirrors model.Finding's three-collection shape: the package is referenced by
-// identity (join to packages[] via purl), the advisory by vulnerability_id
-// (join to packages[].vulnerabilities), and the introducing graph nodes by
-// dependency_refs (join to manifests[].dependencies ids).
-type AuditFinding struct {
-	ID              string                    `json:"id"`
-	Kind            model.FindingKind         `json:"kind"`
-	Severity        model.SeverityLevel       `json:"severity"`
-	Package         FindingPackageRef         `json:"package"`
-	Title           string                    `json:"title"`
-	Reasons         []string                  `json:"reasons,omitempty"`
-	Source          string                    `json:"source"`
-	Auditor         string                    `json:"auditor,omitempty"`
-	RuleID          string                    `json:"rule_id,omitempty"`
-	PolicyStatus    model.FindingPolicyStatus `json:"policy_status,omitempty"`
-	VulnerabilityID string                    `json:"vulnerability_id,omitempty"`
-	DependencyRefs  []string                  `json:"dependency_refs,omitempty"`
-}
-
-// AuditSummary aggregates finding counts by severity.
-type AuditSummary struct {
-	Critical int `json:"critical"`
-	High     int `json:"high"`
-	Medium   int `json:"medium"`
-	Low      int `json:"low"`
-	Unknown  int `json:"unknown"`
-	Total    int `json:"total"`
-}
-
-// FindingsFromScan converts normalized findings into JSON-friendly DTOs.
-// When registry is non-nil the finding's package reference is resolved
-// against it for display identity (name/org/version/ecosystem), and a
-// missing finding severity is backfilled from the referenced advisory.
-func FindingsFromScan(findings []model.Finding, registry *model.PackageRegistry) []AuditFinding {
-	result := make([]AuditFinding, 0, len(findings))
-	for _, f := range findings {
-		_, advisory := FindingAdvisory(registry, f)
-		af := AuditFinding{
-			ID:              f.ID,
-			Kind:            f.Kind,
-			Severity:        f.Severity,
-			Package:         IdentifyPackageRef(registry, f.PackageRef),
-			Title:           f.Title,
-			Reasons:         f.Reasons,
-			Source:          f.Source,
-			Auditor:         f.Auditor,
-			RuleID:          f.RuleID,
-			PolicyStatus:    f.PolicyStatus,
-			VulnerabilityID: f.VulnerabilityID,
-			DependencyRefs:  append([]string(nil), f.DependencyRefs...),
-		}
-		if af.Severity == "" && advisory != nil {
-			af.Severity = advisory.ParsedSeverity
-		}
-		result = append(result, af)
-	}
-	return result
-}
-
-// ResolvedVulnerabilityID returns the advisory id a finding references,
-// falling back to the finding id when VulnerabilityID is unset. All joins
-// against packages[].vulnerabilities use this precedence rule.
-func (f AuditFinding) ResolvedVulnerabilityID() string {
-	return resolvedVulnerabilityID(f.VulnerabilityID, f.ID)
-}
-
-// FindingVulnerabilityInPackages resolves the advisory a finding references
-// (finding.package.purl + finding.vulnerability_id) against the top-level
-// packages collection. Returns nil when the package or advisory is absent —
-// e.g. non-vulnerability findings or unenriched scans.
-func FindingVulnerabilityInPackages(f AuditFinding, packages []ScanPackageEntry) *VulnerabilityRef {
-	if f.Package.Purl == "" {
-		return nil
-	}
-	vulnID := f.ResolvedVulnerabilityID()
-	for idx := range packages {
-		if packages[idx].Purl != f.Package.Purl {
-			continue
-		}
-		return MatchVulnerabilityRef(packages[idx].Vulnerabilities, vulnID)
-	}
-	return nil
-}
-
-// MatchVulnerabilityRef finds the vulnerability ref matching id (or one of
-// its aliases) in refs. Returns nil when id is empty or no ref matches.
-func MatchVulnerabilityRef(refs []VulnerabilityRef, id string) *VulnerabilityRef {
-	if id == "" {
-		return nil
-	}
-	for idx := range refs {
-		if refs[idx].ID == id {
-			return &refs[idx]
-		}
-		if slices.Contains(refs[idx].Aliases, id) {
-			return &refs[idx]
-		}
-	}
-	return nil
-}
-
 // FailingFindingCount reports how many findings should fail policy evaluation.
 // Warning and suppressed findings remain reportable but do not gate execution.
 func FailingFindingCount(findings []model.Finding) int {
@@ -542,99 +236,10 @@ func FailingFindingCount(findings []model.Finding) int {
 	return total
 }
 
-// SummaryFromFindings aggregates finding counts by severity band.
-func SummaryFromFindings(findings []model.Finding) *AuditSummary {
-	s := &AuditSummary{}
-	for _, f := range findings {
-		s.Total++
-		switch f.Severity {
-		case "critical":
-			s.Critical++
-		case "high":
-			s.High++
-		case "medium":
-			s.Medium++
-		case "low":
-			s.Low++
-		default:
-			s.Unknown++
-		}
-	}
-	return s
-}
-
-// ScanTargetResponse represents one target-specific scan payload.
-type ScanTargetResponse struct {
-	Project      ProjectDescriptor `json:"project"`
-	Detector     string            `json:"detector,omitempty"`
-	Dependencies []ScanDependency  `json:"dependencies"`
-}
-
-// ScanDependency is one detection-stage dependency node in a manifest. It is a
-// lean projection of model.DependencyNode: identity, scopes, edges, detection-time
-// licenses, and a package_ref (PURL) link into the top-level packages
-// collection. Matching-stage enrichment (vulnerabilities, scorecard, EOL,
-// licenses learned during matching) is NOT carried here — it lives on the
-// resolved ScanPackageEntry referenced by PackageRef.
-type ScanDependency struct {
-	ID         string        `json:"id"`
-	Name       string        `json:"name"`
-	Version    string        `json:"version,omitempty"`
-	Purl       string        `json:"purl,omitempty"`
-	Scopes     []string      `json:"scopes,omitempty"`
-	DependsOn  []string      `json:"depends_on"`
-	Matched    bool          `json:"matched,omitempty"`
-	PackageRef string        `json:"package_ref,omitempty"`
-	Locations  []LocationRef `json:"locations,omitempty"`
-	Licenses   []LicenseRef  `json:"licenses"`
-}
-
-// PrimaryScope returns the merged precedence scope across the dependency's
-// recorded scopes, mirroring model.DependencyNode.PrimaryScope so text/markdown
-// renderers reproduce the same scope label as before the model split.
-func (d ScanDependency) PrimaryScope() string {
-	result := model.ScopeUnknown
-	for _, scope := range d.Scopes {
-		result = model.MergeScope(result, model.Scope(scope))
-	}
-	return string(result)
-}
-
-// ScanPackageEntry is one matching-stage artifact in the top-level packages
-// collection: a PURL-keyed, deduplicated projection of model.Package carrying the
-// enrichment (licenses, vulnerabilities, scorecard, EOL, CPEs, digests) that
-// manifest dependencies reference by package_ref.
-type ScanPackageEntry struct {
-	Purl            string                    `json:"purl"`
-	Name            string                    `json:"name,omitempty"`
-	Org             string                    `json:"org,omitempty"`
-	Version         string                    `json:"version,omitempty"`
-	Ecosystem       string                    `json:"ecosystem,omitempty"`
-	Matched         bool                      `json:"matched,omitempty"`
-	Licenses        []LicenseRef              `json:"licenses"`
-	Vulnerabilities []VulnerabilityRef        `json:"vulnerabilities"`
-	Scorecard       *model.PackageScorecard   `json:"scorecard,omitempty"`
-	EOL             *model.PackageEOL         `json:"eol,omitempty"`
-	Remediation     *model.PackageRemediation `json:"remediation,omitempty"`
-	CPEs            []string                  `json:"cpes,omitempty"`
-	Digests         []model.Digest            `json:"digests,omitempty"`
-	Metadata        map[string]any            `json:"metadata,omitempty"`
-}
-
-func (p ScanPackageEntry) withoutReachability() ScanPackageEntry {
-	if len(p.Vulnerabilities) > 0 {
-		p.Vulnerabilities = append([]VulnerabilityRef(nil), p.Vulnerabilities...)
-		for idx := range p.Vulnerabilities {
-			p.Vulnerabilities[idx].Reachability = nil
-		}
-	}
-	return p
-}
-
 // DependenciesFromGraph converts a graph into stable, lean scan dependency
 // payloads. registry, when non-nil, supplies the Matched flag via PURL lookup;
 // all richer enrichment is surfaced through PackagesFromRegistry instead.
-func DependenciesFromGraph(g *model.Graph, registry *model.PackageRegistry) []ScanDependency {
+func DependenciesFromGraph(g *model.Graph, registry *model.PackageRegistry) []scan.Dependency {
 	if g == nil {
 		return nil
 	}
@@ -658,41 +263,41 @@ func DependenciesFromGraph(g *model.Graph, registry *model.PackageRegistry) []Sc
 			listedIDs[node.NodeID()] = struct{}{}
 		}
 	}
-	payload := make([]ScanDependency, 0, len(listed))
+	payload := make([]scan.Dependency, 0, len(listed))
 	for _, node := range listed {
 		if node == nil {
 			continue
 		}
 		dependencyIDs := graphview.ChildrenAmong(g, node.NodeID(), listedIDs)
 		name, version := model.NodeDisplayName(node), model.NodeVersion(node)
-		entry := ScanDependency{
+		entry := scan.Dependency{
 			ID:        node.NodeID(),
 			Name:      name,
 			Version:   version,
-			Scopes:    []string{},
 			DependsOn: dependencyIDs,
-			Locations: LocationRefsFromGraphLocations(node.NodeLocations()),
-			Licenses:  []LicenseRef{},
+			Locations: node.NodeLocations(),
 		}
 		if module, isModule := node.(*model.ModuleNode); isModule {
 			// A module publishes the package URL its coordinates mint, when
 			// they mint one; its node ID is not a package URL.
-			entry.Purl = module.PURL()
+			entry.PURL = module.PURL()
 		}
 		if dep, isDependency := node.(*model.DependencyNode); isDependency {
-			scopes := make([]string, 0, len(dep.Scopes))
-			for _, scope := range dep.Scopes {
-				scopes = append(scopes, string(scope))
-			}
+			// Where the dependency was resolved from and whether its manifest
+			// declared it directly travel with the record, as the SDK's own
+			// builder writes them: a comparison rebuilt from the record has
+			// no structural root and reads the stated relationship instead.
+			entry.Source = dep.Source
+			entry.Relationship = dep.Relationship
 			matched := dep.Matched
 			if pkg := RegistryPackageForNode(registry, dep); pkg != nil {
 				matched = matched || pkg.Matched
 			}
-			entry.Purl = dep.NodeID()
-			entry.Scopes = scopes
+			entry.PURL = dep.NodeID()
+			entry.Scopes = append([]model.Scope(nil), dep.Scopes...)
 			entry.Matched = matched
 			entry.PackageRef = dep.PackageRef
-			entry.Licenses = LicenseRefsFromGraphLicenses(model.DetectionLicenses(dep))
+			entry.Licenses = model.DetectionLicenses(dep)
 		}
 		payload = append(payload, entry)
 	}
@@ -705,37 +310,160 @@ func DependenciesFromGraph(g *model.Graph, registry *model.PackageRegistry) []Sc
 	return payload
 }
 
-// PackagesFromRegistry projects the matching-stage registry into the top-level
-// packages collection, deduplicated by PURL. registry.All() is already
-// PURL-sorted. Returns a non-nil (possibly empty) slice so JSON consumers
-// always see a "packages" array.
-func PackagesFromRegistry(registry *model.PackageRegistry) []ScanPackageEntry {
+// LicenseIdentifier returns the most useful license identifier for display.
+func LicenseIdentifier(l model.PackageLicense) string {
+	if l.SPDXExpression != "" {
+		return l.SPDXExpression
+	}
+	return l.Value
+}
+
+// DependencyPrimaryScope returns the merged precedence scope across the
+// dependency's recorded scopes, mirroring model.DependencyNode.PrimaryScope
+// so text/markdown renderers reproduce the same scope label.
+func DependencyPrimaryScope(d scan.Dependency) string {
+	result := model.ScopeUnknown
+	for _, scope := range d.Scopes {
+		result = model.MergeScope(result, scope)
+	}
+	return string(result)
+}
+
+// FindingLabel returns a human-readable name@version label for the package a
+// finding references, derived from its package URL.
+func FindingLabel(f model.Finding) string {
+	identity := identityFromPURL(f.PackageRef)
+	switch {
+	case identity.Name != "" && identity.Version != "":
+		return identity.Name + "@" + identity.Version
+	case identity.Name != "":
+		return identity.Name
+	default:
+		return f.PackageRef
+	}
+}
+
+// FindingResolvedVulnerabilityID returns the advisory id a finding names,
+// falling back to its own id for vulnerability findings.
+func FindingResolvedVulnerabilityID(f model.Finding) string {
+	return resolvedVulnerabilityID(f.VulnerabilityID, f.ID)
+}
+
+// FindingVulnerabilityInPackages resolves a finding's advisory from the
+// packages collection by package URL and advisory id.
+func FindingVulnerabilityInPackages(f model.Finding, packages []*model.Package) *model.Vulnerability {
+	id := FindingResolvedVulnerabilityID(f)
+	for _, pkg := range packages {
+		if pkg == nil || pkg.PURL != f.PackageRef {
+			continue
+		}
+		return MatchVulnerabilityRef(pkg.Vulnerabilities, id)
+	}
+	return nil
+}
+
+// MatchVulnerabilityRef finds an advisory by id or alias.
+func MatchVulnerabilityRef(refs []model.Vulnerability, id string) *model.Vulnerability {
+	if id == "" {
+		return nil
+	}
+	for i := range refs {
+		if refs[i].ID == id || slices.Contains(refs[i].Aliases, id) {
+			return &refs[i]
+		}
+	}
+	return nil
+}
+
+// SummaryFromFindings aggregates finding counts by severity band.
+func SummaryFromFindings(findings []model.Finding) *scan.AuditSummary {
+	if len(findings) == 0 {
+		return nil
+	}
+	summary := &scan.AuditSummary{Total: len(findings)}
+	for _, f := range findings {
+		switch f.Severity {
+		case model.SeverityCritical:
+			summary.Critical++
+		case model.SeverityHigh:
+			summary.High++
+		case model.SeverityMedium:
+			summary.Medium++
+		case model.SeverityLow:
+			summary.Low++
+		default:
+			summary.Unknown++
+		}
+	}
+	return summary
+}
+
+// PackagesFromRegistry projects the registry into the packages collection,
+// sorted by package URL: a clone of each package, so the document never
+// aliases the registry a later stage may still enrich.
+func PackagesFromRegistry(registry *model.PackageRegistry) []*model.Package {
 	if registry == nil {
-		return []ScanPackageEntry{}
+		return []*model.Package{}
 	}
 	all := registry.All()
-	payload := make([]ScanPackageEntry, 0, len(all))
+	out := make([]*model.Package, 0, len(all))
 	for _, pkg := range all {
 		if pkg == nil {
 			continue
 		}
-		entry := ScanPackageEntry{
-			Purl:            pkg.PURL,
-			Name:            pkg.DisplayName(),
-			Org:             pkg.Org,
-			Version:         pkg.Version,
-			Ecosystem:       string(pkg.Ecosystem),
-			Matched:         pkg.Matched,
-			Licenses:        LicenseRefsFromGraphLicenses(pkg.Licenses),
-			Vulnerabilities: VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
-			Scorecard:       pkg.Scorecard.Clone(),
-			EOL:             pkg.EOL.Clone(),
-			Remediation:     pkg.Remediation.Clone(),
-			CPEs:            append([]string(nil), pkg.CPEs...),
-			Digests:         append([]model.Digest(nil), pkg.Digests...),
-			Metadata:        cloneRefMetadata(pkg.Metadata),
-		}
-		payload = append(payload, entry)
+		clone := pkg.Clone()
+		// ResolvedURL is raw detection evidence -- a manifest's resolution
+		// field verbatim, which may be a local path or a credentialed
+		// registry URL -- carried for matchers and never published. The
+		// document is a publication.
+		clone.ResolvedURL = ""
+		out = append(out, clone)
 	}
-	return payload
+	return out
+}
+
+// packageWithoutReachability strips analyzer annotations from a package's
+// advisories when the run did not enable them.
+func packageWithoutReachability(pkg *model.Package) *model.Package {
+	if pkg == nil {
+		return nil
+	}
+	for i := range pkg.Vulnerabilities {
+		pkg.Vulnerabilities[i].Reachability = nil
+	}
+	return pkg
+}
+
+func cloneLicenses(licenses []model.PackageLicense) []model.PackageLicense {
+	out := make([]model.PackageLicense, 0, len(licenses))
+	return append(out, licenses...)
+}
+
+func cloneVulnerabilities(vulnerabilities []model.Vulnerability) []model.Vulnerability {
+	out := make([]model.Vulnerability, 0, len(vulnerabilities))
+	for _, v := range vulnerabilities {
+		out = append(out, v.Clone())
+	}
+	return out
+}
+
+// FindingsWithSeverity returns the findings as the document carries them: a
+// clone of each, with a severity the finding itself did not state backfilled
+// from the advisory it references, so a vulnerability finding never reads as
+// severity-less beside the advisory that rates it.
+func FindingsWithSeverity(findings []model.Finding, registry *model.PackageRegistry) []model.Finding {
+	if len(findings) == 0 {
+		return nil
+	}
+	out := make([]model.Finding, 0, len(findings))
+	for _, f := range findings {
+		finding := f.Clone()
+		if finding.Severity == "" {
+			if _, advisory := FindingAdvisory(registry, finding); advisory != nil {
+				finding.Severity = advisory.ParsedSeverity
+			}
+		}
+		out = append(out, finding)
+	}
+	return out
 }

@@ -108,7 +108,7 @@ func newExplainCmd() *cobra.Command {
 					PackageManager: target.Manifest.Subproject.PrimaryPackageManager(),
 					Dependency:     explainPackageRef(target.Dependency, explainResult.Registry),
 					Paths:          explainPathsWithLinks(target.Paths),
-					Findings:       output.FindingsFromScan(target.Findings, explainResult.Registry),
+					Findings:       output.FindingsWithSeverity(target.Findings, explainResult.Registry),
 					AuditSummary:   output.SummaryFromFindings(target.Findings),
 				})
 			}

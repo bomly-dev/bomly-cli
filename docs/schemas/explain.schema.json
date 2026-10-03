@@ -23,14 +23,6 @@
           "type": "integer"
         }
       },
-      "required": [
-        "critical",
-        "high",
-        "medium",
-        "low",
-        "unknown",
-        "total"
-      ],
       "type": "object"
     },
     "command": {
@@ -47,7 +39,16 @@
         "licenses": {
           "items": {
             "properties": {
-              "spdxExpression": {
+              "extracted_text": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "spdx_expression": {
                 "type": "string"
               },
               "type": {
@@ -200,8 +201,8 @@
               "type": "string"
             },
             "runDate": {
-              "properties": {},
-              "type": "object"
+              "format": "date-time",
+              "type": "string"
             },
             "scorecardVersion": {
               "type": "string"
@@ -221,6 +222,62 @@
         "vulnerabilities": {
           "items": {
             "properties": {
+              "affected": {
+                "items": {
+                  "properties": {
+                    "database_specific": {
+                      "additionalProperties": {},
+                      "type": "object"
+                    },
+                    "ecosystem_specific": {
+                      "additionalProperties": {},
+                      "type": "object"
+                    },
+                    "ranges": {
+                      "items": {
+                        "properties": {
+                          "events": {
+                            "items": {
+                              "properties": {
+                                "fixed": {
+                                  "type": "string"
+                                },
+                                "introduced": {
+                                  "type": "string"
+                                },
+                                "last_affected": {
+                                  "type": "string"
+                                },
+                                "limit": {
+                                  "type": "string"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "repo": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "versions": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
               "affected_symbols": {
                 "items": {
                   "properties": {
@@ -266,6 +323,32 @@
                   "type": "string"
                 },
                 "type": "array"
+              },
+              "analysis": {
+                "properties": {
+                  "detail": {
+                    "type": "string"
+                  },
+                  "first_issued": {
+                    "type": "string"
+                  },
+                  "justification": {
+                    "type": "string"
+                  },
+                  "last_updated": {
+                    "type": "string"
+                  },
+                  "response": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "state": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
               },
               "cpes": {
                 "items": {
@@ -316,7 +399,11 @@
               "data_source": {
                 "type": "string"
               },
-              "description": {
+              "database_specific": {
+                "additionalProperties": {},
+                "type": "object"
+              },
+              "details": {
                 "type": "string"
               },
               "epss": {
@@ -421,7 +508,16 @@
                 },
                 "type": "array"
               },
+              "modified": {
+                "type": "string"
+              },
               "namespace": {
+                "type": "string"
+              },
+              "parsed_severity": {
+                "type": "string"
+              },
+              "published": {
                 "type": "string"
               },
               "reachability": {
@@ -738,6 +834,9 @@
                 },
                 "type": "array"
               },
+              "recommendation": {
+                "type": "string"
+              },
               "references": {
                 "items": {
                   "properties": {
@@ -752,11 +851,28 @@
                 },
                 "type": "array"
               },
+              "related": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "risk_score": {
                 "type": "number"
               },
               "severity": {
-                "type": "string"
+                "items": {
+                  "properties": {
+                    "score": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
               },
               "severity_source": {
                 "type": "string"
@@ -764,13 +880,18 @@
               "source": {
                 "type": "string"
               },
+              "summary": {
+                "type": "string"
+              },
               "title": {
+                "type": "string"
+              },
+              "withdrawn": {
                 "type": "string"
               }
             },
             "required": [
-              "id",
-              "source"
+              "id"
             ],
             "type": "object"
           },
@@ -779,6 +900,7 @@
       },
       "required": [
         "name",
+        "locations",
         "licenses",
         "vulnerabilities"
       ],
@@ -789,6 +911,20 @@
         "properties": {
           "auditor": {
             "type": "string"
+          },
+          "decision": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "type": "object"
           },
           "dependency_refs": {
             "items": {
@@ -802,28 +938,8 @@
           "kind": {
             "type": "string"
           },
-          "package": {
-            "properties": {
-              "ecosystem": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string"
-              },
-              "org": {
-                "type": "string"
-              },
-              "purl": {
-                "type": "string"
-              },
-              "version": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "name"
-            ],
-            "type": "object"
+          "package_ref": {
+            "type": "string"
           },
           "policy_status": {
             "type": "string"
@@ -846,17 +962,19 @@
           "title": {
             "type": "string"
           },
+          "vex_justification": {
+            "type": "string"
+          },
+          "vex_status": {
+            "type": "string"
+          },
           "vulnerability_id": {
             "type": "string"
           }
         },
         "required": [
           "id",
-          "kind",
-          "severity",
-          "package",
-          "title",
-          "source"
+          "kind"
         ],
         "type": "object"
       },
@@ -900,9 +1018,6 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "duration_ms"
-      ],
       "type": "object"
     },
     "paths": {
@@ -929,7 +1044,16 @@
                 "licenses": {
                   "items": {
                     "properties": {
-                      "spdxExpression": {
+                      "extracted_text": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "spdx_expression": {
                         "type": "string"
                       },
                       "type": {
@@ -1038,8 +1162,8 @@
                       "type": "string"
                     },
                     "runDate": {
-                      "properties": {},
-                      "type": "object"
+                      "format": "date-time",
+                      "type": "string"
                     },
                     "scorecardVersion": {
                       "type": "string"
@@ -1059,6 +1183,62 @@
                 "vulnerabilities": {
                   "items": {
                     "properties": {
+                      "affected": {
+                        "items": {
+                          "properties": {
+                            "database_specific": {
+                              "additionalProperties": {},
+                              "type": "object"
+                            },
+                            "ecosystem_specific": {
+                              "additionalProperties": {},
+                              "type": "object"
+                            },
+                            "ranges": {
+                              "items": {
+                                "properties": {
+                                  "events": {
+                                    "items": {
+                                      "properties": {
+                                        "fixed": {
+                                          "type": "string"
+                                        },
+                                        "introduced": {
+                                          "type": "string"
+                                        },
+                                        "last_affected": {
+                                          "type": "string"
+                                        },
+                                        "limit": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "type": "object"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "repo": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "versions": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
                       "affected_symbols": {
                         "items": {
                           "properties": {
@@ -1104,6 +1284,32 @@
                           "type": "string"
                         },
                         "type": "array"
+                      },
+                      "analysis": {
+                        "properties": {
+                          "detail": {
+                            "type": "string"
+                          },
+                          "first_issued": {
+                            "type": "string"
+                          },
+                          "justification": {
+                            "type": "string"
+                          },
+                          "last_updated": {
+                            "type": "string"
+                          },
+                          "response": {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "state": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
                       },
                       "cpes": {
                         "items": {
@@ -1154,7 +1360,11 @@
                       "data_source": {
                         "type": "string"
                       },
-                      "description": {
+                      "database_specific": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "details": {
                         "type": "string"
                       },
                       "epss": {
@@ -1259,7 +1469,16 @@
                         },
                         "type": "array"
                       },
+                      "modified": {
+                        "type": "string"
+                      },
                       "namespace": {
+                        "type": "string"
+                      },
+                      "parsed_severity": {
+                        "type": "string"
+                      },
+                      "published": {
                         "type": "string"
                       },
                       "reachability": {
@@ -1576,6 +1795,9 @@
                         },
                         "type": "array"
                       },
+                      "recommendation": {
+                        "type": "string"
+                      },
                       "references": {
                         "items": {
                           "properties": {
@@ -1590,11 +1812,28 @@
                         },
                         "type": "array"
                       },
+                      "related": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
                       "risk_score": {
                         "type": "number"
                       },
                       "severity": {
-                        "type": "string"
+                        "items": {
+                          "properties": {
+                            "score": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
                       },
                       "severity_source": {
                         "type": "string"
@@ -1602,13 +1841,18 @@
                       "source": {
                         "type": "string"
                       },
+                      "summary": {
+                        "type": "string"
+                      },
                       "title": {
+                        "type": "string"
+                      },
+                      "withdrawn": {
                         "type": "string"
                       }
                     },
                     "required": [
-                      "id",
-                      "source"
+                      "id"
                     ],
                     "type": "object"
                   },
@@ -1617,6 +1861,7 @@
               },
               "required": [
                 "name",
+                "locations",
                 "licenses",
                 "vulnerabilities"
               ],
@@ -1700,14 +1945,6 @@
                 "type": "integer"
               }
             },
-            "required": [
-              "critical",
-              "high",
-              "medium",
-              "low",
-              "unknown",
-              "total"
-            ],
             "type": "object"
           },
           "dependency": {
@@ -1721,7 +1958,16 @@
               "licenses": {
                 "items": {
                   "properties": {
-                    "spdxExpression": {
+                    "extracted_text": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "spdx_expression": {
                       "type": "string"
                     },
                     "type": {
@@ -1874,8 +2120,8 @@
                     "type": "string"
                   },
                   "runDate": {
-                    "properties": {},
-                    "type": "object"
+                    "format": "date-time",
+                    "type": "string"
                   },
                   "scorecardVersion": {
                     "type": "string"
@@ -1895,6 +2141,62 @@
               "vulnerabilities": {
                 "items": {
                   "properties": {
+                    "affected": {
+                      "items": {
+                        "properties": {
+                          "database_specific": {
+                            "additionalProperties": {},
+                            "type": "object"
+                          },
+                          "ecosystem_specific": {
+                            "additionalProperties": {},
+                            "type": "object"
+                          },
+                          "ranges": {
+                            "items": {
+                              "properties": {
+                                "events": {
+                                  "items": {
+                                    "properties": {
+                                      "fixed": {
+                                        "type": "string"
+                                      },
+                                      "introduced": {
+                                        "type": "string"
+                                      },
+                                      "last_affected": {
+                                        "type": "string"
+                                      },
+                                      "limit": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "repo": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "versions": {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
                     "affected_symbols": {
                       "items": {
                         "properties": {
@@ -1940,6 +2242,32 @@
                         "type": "string"
                       },
                       "type": "array"
+                    },
+                    "analysis": {
+                      "properties": {
+                        "detail": {
+                          "type": "string"
+                        },
+                        "first_issued": {
+                          "type": "string"
+                        },
+                        "justification": {
+                          "type": "string"
+                        },
+                        "last_updated": {
+                          "type": "string"
+                        },
+                        "response": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "state": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
                     },
                     "cpes": {
                       "items": {
@@ -1990,7 +2318,11 @@
                     "data_source": {
                       "type": "string"
                     },
-                    "description": {
+                    "database_specific": {
+                      "additionalProperties": {},
+                      "type": "object"
+                    },
+                    "details": {
                       "type": "string"
                     },
                     "epss": {
@@ -2095,7 +2427,16 @@
                       },
                       "type": "array"
                     },
+                    "modified": {
+                      "type": "string"
+                    },
                     "namespace": {
+                      "type": "string"
+                    },
+                    "parsed_severity": {
+                      "type": "string"
+                    },
+                    "published": {
                       "type": "string"
                     },
                     "reachability": {
@@ -2412,6 +2753,9 @@
                       },
                       "type": "array"
                     },
+                    "recommendation": {
+                      "type": "string"
+                    },
                     "references": {
                       "items": {
                         "properties": {
@@ -2426,11 +2770,28 @@
                       },
                       "type": "array"
                     },
+                    "related": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
                     "risk_score": {
                       "type": "number"
                     },
                     "severity": {
-                      "type": "string"
+                      "items": {
+                        "properties": {
+                          "score": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
                     },
                     "severity_source": {
                       "type": "string"
@@ -2438,13 +2799,18 @@
                     "source": {
                       "type": "string"
                     },
+                    "summary": {
+                      "type": "string"
+                    },
                     "title": {
+                      "type": "string"
+                    },
+                    "withdrawn": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "id",
-                    "source"
+                    "id"
                   ],
                   "type": "object"
                 },
@@ -2453,6 +2819,7 @@
             },
             "required": [
               "name",
+              "locations",
               "licenses",
               "vulnerabilities"
             ],
@@ -2467,6 +2834,20 @@
                 "auditor": {
                   "type": "string"
                 },
+                "decision": {
+                  "properties": {
+                    "reason": {
+                      "type": "string"
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
                 "dependency_refs": {
                   "items": {
                     "type": "string"
@@ -2479,28 +2860,8 @@
                 "kind": {
                   "type": "string"
                 },
-                "package": {
-                  "properties": {
-                    "ecosystem": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "org": {
-                      "type": "string"
-                    },
-                    "purl": {
-                      "type": "string"
-                    },
-                    "version": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "name"
-                  ],
-                  "type": "object"
+                "package_ref": {
+                  "type": "string"
                 },
                 "policy_status": {
                   "type": "string"
@@ -2523,17 +2884,19 @@
                 "title": {
                   "type": "string"
                 },
+                "vex_justification": {
+                  "type": "string"
+                },
+                "vex_status": {
+                  "type": "string"
+                },
                 "vulnerability_id": {
                   "type": "string"
                 }
               },
               "required": [
                 "id",
-                "kind",
-                "severity",
-                "package",
-                "title",
-                "source"
+                "kind"
               ],
               "type": "object"
             },
@@ -2566,7 +2929,16 @@
                       "licenses": {
                         "items": {
                           "properties": {
-                            "spdxExpression": {
+                            "extracted_text": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "spdx_expression": {
                               "type": "string"
                             },
                             "type": {
@@ -2675,8 +3047,8 @@
                             "type": "string"
                           },
                           "runDate": {
-                            "properties": {},
-                            "type": "object"
+                            "format": "date-time",
+                            "type": "string"
                           },
                           "scorecardVersion": {
                             "type": "string"
@@ -2696,6 +3068,62 @@
                       "vulnerabilities": {
                         "items": {
                           "properties": {
+                            "affected": {
+                              "items": {
+                                "properties": {
+                                  "database_specific": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                  },
+                                  "ecosystem_specific": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                  },
+                                  "ranges": {
+                                    "items": {
+                                      "properties": {
+                                        "events": {
+                                          "items": {
+                                            "properties": {
+                                              "fixed": {
+                                                "type": "string"
+                                              },
+                                              "introduced": {
+                                                "type": "string"
+                                              },
+                                              "last_affected": {
+                                                "type": "string"
+                                              },
+                                              "limit": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "type": "object"
+                                          },
+                                          "type": "array"
+                                        },
+                                        "repo": {
+                                          "type": "string"
+                                        },
+                                        "type": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "type": "object"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "versions": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
                             "affected_symbols": {
                               "items": {
                                 "properties": {
@@ -2741,6 +3169,32 @@
                                 "type": "string"
                               },
                               "type": "array"
+                            },
+                            "analysis": {
+                              "properties": {
+                                "detail": {
+                                  "type": "string"
+                                },
+                                "first_issued": {
+                                  "type": "string"
+                                },
+                                "justification": {
+                                  "type": "string"
+                                },
+                                "last_updated": {
+                                  "type": "string"
+                                },
+                                "response": {
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "type": "array"
+                                },
+                                "state": {
+                                  "type": "string"
+                                }
+                              },
+                              "type": "object"
                             },
                             "cpes": {
                               "items": {
@@ -2791,7 +3245,11 @@
                             "data_source": {
                               "type": "string"
                             },
-                            "description": {
+                            "database_specific": {
+                              "additionalProperties": {},
+                              "type": "object"
+                            },
+                            "details": {
                               "type": "string"
                             },
                             "epss": {
@@ -2896,7 +3354,16 @@
                               },
                               "type": "array"
                             },
+                            "modified": {
+                              "type": "string"
+                            },
                             "namespace": {
+                              "type": "string"
+                            },
+                            "parsed_severity": {
+                              "type": "string"
+                            },
+                            "published": {
                               "type": "string"
                             },
                             "reachability": {
@@ -3213,6 +3680,9 @@
                               },
                               "type": "array"
                             },
+                            "recommendation": {
+                              "type": "string"
+                            },
                             "references": {
                               "items": {
                                 "properties": {
@@ -3227,11 +3697,28 @@
                               },
                               "type": "array"
                             },
+                            "related": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "risk_score": {
                               "type": "number"
                             },
                             "severity": {
-                              "type": "string"
+                              "items": {
+                                "properties": {
+                                  "score": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
                             },
                             "severity_source": {
                               "type": "string"
@@ -3239,13 +3726,18 @@
                             "source": {
                               "type": "string"
                             },
+                            "summary": {
+                              "type": "string"
+                            },
                             "title": {
+                              "type": "string"
+                            },
+                            "withdrawn": {
                               "type": "string"
                             }
                           },
                           "required": [
-                            "id",
-                            "source"
+                            "id"
                           ],
                           "type": "object"
                         },
@@ -3254,6 +3746,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -3303,7 +3796,8 @@
         "required": [
           "project",
           "dependency",
-          "paths"
+          "paths",
+          "findings"
         ],
         "type": "object"
       },
@@ -3345,6 +3839,10 @@
     "command",
     "project",
     "query",
+    "paths",
+    "findings",
+    "targets",
+    "warnings",
     "metadata"
   ],
   "title": "Bomly explain output",

@@ -5,6 +5,8 @@ import (
 	"io"
 	"strings"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
@@ -56,7 +58,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 			return fmt.Errorf("write explain licenses header: %w", err)
 		}
 		for _, license := range target.Dependency.Licenses {
-			label := license.Identifier()
+			label := output.LicenseIdentifier(license)
 			if label == "" {
 				continue
 			}
@@ -98,7 +100,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 			if len(title) > 50 {
 				title = title[:47] + "..."
 			}
-			line := fmt.Sprintf("  %-*s  %s  %s", maxIDWidth, vuln.ID, severityLabelFixed(string(vuln.Severity)), title)
+			line := fmt.Sprintf("  %-*s  %s  %s", maxIDWidth, vuln.ID, severityLabelFixed(string(vuln.ParsedSeverity)), title)
 			if _, err := fmt.Fprintln(w, strings.TrimRight(line, " ")); err != nil {
 				return fmt.Errorf("write explain vulnerability entry: %w", err)
 			}
@@ -128,7 +130,7 @@ func ecosystemFromPURL(purl string) string {
 	return parts[0]
 }
 
-func formatExplainAuditSummary(summary *output.AuditSummary) string {
+func formatExplainAuditSummary(summary *scan.AuditSummary) string {
 	if summary == nil || summary.Total == 0 {
 		return "no active findings"
 	}

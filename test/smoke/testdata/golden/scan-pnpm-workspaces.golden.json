@@ -1,5 +1,11 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -51,6 +57,7 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "1.3.0"
         },
         {
@@ -85,6 +92,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "4.17.20"
         },
         {
@@ -119,6 +127,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.2.5"
         }
       ],
@@ -174,6 +183,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "4.17.20"
         },
         {
@@ -208,6 +218,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.2.5"
         }
       ],
@@ -255,6 +266,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.1.3"
         }
       ],
@@ -266,9 +278,6 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "digests": [
@@ -278,6 +287,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/left-pad@1.3.0",
       "licenses": [],
       "name": "left-pad",
       "purl": "pkg:npm/left-pad@1.3.0",
@@ -292,6 +302,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/lodash@4.17.20",
       "licenses": [],
       "name": "lodash",
       "purl": "pkg:npm/lodash@4.17.20",
@@ -306,6 +317,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/minimist@1.2.5",
       "licenses": [],
       "name": "minimist",
       "purl": "pkg:npm/minimist@1.2.5",
@@ -320,6 +332,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/ms@2.1.3",
       "licenses": [],
       "name": "ms",
       "purl": "pkg:npm/ms@2.1.3",
@@ -327,13 +340,22 @@
       "vulnerabilities": []
     }
   ],
-  "project": {
-    "ecosystem": "npm",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "pnpm",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "35148ee968a4a5feb7b2b388ace7689e99b158c5",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-javascript-pnpm-workspaces"
+  },
+  "waivers": [],
+  "warnings": []
 }

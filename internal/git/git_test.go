@@ -41,6 +41,12 @@ func TestCloneTempMaterializesRequestedCommitWithoutChangingSource(t *testing.T)
 	if got := runGitCommand(t, materialized, "rev-parse", "HEAD"); got != featureSHA {
 		t.Fatalf("materialized HEAD = %q, want %q", got, featureSHA)
 	}
+	if got := HeadCommit(context.Background(), nil, materialized); got != featureSHA {
+		t.Fatalf("HeadCommit(materialized) = %q, want %q", got, featureSHA)
+	}
+	if got := HeadCommit(context.Background(), nil, t.TempDir()); got != "" {
+		t.Fatalf("HeadCommit(plain directory) = %q, want empty", got)
+	}
 	if _, err := os.Stat(filepath.Join(materialized, "feature.txt")); err != nil {
 		t.Fatalf("materialized feature file: %v", err)
 	}
@@ -374,5 +380,22 @@ func writePlatformTestFile(t *testing.T, path, contents string) {
 	t.Helper()
 	if err := os.WriteFile(path, []byte(contents), 0o644); err != nil {
 		t.Fatalf("write %s: %v", path, err)
+	}
+}
+
+func TestPublicURLKeepsOnlyTheRepositoryIdentity(t *testing.T) {
+	for raw, want := range map[string]string{
+		"https://user:token@example.test/org/repo.git":                   "https://example.test/org/repo.git",
+		"https://example.test/org/repo.git?access_token=secret&x=1#frag": "https://example.test/org/repo.git",
+		"https://example.test/org/repo.git?":                             "https://example.test/org/repo.git",
+		"https://token@example.test/org/repo.git":                        "https://example.test/org/repo.git",
+		" https://example.test/org/repo.git ":                            "https://example.test/org/repo.git",
+		"git@example.test:org/repo.git":                                  "git@example.test:org/repo.git",
+		"ssh://git@example.test/org/repo.git":                            "ssh://example.test/org/repo.git",
+		"":                                                               "",
+	} {
+		if got := PublicURL(raw); got != want {
+			t.Errorf("PublicURL(%q) = %q, want %q", raw, got, want)
+		}
 	}
 }

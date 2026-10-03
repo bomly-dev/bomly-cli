@@ -1,5 +1,11 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -21,26 +27,31 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "go",
+      "id": "pkg:golang/example.com/plugin-smoke@v0.0.0",
       "licenses": [],
-      "name": "example.com/plugin-smoke",
+      "name": "plugin-smoke",
       "org": "example.com",
       "purl": "pkg:golang/example.com/plugin-smoke@v0.0.0",
       "version": "v0.0.0",
       "vulnerabilities": []
     }
   ],
-  "project": {
-    "ecosystem": "go",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "gomod",
-    "path": "\u003cnormalized\u003e",
-    "target_type": "filesystem"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "kind": "filesystem"
+  },
+  "waivers": [],
+  "warnings": []
 }

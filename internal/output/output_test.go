@@ -34,7 +34,7 @@ func TestPackageFromGraphPackageIncludesStructuredLicenses(t *testing.T) {
 	if len(ref.Licenses) != 1 {
 		t.Fatalf("expected 1 license, got %#v", ref.Licenses)
 	}
-	if got := ref.Licenses[0].Identifier(); got != "MIT" {
+	if got := LicenseIdentifier(ref.Licenses[0]); got != "MIT" {
 		t.Fatalf("Identifier() = %q, want %q", got, "MIT")
 	}
 	if ref.Licenses[0].Type != model.LicenseTypeConcluded {

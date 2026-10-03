@@ -66,3 +66,4 @@ status to `Superseded by [ADR-NNNN](NNNN-slug.md)`; do not rewrite history
 | ADR-0043 | 2026-09-06 | [A scope filter selects on assertions; absence is not one](0043-a-scope-filter-selects-on-assertions.md) | Accepted |
 | ADR-0044 | 2026-09-12 | [A guard must be able to fail, and must know what it covers](0044-a-guard-must-be-able-to-fail-and-know-its-reach.md) | Accepted |
 | ADR-0045 | 2026-09-13 | [The SDK owns the SBOM codec](0045-the-sdk-owns-the-sbom-codec.md) | Accepted |
+| ADR-0046 | 2026-09-24 | [The scan output is the SDK's scan record](0046-the-scan-output-is-the-sdk-scan-record.md) | Accepted |

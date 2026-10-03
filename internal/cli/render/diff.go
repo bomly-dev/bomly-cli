@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 
 	"github.com/bomly-dev/bomly-sdk/model"
@@ -187,7 +189,7 @@ func findingsSummaryLine(audit *output.DiffAudit) []string {
 	lines := []string{"", Style(compactAuditSummary(introduced, persisted), Red)}
 	for _, item := range findings {
 		f := item.finding
-		pkg := f.Package.DisplayLabel()
+		pkg := output.FindingLabel(f)
 		if pkg == "" {
 			pkg = "-"
 		}
@@ -198,12 +200,12 @@ func findingsSummaryLine(audit *output.DiffAudit) []string {
 
 type compactAuditFinding struct {
 	status  string
-	finding output.AuditFinding
+	finding model.Finding
 }
 
 func compactAuditFindings(audit *output.DiffAudit) []compactAuditFinding {
 	var findings []compactAuditFinding
-	appendFindings := func(status string, src []output.AuditFinding) {
+	appendFindings := func(status string, src []model.Finding) {
 		for _, f := range src {
 			sev := strings.ToLower(strings.TrimSpace(string(f.Severity)))
 			if sev == "n/a" || sev == "" {
@@ -245,7 +247,7 @@ func compactAuditSummary(introduced, persisted int) string {
 func vulnCountsForPackageRef(pkg output.PackageRef) string {
 	var critical, high, medium, low int
 	for _, v := range pkg.Vulnerabilities {
-		switch strings.ToLower(string(v.Severity)) {
+		switch strings.ToLower(string(v.ParsedSeverity)) {
 		case "critical":
 			critical++
 		case "high":
@@ -299,7 +301,7 @@ func primaryLicense(pkg output.PackageRef) string {
 	if len(pkg.Licenses) == 0 {
 		return "-"
 	}
-	if value := pkg.Licenses[0].Identifier(); value != "" {
+	if value := output.LicenseIdentifier(pkg.Licenses[0]); value != "" {
 		return value
 	}
 	return "-"
@@ -312,13 +314,13 @@ func displayScope(scope string) string {
 	return scope
 }
 
-func licenseList(values []output.LicenseRef) string {
+func licenseList(values []model.PackageLicense) string {
 	if len(values) == 0 {
 		return "-"
 	}
 	licenses := make([]string, 0, len(values))
 	for _, value := range values {
-		if id := value.Identifier(); id != "" {
+		if id := output.LicenseIdentifier(value); id != "" {
 			licenses = append(licenses, id)
 		}
 	}
@@ -329,15 +331,15 @@ func licenseList(values []output.LicenseRef) string {
 	return strings.Join(licenses, ", ")
 }
 
-func diffAuditFindingsSummary(summary *output.AuditSummary) string {
+func diffAuditFindingsSummary(summary *scan.AuditSummary) string {
 	if summary == nil || summary.Total == 0 {
 		return "no active findings were reported"
 	}
 	return formatAuditSummary(summary, true)
 }
 
-func sortDiffAuditFindings(findings []output.AuditFinding) []output.AuditFinding {
-	sorted := append([]output.AuditFinding(nil), findings...)
+func sortDiffAuditFindings(findings []model.Finding) []model.Finding {
+	sorted := append([]model.Finding(nil), findings...)
 	sort.Slice(sorted, func(i, j int) bool {
 		si := severityRankTable(string(sorted[i].Severity))
 		sj := severityRankTable(string(sorted[j].Severity))
@@ -347,8 +349,8 @@ func sortDiffAuditFindings(findings []output.AuditFinding) []output.AuditFinding
 		if sorted[i].ID != sorted[j].ID {
 			return sorted[i].ID < sorted[j].ID
 		}
-		pi := sorted[i].Package.DisplayLabel()
-		pj := sorted[j].Package.DisplayLabel()
+		pi := output.FindingLabel(sorted[i])
+		pj := output.FindingLabel(sorted[j])
 		if pi != pj {
 			return pi < pj
 		}
@@ -385,7 +387,7 @@ func DiffManifestDisplayLabel(manifest output.DiffManifestResult) string {
 
 // fixedVersionSummary and exploitabilitySummary are retained for markdown
 // renderers that still use them.
-func diffVulnerabilityDetails(vulnerability output.VulnerabilityRef, includeReachability bool) string {
+func diffVulnerabilityDetails(vulnerability model.Vulnerability, includeReachability bool) string {
 	if !includeReachability {
 		return ""
 	}

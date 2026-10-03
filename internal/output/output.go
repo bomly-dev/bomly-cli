@@ -1,10 +1,13 @@
 package output
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/bomly-dev/bomly-sdk/scan"
 )
 
 // Format identifies a supported output format.
@@ -60,6 +63,24 @@ func ParseFormat(value string) (Format, error) {
 func Write(w io.Writer, format Format, payload any, renderers Renderers) error {
 	switch format {
 	case FormatJSON:
+		if record, ok := payload.(scan.Record); ok {
+			payload = &record
+		}
+		if record, ok := payload.(*scan.Record); ok {
+			// Through the record's own encoder, so what is written is the
+			// canonical, digested form; indented for the reader.
+			data, err := scan.Encode(record)
+			if err != nil {
+				return err
+			}
+			var indented bytes.Buffer
+			if err := json.Indent(&indented, data, "", "  "); err != nil {
+				return err
+			}
+			indented.WriteByte('\n')
+			_, err = w.Write(indented.Bytes())
+			return err
+		}
 		enc := json.NewEncoder(w)
 		enc.SetIndent("", "  ")
 		return enc.Encode(payload)

@@ -407,14 +407,27 @@ identifiers are fixed.
 
 Some information necessarily becomes less specific during conversion:
 
-- Vulnerabilities are written but never read back. A CycloneDX export carries
-  ratings, CWEs, affected component references, descriptions, and advisory
-  URLs; an SPDX 2.3 export carries each vulnerability as a package security
-  advisory reference. Neither format's importer builds vulnerability records,
-  so converting a document does not carry its vulnerabilities across — Bomly
-  re-derives them by scanning with `--enrich`. What does survive an SPDX round
-  trip is the advisory reference itself, because it is preserved as an
-  ordinary external reference like any other the source stated.
+- Vulnerabilities survive a CycloneDX round trip and are lost across SPDX.
+  A CycloneDX export carries ratings, CWEs, affected component references,
+  descriptions, advisory URLs, and the VEX `analysis` block — state,
+  justification, responses, detail — and ingest reads all of them back into
+  the package registry, so a document that says a package is `not_affected`
+  because the code is not reachable yields a scan that says so too. An SPDX
+  2.3 export carries each vulnerability as a package security advisory
+  reference and nothing more, because the format has no slot for a rating or
+  an analysis; what survives an SPDX round trip is the advisory reference
+  itself, preserved as an ordinary external reference like any other the
+  source stated. End-of-life records survive both formats (see the `bomly:eol*`
+  properties and the SPDX package comment above).
+- SPDX `licenseDeclared` and `licenseConcluded` are read as the two claims
+  they are and written back to the field each came from; a document that
+  concluded a license re-exports it as concluded, not restated as declared.
+  Bomly concludes nothing itself, so `licenseConcluded` is `NOASSERTION`
+  exactly when no source concluded anything.
+- The format and specification version a document was decoded as is
+  recorded on its assertions (`format`, for example `cyclonedx-1.6+json`)
+  and reaches the scan document; a conversion never re-emits it, since the
+  output format's own header says what the output is.
 - Scope is a set in Bomly and a single value in both formats. A package
   reachable from both a runtime and a development root carries both scopes, so
   each format gets Bomly's projection in its native field — runtime wins a
@@ -481,15 +494,15 @@ Some information necessarily becomes less specific during conversion:
   written" above). Every license is kept either way: a value SPDX cannot hold
   verbatim becomes a `LicenseRef-*`, which is a valid expression element, so a
   mixed set composes rather than losing its members. Reading an SPDX document
-  back gives one license per package — the composed expression, taken from the
-  concluded field when the document states both a concluded and a declared
-  license. A CycloneDX list that went out as `A AND B` therefore returns as
-  the single expression `A AND B` rather than as two entries.
-- End-of-life data is written but never read back. Both formats carry it —
-  `bomly:eol` properties in CycloneDX, `eol=` and `eol_date=` in the SPDX
-  package comment — and neither importer looks for it, so a Bomly document
-  converted through Bomly loses its EOL fields. Re-run with `--enrich` to
-  restore them.
+  back gives the composed expression per field — one declared claim, one
+  concluded claim when the document states both — so a CycloneDX list that
+  went out as `A AND B` returns as the single expression `A AND B` rather
+  than as two entries.
+- End-of-life data survives a round trip through either format (the
+  `bomly:eol*` properties, the SPDX package comment) but not its source: the
+  matcher that asserted the record is not named in a document, so a
+  re-imported record carries no `source`. Re-run with `--enrich` to attribute
+  it again.
 - A component's own identifier does not survive. Ingest re-mints each node's
   identity from its package URL, so the source document's `bom-ref` or
   `SPDXID` is not carried into the graph and not re-emitted. Anything that

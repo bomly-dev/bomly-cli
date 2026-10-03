@@ -18,9 +18,9 @@ func diffAuditOutput(audit *diffengine.Audit, baseRegistry, headRegistry *model.
 	}
 	combined := append(append([]model.Finding{}, audit.Introduced...), audit.Persisted...)
 	return &output.DiffAudit{
-		Introduced:   output.FindingsFromScan(audit.Introduced, headRegistry),
-		Resolved:     output.FindingsFromScan(audit.Resolved, baseRegistry),
-		Persisted:    output.FindingsFromScan(audit.Persisted, headRegistry),
+		Introduced:   output.FindingsWithSeverity(audit.Introduced, headRegistry),
+		Resolved:     output.FindingsWithSeverity(audit.Resolved, baseRegistry),
+		Persisted:    output.FindingsWithSeverity(audit.Persisted, headRegistry),
 		AuditSummary: output.SummaryFromFindings(combined),
 	}
 }

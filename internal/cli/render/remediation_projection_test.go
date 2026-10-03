@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 
@@ -19,10 +21,10 @@ func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T)
 				Name:     "example",
 				Version:  "1.0.0",
 				Purl:     "pkg:npm/example@1.0.0",
-				Licenses: []output.LicenseRef{},
-				Vulnerabilities: []output.VulnerabilityRef{{
-					ID:       "GHSA-example",
-					Severity: model.SeverityHigh,
+				Licenses: []model.PackageLicense{},
+				Vulnerabilities: []model.Vulnerability{{
+					ID:             "GHSA-example",
+					ParsedSeverity: model.SeverityHigh,
 				}},
 			},
 			Remediation: &model.PackageRemediation{
@@ -111,9 +113,9 @@ func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 		DisplayName: "Example Matcher",
 	}}, true, false, false, nil, nil, nil))
 	var markdown bytes.Buffer
-	if err := ScanMarkdown(&markdown, output.ScanResponse{
+	if err := ScanMarkdown(&markdown, scan.Record{
 		Packages: output.PackagesFromRegistry(registry),
-	}); err != nil {
+	}, output.ProjectDescriptor{}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
 	}
 	wantTextBlock := "✓ Enriched via Example Matcher\n\n" +
@@ -155,7 +157,7 @@ func TestDiffTextAndMarkdownShowHeadRemediationAfterFindings(t *testing.T) {
 			Vulnerabilities: output.DiffVulnerabilityResults{
 				Added: []output.DiffVulnerabilityChange{{
 					Package:       output.PackageRef{Purl: purl},
-					Vulnerability: output.VulnerabilityRef{ID: "GHSA-example"},
+					Vulnerability: model.Vulnerability{ID: "GHSA-example"},
 				}},
 			},
 		},
@@ -195,13 +197,13 @@ func TestDiffTextAndMarkdownShowHeadRemediationAfterFindings(t *testing.T) {
 
 func TestRemediationOutputIsOmittedWithoutSuggestions(t *testing.T) {
 	var markdown bytes.Buffer
-	if err := ScanMarkdown(&markdown, output.ScanResponse{
-		Packages: []output.ScanPackageEntry{{
-			Purl:            "pkg:npm/example@1.0.0",
-			Vulnerabilities: []output.VulnerabilityRef{{ID: "GHSA-example"}},
+	if err := ScanMarkdown(&markdown, scan.Record{
+		Packages: []*model.Package{{
+			PURL:            "pkg:npm/example@1.0.0",
+			Vulnerabilities: []model.Vulnerability{{ID: "GHSA-example"}},
 			Remediation:     &model.PackageRemediation{Status: model.PackageRemediationUnknown},
 		}},
-	}); err != nil {
+	}, output.ProjectDescriptor{}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
 	}
 	if strings.Contains(markdown.String(), "## Remediation") {
@@ -243,7 +245,7 @@ func TestRemediationTextSummarizesAllSuggestionsAndPointsToJSON(t *testing.T) {
 }
 
 func TestRemediationSummaryCountsOnlyConcreteFixSuggestions(t *testing.T) {
-	packages := []output.ScanPackageEntry{
+	packages := []*model.Package{
 		remediationReportEntry(
 			"complete",
 			model.PackageRemediationComplete,
@@ -297,12 +299,12 @@ func remediationReportEntry(
 	name string,
 	status model.PackageRemediationStatus,
 	action model.RemediationAction,
-) output.ScanPackageEntry {
-	return output.ScanPackageEntry{
-		Purl:            "pkg:npm/" + name + "@1.0.0",
+) *model.Package {
+	return &model.Package{
+		PURL:            "pkg:npm/" + name + "@1.0.0",
 		Name:            name,
 		Version:         "1.0.0",
-		Vulnerabilities: []output.VulnerabilityRef{{ID: "GHSA-" + name}},
+		Vulnerabilities: []model.Vulnerability{{ID: "GHSA-" + name}},
 		Remediation: &model.PackageRemediation{
 			Status: status,
 			Suggestions: []model.PackageRemediationSuggestion{{
@@ -334,5 +336,14 @@ func remediationTestPackage(purl string) *model.Package {
 				Action:                       model.RemediationActionDirectBump,
 			}},
 		},
+	}
+}
+
+// A scoped package reads @org/name in a remediation table, as it did before
+// the output projection was removed; the bare Name would be ambiguous.
+func TestRemediationPackageLabelKeepsTheScope(t *testing.T) {
+	pkg := &model.Package{Coordinates: model.Coordinates{PURL: "pkg:npm/@tailwindcss/postcss@4.0.0", Ecosystem: model.EcosystemNPM, Org: "tailwindcss", Name: "postcss", Version: "4.0.0"}}
+	if got := remediationPackageLabel(pkg); got != "@tailwindcss/postcss@4.0.0" {
+		t.Fatalf("remediation label = %q, want the scoped name", got)
 	}
 }

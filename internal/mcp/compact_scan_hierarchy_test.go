@@ -3,15 +3,16 @@ package mcp_test
 import (
 	"testing"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
-	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
 func TestBuildCompactScanCountsSubprojectsAndModules(t *testing.T) {
 	run := mcp.ScanRunResult{
-		Response: output.ScanResponse{
+		Response: scan.Record{
 			Command: "scan",
-			Manifests: []output.ScanManifest{
+			Manifests: []scan.Manifest{
 				{Path: "package-lock.json", Subproject: "."},
 				{Path: "apps/web/package.json", Subproject: "."},
 				{Path: "services/api/pom.xml", Subproject: "services/api"},
@@ -33,9 +34,9 @@ func TestBuildCompactScanCountsSubprojectsAndModules(t *testing.T) {
 
 func TestBuildCompactScanFlatScanOmitsGroupCounts(t *testing.T) {
 	run := mcp.ScanRunResult{
-		Response: output.ScanResponse{
+		Response: scan.Record{
 			Command:   "scan",
-			Manifests: []output.ScanManifest{{Path: "go.mod", Subproject: "."}},
+			Manifests: []scan.Manifest{{Path: "go.mod", Subproject: "."}},
 		},
 	}
 	resp := mcp.BuildCompactScan(run)
@@ -45,13 +46,13 @@ func TestBuildCompactScanFlatScanOmitsGroupCounts(t *testing.T) {
 }
 
 func TestBuildCompactScanTotalPackagesDedupsAcrossModuleManifests(t *testing.T) {
-	shared := output.ScanDependency{ID: "pkg:npm/lodash@4.17.21", Name: "lodash", Version: "4.17.21", Purl: "pkg:npm/lodash@4.17.21"}
+	shared := scan.Dependency{ID: "pkg:npm/lodash@4.17.21", Name: "lodash", Version: "4.17.21", PURL: "pkg:npm/lodash@4.17.21"}
 	run := mcp.ScanRunResult{
-		Response: output.ScanResponse{
+		Response: scan.Record{
 			Command: "scan",
-			Manifests: []output.ScanManifest{
-				{Path: "apps/web/package.json", Subproject: ".", Dependencies: []output.ScanDependency{shared}},
-				{Path: "packages/lib/package.json", Subproject: ".", Dependencies: []output.ScanDependency{shared}},
+			Manifests: []scan.Manifest{
+				{Path: "apps/web/package.json", Subproject: ".", Dependencies: []scan.Dependency{shared}},
+				{Path: "packages/lib/package.json", Subproject: ".", Dependencies: []scan.Dependency{shared}},
 			},
 		},
 	}

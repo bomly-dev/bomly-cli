@@ -1,5 +1,11 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -43,6 +49,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2026.4.22"
         },
         {
@@ -70,6 +77,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.0.4"
         },
         {
@@ -97,6 +105,7 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "0.4.6"
         },
         {
@@ -126,6 +135,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.11.29"
         },
         {
@@ -155,6 +165,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "6.0.8"
         },
         {
@@ -182,6 +193,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.8"
         },
         {
@@ -209,6 +221,7 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "2.3.0"
         },
         {
@@ -236,6 +249,7 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "26.2"
         },
         {
@@ -263,6 +277,7 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "1.6.0"
         },
         {
@@ -290,6 +305,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.6.3"
         },
         {
@@ -317,6 +333,7 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "2.20.0"
         },
         {
@@ -344,6 +361,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.4.2"
         },
         {
@@ -377,6 +395,7 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "9.0.3"
         },
         {
@@ -404,6 +423,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2026.2"
         },
         {
@@ -436,6 +456,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.21.0"
         },
         {
@@ -465,6 +486,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.4"
         },
         {
@@ -492,6 +514,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.0"
         },
         {
@@ -519,6 +542,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.24.3"
         }
       ],
@@ -534,12 +558,10 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/certifi@2026.4.22",
       "licenses": [],
       "name": "certifi",
       "purl": "pkg:pypi/certifi@2026.4.22",
@@ -548,6 +570,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/chardet@3.0.4",
       "licenses": [],
       "name": "chardet",
       "purl": "pkg:pypi/chardet@3.0.4",
@@ -556,6 +579,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/colorama@0.4.6",
       "licenses": [],
       "name": "colorama",
       "purl": "pkg:pypi/colorama@0.4.6",
@@ -564,6 +588,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/django@1.11.29",
       "licenses": [],
       "name": "django",
       "purl": "pkg:pypi/django@1.11.29",
@@ -572,6 +597,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/feedparser@6.0.8",
       "licenses": [],
       "name": "feedparser",
       "purl": "pkg:pypi/feedparser@6.0.8",
@@ -580,6 +606,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/idna@2.8",
       "licenses": [],
       "name": "idna",
       "purl": "pkg:pypi/idna@2.8",
@@ -588,6 +615,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/iniconfig@2.3.0",
       "licenses": [],
       "name": "iniconfig",
       "purl": "pkg:pypi/iniconfig@2.3.0",
@@ -596,6 +624,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/packaging@26.2",
       "licenses": [],
       "name": "packaging",
       "purl": "pkg:pypi/packaging@26.2",
@@ -604,6 +633,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/pluggy@1.6.0",
       "licenses": [],
       "name": "pluggy",
       "purl": "pkg:pypi/pluggy@1.6.0",
@@ -612,6 +642,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/pyasn1@0.6.3",
       "licenses": [],
       "name": "pyasn1",
       "purl": "pkg:pypi/pyasn1@0.6.3",
@@ -620,6 +651,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/pygments@2.20.0",
       "licenses": [],
       "name": "pygments",
       "purl": "pkg:pypi/pygments@2.20.0",
@@ -628,6 +660,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/pyjwt@0.4.2",
       "licenses": [],
       "name": "pyjwt",
       "purl": "pkg:pypi/pyjwt@0.4.2",
@@ -636,6 +669,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/pytest@9.0.3",
       "licenses": [],
       "name": "pytest",
       "purl": "pkg:pypi/pytest@9.0.3",
@@ -644,6 +678,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/pytz@2026.2",
       "licenses": [],
       "name": "pytz",
       "purl": "pkg:pypi/pytz@2026.2",
@@ -652,6 +687,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/requests@2.21.0",
       "licenses": [],
       "name": "requests",
       "purl": "pkg:pypi/requests@2.21.0",
@@ -660,6 +696,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/rsa@3.4",
       "licenses": [],
       "name": "rsa",
       "purl": "pkg:pypi/rsa@3.4",
@@ -668,6 +705,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/sgmllib3k@1.0.0",
       "licenses": [],
       "name": "sgmllib3k",
       "purl": "pkg:pypi/sgmllib3k@1.0.0",
@@ -676,6 +714,7 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/urllib3@1.24.3",
       "licenses": [],
       "name": "urllib3",
       "purl": "pkg:pypi/urllib3@1.24.3",
@@ -683,13 +722,22 @@
       "vulnerabilities": []
     }
   ],
-  "project": {
-    "ecosystem": "python",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "uv",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "dc188b9630ae8324c63e1f3e9fed904e3c4b64a8",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-python-uv"
+  },
+  "waivers": [],
+  "warnings": []
 }

@@ -1,5 +1,11 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -315,6 +321,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.3.8"
         },
         {
@@ -352,6 +359,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "6.15.0"
         },
         {
@@ -384,6 +392,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.1.1"
         },
         {
@@ -418,6 +427,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.2.6"
         },
         {
@@ -450,6 +460,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.0"
         },
         {
@@ -482,6 +493,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.4.0"
         },
         {
@@ -514,6 +526,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.7.0"
         },
         {
@@ -546,6 +559,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.13.2"
         },
         {
@@ -582,6 +596,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.6.0"
         },
         {
@@ -616,6 +631,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.2"
         },
         {
@@ -661,6 +677,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.20.2"
         },
         {
@@ -693,6 +710,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.1"
         },
         {
@@ -725,6 +743,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.1.2"
         },
         {
@@ -760,6 +779,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.2"
         },
         {
@@ -795,6 +815,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.4"
         },
         {
@@ -827,6 +848,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.12.0"
         },
         {
@@ -861,6 +883,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.8"
         },
         {
@@ -895,6 +918,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.5.4"
         },
         {
@@ -927,6 +951,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.5"
         },
         {
@@ -959,6 +984,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.6"
         },
         {
@@ -991,6 +1017,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.6.0"
         },
         {
@@ -1023,6 +1050,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.2"
         },
         {
@@ -1057,6 +1085,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.14.1"
         },
         {
@@ -1091,6 +1120,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.6.9"
         },
         {
@@ -1123,6 +1153,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.0"
         },
         {
@@ -1155,6 +1186,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.0.0"
         },
         {
@@ -1187,6 +1219,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.2.0"
         },
         {
@@ -1223,6 +1256,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.1"
         },
         {
@@ -1258,6 +1292,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.1.2"
         },
         {
@@ -1292,6 +1327,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.11"
         },
         {
@@ -1324,6 +1360,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.1.1"
         },
         {
@@ -1356,6 +1393,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.2"
         },
         {
@@ -1388,6 +1426,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.1"
         },
         {
@@ -1420,6 +1459,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.3.0"
         },
         {
@@ -1454,6 +1494,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.1.2"
         },
         {
@@ -1491,6 +1532,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.1.0"
         },
         {
@@ -1523,6 +1565,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.3"
         },
         {
@@ -1555,6 +1598,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.8.1"
         },
         {
@@ -1619,6 +1663,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "4.19.2"
         },
         {
@@ -1651,6 +1696,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.0.2"
         },
         {
@@ -1683,6 +1729,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.3.0"
         },
         {
@@ -1715,6 +1762,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.1.3"
         },
         {
@@ -1747,6 +1795,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.1.0"
         },
         {
@@ -1787,6 +1836,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.2.0"
         },
         {
@@ -1819,6 +1869,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.16.0"
         },
         {
@@ -1851,6 +1902,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.6.1"
         },
         {
@@ -1887,6 +1939,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.3.3"
         },
         {
@@ -1925,6 +1978,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "4.0.6"
         },
         {
@@ -1957,6 +2011,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.2.0"
         },
         {
@@ -1989,6 +2044,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.5.2"
         },
         {
@@ -2021,6 +2077,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.1.2"
         },
         {
@@ -2064,6 +2121,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.3.0"
         },
         {
@@ -2099,6 +2157,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.1"
         },
         {
@@ -2133,6 +2192,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.1.7"
         },
         {
@@ -2165,6 +2225,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.2.0"
         },
         {
@@ -2197,6 +2258,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.0.0"
         },
         {
@@ -2232,6 +2294,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "5.1.5"
         },
         {
@@ -2264,6 +2327,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.1.0"
         },
         {
@@ -2298,6 +2362,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.2"
         },
         {
@@ -2332,6 +2397,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.0.4"
         },
         {
@@ -2370,6 +2436,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.0.0"
         },
         {
@@ -2406,6 +2473,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.2.0"
         },
         {
@@ -2440,6 +2508,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.4.24"
         },
         {
@@ -2472,6 +2541,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.0.4"
         },
         {
@@ -2504,6 +2574,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.9.1"
         },
         {
@@ -2536,6 +2607,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.0"
         },
         {
@@ -2568,6 +2640,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.1.2"
         },
         {
@@ -2600,6 +2673,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.1.1"
         },
         {
@@ -2632,6 +2706,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.4.1"
         },
         {
@@ -2664,6 +2739,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.4.0"
         },
         {
@@ -2696,6 +2772,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "5.0.1"
         },
         {
@@ -2739,6 +2816,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "8.5.1"
         },
         {
@@ -2776,6 +2854,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.4.2"
         },
         {
@@ -2812,6 +2891,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.4.2"
         },
         {
@@ -2847,6 +2927,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.2.3"
         },
         {
@@ -2879,6 +2960,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "4.3.0"
         },
         {
@@ -2911,6 +2993,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.0.3"
         },
         {
@@ -2943,6 +3026,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "4.0.4"
         },
         {
@@ -2975,6 +3059,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.0.3"
         },
         {
@@ -3007,6 +3092,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "4.0.6"
         },
         {
@@ -3039,6 +3125,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "4.0.1"
         },
         {
@@ -3071,6 +3158,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "4.1.1"
         },
         {
@@ -3103,6 +3191,7 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "4.17.20"
         },
         {
@@ -3135,6 +3224,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.1.0"
         },
         {
@@ -3167,6 +3257,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.3.0"
         },
         {
@@ -3199,6 +3290,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.1"
         },
         {
@@ -3231,6 +3323,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.1.2"
         },
         {
@@ -3263,6 +3356,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.52.0"
         },
         {
@@ -3297,6 +3391,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.1.35"
         },
         {
@@ -3329,6 +3424,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.6.0"
         },
         {
@@ -3361,6 +3457,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.0.0"
         },
         {
@@ -3406,6 +3503,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.1.3"
         },
         {
@@ -3438,6 +3536,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.6.3"
         },
         {
@@ -3470,6 +3569,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.9.0"
         },
         {
@@ -3502,6 +3602,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.13.4"
         },
         {
@@ -3536,6 +3637,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.4.1"
         },
         {
@@ -3568,6 +3670,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.3.3"
         },
         {
@@ -3600,6 +3703,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.1.7"
         },
         {
@@ -3632,6 +3736,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.1.0"
         },
         {
@@ -3667,6 +3772,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.0.7"
         },
         {
@@ -3699,6 +3805,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.1.0"
         },
         {
@@ -3733,6 +3840,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.15.0"
         },
         {
@@ -3765,6 +3873,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.3.1"
         },
         {
@@ -3799,6 +3908,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "6.11.0"
         },
         {
@@ -3831,6 +3941,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "6.5.5"
         },
         {
@@ -3863,6 +3974,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.2.1"
         },
         {
@@ -3900,6 +4012,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.5.2"
         },
         {
@@ -3953,6 +4066,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.88.2"
         },
         {
@@ -3985,6 +4099,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "5.2.1"
         },
         {
@@ -4017,6 +4132,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.1.2"
         },
         {
@@ -4049,6 +4165,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.6.0"
         },
         {
@@ -4081,6 +4198,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "5.7.2"
         },
         {
@@ -4127,6 +4245,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.18.0"
         },
         {
@@ -4164,6 +4283,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.15.0"
         },
         {
@@ -4196,6 +4316,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.2.0"
         },
         {
@@ -4231,6 +4352,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.1"
         },
         {
@@ -4268,6 +4390,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.1"
         },
         {
@@ -4306,6 +4429,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.2"
         },
         {
@@ -4344,6 +4468,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.1.1"
         },
         {
@@ -4386,6 +4511,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.18.0"
         },
         {
@@ -4418,6 +4544,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.0.1"
         },
         {
@@ -4450,6 +4577,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.1"
         },
         {
@@ -4485,6 +4613,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.5.0"
         },
         {
@@ -4519,6 +4648,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.6.0"
         },
         {
@@ -4551,6 +4681,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.14.5"
         },
         {
@@ -4586,6 +4717,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.6.18"
         },
         {
@@ -4618,6 +4750,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.0"
         },
         {
@@ -4652,6 +4785,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "4.4.1"
         },
         {
@@ -4684,6 +4818,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.1"
         },
         {
@@ -4716,6 +4851,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.4.0"
         },
         {
@@ -4748,6 +4884,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.1.2"
         },
         {
@@ -4784,6 +4921,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.10.0"
         },
         {
@@ -4819,6 +4957,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.6.2"
         },
         {
@@ -4851,6 +4990,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "11.0.1"
         }
       ],
@@ -4862,146 +5002,178 @@
       "subproject": "fixtures/webapp"
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
       "licenses": [],
-      "name": "com.fasterxml.jackson.core:jackson-annotations",
+      "name": "jackson-annotations",
       "org": "com.fasterxml.jackson.core",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
       "version": "2.13.0",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
       "licenses": [],
-      "name": "com.fasterxml.jackson.core:jackson-core",
+      "name": "jackson-core",
       "org": "com.fasterxml.jackson.core",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
       "version": "2.13.0",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0",
       "licenses": [],
-      "name": "com.fasterxml.jackson.core:jackson-databind",
+      "name": "jackson-databind",
       "org": "com.fasterxml.jackson.core",
+      "package_manager": "maven",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0",
       "version": "2.13.0",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/commons-logging/commons-logging@1.2",
       "licenses": [],
-      "name": "commons-logging:commons-logging",
+      "name": "commons-logging",
       "org": "commons-logging",
+      "package_manager": "maven",
       "purl": "pkg:maven/commons-logging/commons-logging@1.2",
       "version": "1.2",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.commons/commons-configuration2@2.7",
       "licenses": [],
-      "name": "org.apache.commons:commons-configuration2",
+      "name": "commons-configuration2",
       "org": "org.apache.commons",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.commons/commons-configuration2@2.7",
       "version": "2.7",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.commons/commons-lang3@3.9",
       "licenses": [],
-      "name": "org.apache.commons:commons-lang3",
+      "name": "commons-lang3",
       "org": "org.apache.commons",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.commons/commons-lang3@3.9",
       "version": "3.9",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apache.commons/commons-text@1.8",
       "licenses": [],
-      "name": "org.apache.commons:commons-text",
+      "name": "commons-text",
       "org": "org.apache.commons",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apache.commons/commons-text@1.8",
       "version": "1.8",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.apiguardian/apiguardian-api@1.1.2",
       "licenses": [],
-      "name": "org.apiguardian:apiguardian-api",
+      "name": "apiguardian-api",
       "org": "org.apiguardian",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.apiguardian/apiguardian-api@1.1.2",
       "version": "1.1.2",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.junit.jupiter/junit-jupiter-api@5.10.2",
       "licenses": [],
-      "name": "org.junit.jupiter:junit-jupiter-api",
+      "name": "junit-jupiter-api",
       "org": "org.junit.jupiter",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.junit.jupiter/junit-jupiter-api@5.10.2",
       "version": "5.10.2",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.junit.jupiter/junit-jupiter-engine@5.10.2",
       "licenses": [],
-      "name": "org.junit.jupiter:junit-jupiter-engine",
+      "name": "junit-jupiter-engine",
       "org": "org.junit.jupiter",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.junit.jupiter/junit-jupiter-engine@5.10.2",
       "version": "5.10.2",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.junit.jupiter/junit-jupiter-params@5.10.2",
       "licenses": [],
-      "name": "org.junit.jupiter:junit-jupiter-params",
+      "name": "junit-jupiter-params",
       "org": "org.junit.jupiter",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.junit.jupiter/junit-jupiter-params@5.10.2",
       "version": "5.10.2",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.junit.jupiter/junit-jupiter@5.10.2",
       "licenses": [],
-      "name": "org.junit.jupiter:junit-jupiter",
+      "name": "junit-jupiter",
       "org": "org.junit.jupiter",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.junit.jupiter/junit-jupiter@5.10.2",
       "version": "5.10.2",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.junit.platform/junit-platform-commons@1.10.2",
       "licenses": [],
-      "name": "org.junit.platform:junit-platform-commons",
+      "name": "junit-platform-commons",
       "org": "org.junit.platform",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.junit.platform/junit-platform-commons@1.10.2",
       "version": "1.10.2",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.junit.platform/junit-platform-engine@1.10.2",
       "licenses": [],
-      "name": "org.junit.platform:junit-platform-engine",
+      "name": "junit-platform-engine",
       "org": "org.junit.platform",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.junit.platform/junit-platform-engine@1.10.2",
       "version": "1.10.2",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
+      "id": "pkg:maven/org.opentest4j/opentest4j@1.3.0",
       "licenses": [],
-      "name": "org.opentest4j:opentest4j",
+      "name": "opentest4j",
       "org": "org.opentest4j",
+      "package_manager": "maven",
       "purl": "pkg:maven/org.opentest4j/opentest4j@1.3.0",
       "version": "1.3.0",
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/accepts/-/accepts-1.3.8.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5009,6 +5181,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/accepts@1.3.8",
       "licenses": [
         {
           "type": "declared",
@@ -5021,6 +5194,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/ajv/-/ajv-6.15.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5028,6 +5206,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/ajv@6.15.0",
       "licenses": [
         {
           "type": "declared",
@@ -5040,6 +5219,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/array-flatten/-/array-flatten-1.1.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5047,6 +5231,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/array-flatten@1.1.1",
       "licenses": [
         {
           "type": "declared",
@@ -5059,6 +5244,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/asn1/-/asn1-0.2.6.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5066,6 +5256,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/asn1@0.2.6",
       "licenses": [
         {
           "type": "declared",
@@ -5078,6 +5269,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/assert-plus/-/assert-plus-1.0.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5085,6 +5281,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/assert-plus@1.0.0",
       "licenses": [
         {
           "type": "declared",
@@ -5097,6 +5294,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/asynckit/-/asynckit-0.4.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5104,6 +5306,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/asynckit@0.4.0",
       "licenses": [
         {
           "type": "declared",
@@ -5116,6 +5319,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/aws-sign2/-/aws-sign2-0.7.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5123,6 +5331,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/aws-sign2@0.7.0",
       "licenses": [
         {
           "type": "declared",
@@ -5135,6 +5344,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/aws4/-/aws4-1.13.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5142,6 +5356,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/aws4@1.13.2",
       "licenses": [
         {
           "type": "declared",
@@ -5154,6 +5369,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/axios/-/axios-1.6.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5161,6 +5381,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/axios@1.6.0",
       "licenses": [
         {
           "type": "declared",
@@ -5173,6 +5394,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5180,6 +5406,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/bcrypt-pbkdf@1.0.2",
       "licenses": [
         {
           "type": "declared",
@@ -5192,6 +5419,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/body-parser/-/body-parser-1.20.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5199,6 +5431,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/body-parser@1.20.2",
       "licenses": [
         {
           "type": "declared",
@@ -5211,6 +5444,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5218,6 +5456,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/buffer-equal-constant-time@1.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -5230,6 +5469,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/bytes/-/bytes-3.1.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5237,6 +5481,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/bytes@3.1.2",
       "licenses": [
         {
           "type": "declared",
@@ -5249,6 +5494,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/call-bind-apply-helpers/-/call-bind-apply-helpers-1.0.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5256,6 +5506,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/call-bind-apply-helpers@1.0.2",
       "licenses": [
         {
           "type": "declared",
@@ -5268,6 +5519,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/call-bound/-/call-bound-1.0.4.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5275,6 +5531,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/call-bound@1.0.4",
       "licenses": [
         {
           "type": "declared",
@@ -5287,6 +5544,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/caseless/-/caseless-0.12.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5294,6 +5556,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/caseless@0.12.0",
       "licenses": [
         {
           "type": "declared",
@@ -5306,6 +5569,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/combined-stream/-/combined-stream-1.0.8.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5313,6 +5581,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/combined-stream@1.0.8",
       "licenses": [
         {
           "type": "declared",
@@ -5325,6 +5594,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/content-disposition/-/content-disposition-0.5.4.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5332,6 +5606,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/content-disposition@0.5.4",
       "licenses": [
         {
           "type": "declared",
@@ -5344,6 +5619,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/content-type/-/content-type-1.0.5.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5351,6 +5631,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/content-type@1.0.5",
       "licenses": [
         {
           "type": "declared",
@@ -5363,6 +5644,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.0.6.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5370,6 +5656,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/cookie-signature@1.0.6",
       "licenses": [
         {
           "type": "declared",
@@ -5382,6 +5669,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/cookie/-/cookie-0.6.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5389,6 +5681,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/cookie@0.6.0",
       "licenses": [
         {
           "type": "declared",
@@ -5401,6 +5694,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/core-util-is/-/core-util-is-1.0.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5408,6 +5706,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/core-util-is@1.0.2",
       "licenses": [
         {
           "type": "declared",
@@ -5420,6 +5719,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/dashdash/-/dashdash-1.14.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5427,6 +5731,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/dashdash@1.14.1",
       "licenses": [
         {
           "type": "declared",
@@ -5439,6 +5744,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5446,6 +5756,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/debug@2.6.9",
       "licenses": [
         {
           "type": "declared",
@@ -5458,6 +5769,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/delayed-stream/-/delayed-stream-1.0.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5465,6 +5781,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/delayed-stream@1.0.0",
       "licenses": [
         {
           "type": "declared",
@@ -5477,6 +5794,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/depd/-/depd-2.0.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5484,6 +5806,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/depd@2.0.0",
       "licenses": [
         {
           "type": "declared",
@@ -5496,6 +5819,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/destroy/-/destroy-1.2.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5503,6 +5831,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/destroy@1.2.0",
       "licenses": [
         {
           "type": "declared",
@@ -5515,6 +5844,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/dunder-proto/-/dunder-proto-1.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5522,6 +5856,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/dunder-proto@1.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -5534,6 +5869,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/ecc-jsbn/-/ecc-jsbn-0.1.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5541,6 +5881,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/ecc-jsbn@0.1.2",
       "licenses": [
         {
           "type": "declared",
@@ -5553,6 +5894,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/ecdsa-sig-formatter/-/ecdsa-sig-formatter-1.0.11.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5560,6 +5906,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/ecdsa-sig-formatter@1.0.11",
       "licenses": [
         {
           "type": "declared",
@@ -5572,6 +5919,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/ee-first/-/ee-first-1.1.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5579,6 +5931,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/ee-first@1.1.1",
       "licenses": [
         {
           "type": "declared",
@@ -5591,6 +5944,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/encodeurl/-/encodeurl-1.0.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5598,6 +5956,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/encodeurl@1.0.2",
       "licenses": [
         {
           "type": "declared",
@@ -5610,6 +5969,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/es-define-property/-/es-define-property-1.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5617,6 +5981,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/es-define-property@1.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -5629,6 +5994,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/es-errors/-/es-errors-1.3.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5636,6 +6006,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/es-errors@1.3.0",
       "licenses": [
         {
           "type": "declared",
@@ -5648,6 +6019,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/es-object-atoms/-/es-object-atoms-1.1.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5655,6 +6031,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/es-object-atoms@1.1.2",
       "licenses": [
         {
           "type": "declared",
@@ -5667,6 +6044,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/es-set-tostringtag/-/es-set-tostringtag-2.1.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5674,6 +6056,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/es-set-tostringtag@2.1.0",
       "licenses": [
         {
           "type": "declared",
@@ -5686,6 +6069,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/escape-html/-/escape-html-1.0.3.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5693,6 +6081,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/escape-html@1.0.3",
       "licenses": [
         {
           "type": "declared",
@@ -5705,6 +6094,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/etag/-/etag-1.8.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5712,6 +6106,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/etag@1.8.1",
       "licenses": [
         {
           "type": "declared",
@@ -5724,6 +6119,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/express/-/express-4.19.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5731,6 +6131,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/express@4.19.2",
       "licenses": [
         {
           "type": "declared",
@@ -5743,6 +6144,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/extend/-/extend-3.0.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5750,6 +6156,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/extend@3.0.2",
       "licenses": [
         {
           "type": "declared",
@@ -5762,6 +6169,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/extsprintf/-/extsprintf-1.3.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5769,6 +6181,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/extsprintf@1.3.0",
       "licenses": [
         {
           "type": "declared",
@@ -5781,6 +6194,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5788,6 +6206,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/fast-deep-equal@3.1.3",
       "licenses": [
         {
           "type": "declared",
@@ -5800,6 +6219,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/fast-json-stable-stringify/-/fast-json-stable-stringify-2.1.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5807,6 +6231,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/fast-json-stable-stringify@2.1.0",
       "licenses": [
         {
           "type": "declared",
@@ -5819,6 +6244,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/finalhandler/-/finalhandler-1.2.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5826,6 +6256,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/finalhandler@1.2.0",
       "licenses": [
         {
           "type": "declared",
@@ -5838,6 +6269,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.16.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5845,6 +6281,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/follow-redirects@1.16.0",
       "licenses": [
         {
           "type": "declared",
@@ -5857,6 +6294,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/forever-agent/-/forever-agent-0.6.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5864,6 +6306,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/forever-agent@0.6.1",
       "licenses": [
         {
           "type": "declared",
@@ -5876,6 +6319,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/form-data/-/form-data-2.3.3.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5883,6 +6331,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/form-data@2.3.3",
       "licenses": [
         {
           "type": "declared",
@@ -5895,6 +6344,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/form-data/-/form-data-4.0.6.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5902,6 +6356,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/form-data@4.0.6",
       "licenses": [
         {
           "type": "declared",
@@ -5914,6 +6369,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/forwarded/-/forwarded-0.2.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5921,6 +6381,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/forwarded@0.2.0",
       "licenses": [
         {
           "type": "declared",
@@ -5933,6 +6394,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/fresh/-/fresh-0.5.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5940,6 +6406,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/fresh@0.5.2",
       "licenses": [
         {
           "type": "declared",
@@ -5952,6 +6419,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/function-bind/-/function-bind-1.1.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5959,6 +6431,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/function-bind@1.1.2",
       "licenses": [
         {
           "type": "declared",
@@ -5971,6 +6444,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/get-intrinsic/-/get-intrinsic-1.3.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5978,6 +6456,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/get-intrinsic@1.3.0",
       "licenses": [
         {
           "type": "declared",
@@ -5990,6 +6469,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/get-proto/-/get-proto-1.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -5997,6 +6481,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/get-proto@1.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -6009,6 +6494,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/getpass/-/getpass-0.1.7.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6016,6 +6506,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/getpass@0.1.7",
       "licenses": [
         {
           "type": "declared",
@@ -6028,6 +6519,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/gopd/-/gopd-1.2.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6035,6 +6531,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/gopd@1.2.0",
       "licenses": [
         {
           "type": "declared",
@@ -6047,6 +6544,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/har-schema/-/har-schema-2.0.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6054,6 +6556,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/har-schema@2.0.0",
       "licenses": [
         {
           "type": "declared",
@@ -6066,6 +6569,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/har-validator/-/har-validator-5.1.5.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6073,6 +6581,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/har-validator@5.1.5",
       "licenses": [
         {
           "type": "declared",
@@ -6085,6 +6594,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/has-symbols/-/has-symbols-1.1.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6092,6 +6606,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/has-symbols@1.1.0",
       "licenses": [
         {
           "type": "declared",
@@ -6104,6 +6619,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/has-tostringtag/-/has-tostringtag-1.0.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6111,6 +6631,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/has-tostringtag@1.0.2",
       "licenses": [
         {
           "type": "declared",
@@ -6123,6 +6644,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/hasown/-/hasown-2.0.4.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6130,6 +6656,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/hasown@2.0.4",
       "licenses": [
         {
           "type": "declared",
@@ -6142,6 +6669,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/http-errors/-/http-errors-2.0.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6149,6 +6681,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/http-errors@2.0.0",
       "licenses": [
         {
           "type": "declared",
@@ -6161,6 +6694,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/http-signature/-/http-signature-1.2.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6168,6 +6706,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/http-signature@1.2.0",
       "licenses": [
         {
           "type": "declared",
@@ -6180,6 +6719,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.24.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6187,6 +6731,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/iconv-lite@0.4.24",
       "licenses": [
         {
           "type": "declared",
@@ -6199,6 +6744,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6206,6 +6756,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/inherits@2.0.4",
       "licenses": [
         {
           "type": "declared",
@@ -6218,6 +6769,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/ipaddr.js/-/ipaddr.js-1.9.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6225,6 +6781,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/ipaddr.js@1.9.1",
       "licenses": [
         {
           "type": "declared",
@@ -6237,6 +6794,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/is-typedarray/-/is-typedarray-1.0.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6244,6 +6806,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/is-typedarray@1.0.0",
       "licenses": [
         {
           "type": "declared",
@@ -6256,6 +6819,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/isstream/-/isstream-0.1.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6263,6 +6831,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/isstream@0.1.2",
       "licenses": [
         {
           "type": "declared",
@@ -6275,6 +6844,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/jsbn/-/jsbn-0.1.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6282,6 +6856,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/jsbn@0.1.1",
       "licenses": [
         {
           "type": "declared",
@@ -6294,6 +6869,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6301,6 +6881,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/json-schema-traverse@0.4.1",
       "licenses": [
         {
           "type": "declared",
@@ -6313,6 +6894,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/json-schema/-/json-schema-0.4.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6320,6 +6906,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/json-schema@0.4.0",
       "licenses": [
         {
           "type": "declared",
@@ -6332,6 +6919,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6339,6 +6931,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/json-stringify-safe@5.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -6351,6 +6944,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/jsonwebtoken/-/jsonwebtoken-8.5.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6358,6 +6956,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/jsonwebtoken@8.5.1",
       "licenses": [
         {
           "type": "declared",
@@ -6370,6 +6969,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/jsprim/-/jsprim-1.4.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6377,6 +6981,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/jsprim@1.4.2",
       "licenses": [
         {
           "type": "declared",
@@ -6389,6 +6994,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/jwa/-/jwa-1.4.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6396,6 +7006,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/jwa@1.4.2",
       "licenses": [
         {
           "type": "declared",
@@ -6408,6 +7019,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/jws/-/jws-3.2.3.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6415,6 +7031,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/jws@3.2.3",
       "licenses": [
         {
           "type": "declared",
@@ -6427,6 +7044,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/lodash.includes/-/lodash.includes-4.3.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6434,6 +7056,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/lodash.includes@4.3.0",
       "licenses": [
         {
           "type": "declared",
@@ -6446,6 +7069,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/lodash.isboolean/-/lodash.isboolean-3.0.3.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6453,6 +7081,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/lodash.isboolean@3.0.3",
       "licenses": [
         {
           "type": "declared",
@@ -6465,6 +7094,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/lodash.isinteger/-/lodash.isinteger-4.0.4.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6472,6 +7106,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/lodash.isinteger@4.0.4",
       "licenses": [
         {
           "type": "declared",
@@ -6484,6 +7119,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/lodash.isnumber/-/lodash.isnumber-3.0.3.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6491,6 +7131,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/lodash.isnumber@3.0.3",
       "licenses": [
         {
           "type": "declared",
@@ -6503,6 +7144,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6510,6 +7156,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/lodash.isplainobject@4.0.6",
       "licenses": [
         {
           "type": "declared",
@@ -6522,6 +7169,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/lodash.isstring/-/lodash.isstring-4.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6529,6 +7181,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/lodash.isstring@4.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -6541,6 +7194,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/lodash.once/-/lodash.once-4.1.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6548,6 +7206,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/lodash.once@4.1.1",
       "licenses": [
         {
           "type": "declared",
@@ -6560,6 +7219,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/lodash/-/lodash-4.17.20.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6567,6 +7231,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/lodash@4.17.20",
       "licenses": [
         {
           "type": "declared",
@@ -6579,6 +7244,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/math-intrinsics/-/math-intrinsics-1.1.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6586,6 +7256,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/math-intrinsics@1.1.0",
       "licenses": [
         {
           "type": "declared",
@@ -6598,6 +7269,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/media-typer/-/media-typer-0.3.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6605,6 +7281,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/media-typer@0.3.0",
       "licenses": [
         {
           "type": "declared",
@@ -6617,6 +7294,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/merge-descriptors/-/merge-descriptors-1.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6624,6 +7306,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/merge-descriptors@1.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -6636,6 +7319,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/methods/-/methods-1.1.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6643,6 +7331,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/methods@1.1.2",
       "licenses": [
         {
           "type": "declared",
@@ -6655,6 +7344,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/mime-db/-/mime-db-1.52.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6662,6 +7356,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/mime-db@1.52.0",
       "licenses": [
         {
           "type": "declared",
@@ -6674,6 +7369,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/mime-types/-/mime-types-2.1.35.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6681,6 +7381,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/mime-types@2.1.35",
       "licenses": [
         {
           "type": "declared",
@@ -6693,6 +7394,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/mime/-/mime-1.6.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6700,6 +7406,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/mime@1.6.0",
       "licenses": [
         {
           "type": "declared",
@@ -6712,6 +7419,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6719,6 +7431,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/ms@2.0.0",
       "licenses": [
         {
           "type": "declared",
@@ -6731,6 +7444,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6738,6 +7456,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/ms@2.1.3",
       "licenses": [
         {
           "type": "declared",
@@ -6750,6 +7469,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6757,6 +7481,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/negotiator@0.6.3",
       "licenses": [
         {
           "type": "declared",
@@ -6769,6 +7494,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/oauth-sign/-/oauth-sign-0.9.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6776,6 +7506,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/oauth-sign@0.9.0",
       "licenses": [
         {
           "type": "declared",
@@ -6788,6 +7519,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/object-inspect/-/object-inspect-1.13.4.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6795,6 +7531,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/object-inspect@1.13.4",
       "licenses": [
         {
           "type": "declared",
@@ -6807,6 +7544,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/on-finished/-/on-finished-2.4.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6814,6 +7556,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/on-finished@2.4.1",
       "licenses": [
         {
           "type": "declared",
@@ -6826,6 +7569,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/parseurl/-/parseurl-1.3.3.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6833,6 +7581,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/parseurl@1.3.3",
       "licenses": [
         {
           "type": "declared",
@@ -6845,6 +7594,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-0.1.7.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6852,6 +7606,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/path-to-regexp@0.1.7",
       "licenses": [
         {
           "type": "declared",
@@ -6864,6 +7619,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/performance-now/-/performance-now-2.1.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6871,6 +7631,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/performance-now@2.1.0",
       "licenses": [
         {
           "type": "declared",
@@ -6883,6 +7644,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/proxy-addr/-/proxy-addr-2.0.7.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6890,6 +7656,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/proxy-addr@2.0.7",
       "licenses": [
         {
           "type": "declared",
@@ -6902,6 +7669,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/proxy-from-env/-/proxy-from-env-1.1.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6909,6 +7681,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/proxy-from-env@1.1.0",
       "licenses": [
         {
           "type": "declared",
@@ -6921,6 +7694,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/psl/-/psl-1.15.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6928,6 +7706,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/psl@1.15.0",
       "licenses": [
         {
           "type": "declared",
@@ -6940,6 +7719,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/punycode/-/punycode-2.3.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6947,6 +7731,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/punycode@2.3.1",
       "licenses": [
         {
           "type": "declared",
@@ -6959,6 +7744,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/qs/-/qs-6.11.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6966,6 +7756,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/qs@6.11.0",
       "licenses": [
         {
           "type": "declared",
@@ -6978,6 +7769,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/qs/-/qs-6.5.5.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -6985,6 +7781,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/qs@6.5.5",
       "licenses": [
         {
           "type": "declared",
@@ -6997,6 +7794,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/range-parser/-/range-parser-1.2.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7004,6 +7806,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/range-parser@1.2.1",
       "licenses": [
         {
           "type": "declared",
@@ -7016,6 +7819,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/raw-body/-/raw-body-2.5.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7023,6 +7831,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/raw-body@2.5.2",
       "licenses": [
         {
           "type": "declared",
@@ -7035,6 +7844,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/request/-/request-2.88.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7042,6 +7856,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/request@2.88.2",
       "licenses": [
         {
           "type": "declared",
@@ -7054,6 +7869,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.2.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7061,6 +7881,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/safe-buffer@5.2.1",
       "licenses": [
         {
           "type": "declared",
@@ -7073,6 +7894,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/safer-buffer/-/safer-buffer-2.1.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7080,6 +7906,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/safer-buffer@2.1.2",
       "licenses": [
         {
           "type": "declared",
@@ -7092,6 +7919,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/sax/-/sax-1.6.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7099,6 +7931,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/sax@1.6.0",
       "licenses": [
         {
           "type": "declared",
@@ -7111,6 +7944,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/semver/-/semver-5.7.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7118,6 +7956,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/semver@5.7.2",
       "licenses": [
         {
           "type": "declared",
@@ -7130,6 +7969,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/send/-/send-0.18.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7137,6 +7981,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/send@0.18.0",
       "licenses": [
         {
           "type": "declared",
@@ -7149,6 +7994,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/serve-static/-/serve-static-1.15.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7156,6 +8006,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/serve-static@1.15.0",
       "licenses": [
         {
           "type": "declared",
@@ -7168,6 +8019,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.2.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7175,6 +8031,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/setprototypeof@1.2.0",
       "licenses": [
         {
           "type": "declared",
@@ -7187,6 +8044,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/side-channel-list/-/side-channel-list-1.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7194,6 +8056,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/side-channel-list@1.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -7206,6 +8069,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/side-channel-map/-/side-channel-map-1.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7213,6 +8081,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/side-channel-map@1.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -7225,6 +8094,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/side-channel-weakmap/-/side-channel-weakmap-1.0.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7232,6 +8106,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/side-channel-weakmap@1.0.2",
       "licenses": [
         {
           "type": "declared",
@@ -7244,6 +8119,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/side-channel/-/side-channel-1.1.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7251,6 +8131,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/side-channel@1.1.1",
       "licenses": [
         {
           "type": "declared",
@@ -7263,6 +8144,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/sshpk/-/sshpk-1.18.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7270,6 +8156,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/sshpk@1.18.0",
       "licenses": [
         {
           "type": "declared",
@@ -7282,6 +8169,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/statuses/-/statuses-2.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7289,6 +8181,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/statuses@2.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -7301,6 +8194,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/toidentifier/-/toidentifier-1.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7308,6 +8206,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/toidentifier@1.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -7320,6 +8219,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/tough-cookie/-/tough-cookie-2.5.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7327,6 +8231,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/tough-cookie@2.5.0",
       "licenses": [
         {
           "type": "declared",
@@ -7339,6 +8244,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/tunnel-agent/-/tunnel-agent-0.6.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7346,6 +8256,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/tunnel-agent@0.6.0",
       "licenses": [
         {
           "type": "declared",
@@ -7358,6 +8269,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/tweetnacl/-/tweetnacl-0.14.5.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7365,6 +8281,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/tweetnacl@0.14.5",
       "licenses": [
         {
           "type": "declared",
@@ -7377,6 +8294,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/type-is/-/type-is-1.6.18.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7384,6 +8306,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/type-is@1.6.18",
       "licenses": [
         {
           "type": "declared",
@@ -7396,6 +8319,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/unpipe/-/unpipe-1.0.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7403,6 +8331,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/unpipe@1.0.0",
       "licenses": [
         {
           "type": "declared",
@@ -7415,6 +8344,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/uri-js/-/uri-js-4.4.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7422,6 +8356,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/uri-js@4.4.1",
       "licenses": [
         {
           "type": "declared",
@@ -7434,6 +8369,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/utils-merge/-/utils-merge-1.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7441,6 +8381,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/utils-merge@1.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -7453,6 +8394,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/uuid/-/uuid-3.4.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7460,6 +8406,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/uuid@3.4.0",
       "licenses": [
         {
           "type": "declared",
@@ -7472,6 +8419,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/vary/-/vary-1.1.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7479,6 +8431,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/vary@1.1.2",
       "licenses": [
         {
           "type": "declared",
@@ -7491,6 +8444,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/verror/-/verror-1.10.0.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7498,6 +8456,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/verror@1.10.0",
       "licenses": [
         {
           "type": "declared",
@@ -7510,6 +8469,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/xml2js/-/xml2js-0.6.2.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7517,6 +8481,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/xml2js@0.6.2",
       "licenses": [
         {
           "type": "declared",
@@ -7529,6 +8494,11 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "artifact_url": "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-11.0.1.tgz"
+        }
+      ],
       "digests": [
         {
           "algorithm": "sha512",
@@ -7536,6 +8506,7 @@
         }
       ],
       "ecosystem": "npm",
+      "id": "pkg:npm/xmlbuilder@11.0.1",
       "licenses": [
         {
           "type": "declared",
@@ -7548,13 +8519,22 @@
       "vulnerabilities": []
     }
   ],
-  "project": {
-    "ecosystem": "other",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "multiple",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "fc32147b3be526ea6c5d563a505c867f4bae93f3",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "fc32147b3be526ea6c5d563a505c867f4bae93f3",
+    "kind": "git-repository",
+    "ref": "fc32147b3be526ea6c5d563a505c867f4bae93f3",
+    "repository_url": "https://github.com/bomly-dev/bomly-agent-study"
+  },
+  "waivers": [],
+  "warnings": []
 }

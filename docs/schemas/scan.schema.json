@@ -232,6 +232,108 @@
           "detector": {
             "type": "string"
           },
+          "document": {
+            "properties": {
+              "checksum": {
+                "properties": {
+                  "algorithm": {
+                    "type": "string"
+                  },
+                  "subject": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "comment": {
+                "type": "string"
+              },
+              "created": {
+                "type": "string"
+              },
+              "creators": {
+                "items": {
+                  "properties": {
+                    "kind": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "data_license": {
+                "type": "string"
+              },
+              "format": {
+                "type": "string"
+              },
+              "identity": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "sources": {
+                "items": {
+                  "properties": {
+                    "checksum": {
+                      "properties": {
+                        "algorithm": {
+                          "type": "string"
+                        },
+                        "subject": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "identity": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "tools": {
+                "items": {
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "vendor": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "version": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
           "ecosystem": {
             "type": "string"
           },

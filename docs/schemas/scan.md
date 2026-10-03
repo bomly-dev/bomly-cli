@@ -174,6 +174,38 @@ Complete reference for the `bomly scan` JSON output.
 | `value` | `string` | |
 | `subject` | `string` | |
 
+### `DocumentAssertions`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `identity` | `string` | |
+| `name` | `string` | |
+| `data_license` | `string` | |
+| `created` | `string` | |
+| `creators` | Array<[`Contact`](#contact)> | |
+| `tools` | Array<[`DocumentTool`](#documenttool)> | |
+| `comment` | `string` | |
+| `version` | `integer` | |
+| `checksum` | [`Digest`](#digest) | |
+| `sources` | Array<[`DocumentSource`](#documentsource)> | |
+| `format` | `string` | |
+
+### `DocumentSource`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `identity` | `string` | |
+| `version` | `integer` | |
+| `checksum` | [`Digest`](#digest) | |
+
+### `DocumentTool`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `vendor` | `string` | |
+| `name` | `string` | |
+| `version` | `string` | |
+
 ### `EPSSScore`
 
 | Field | Type | Description |
@@ -255,6 +287,7 @@ Complete reference for the `bomly scan` JSON output.
 | `package_manager` | `string` | |
 | `detector` | `string` | |
 | `resolution` | [`ResolutionMetadata`](#resolutionmetadata) | |
+| `document` | [`DocumentAssertions`](#documentassertions) | |
 | `dependencies` | Array<[`Dependency`](#dependency)> | |
 
 ### `Metadata`

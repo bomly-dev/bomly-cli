@@ -35,6 +35,22 @@
         }
       ],
       "detector": "sbom-detector",
+      "document": {
+        "checksum": {
+          "algorithm": "sha256",
+          "value": "99bd846daec887cfcb61d6d5384ccff91c6045482652f4719fab8b312192fe0e"
+        },
+        "created": "2025-01-15T10:00:00Z",
+        "data_license": "CC0-1.0",
+        "format": "spdx-2.3+json",
+        "identity": "https://example.com/spdx/test-go-project",
+        "name": "test-go-project",
+        "tools": [
+          {
+            "name": "bomly-cli-test"
+          }
+        ]
+      },
       "ecosystem": "sbom",
       "kind": "go.spdx.json",
       "package_manager": "sbom",

@@ -44,6 +44,21 @@
         }
       ],
       "detector": "sbom-detector",
+      "document": {
+        "checksum": {
+          "algorithm": "sha256",
+          "value": "78454a7207f98ba0c8d35df8a257f9185c313d22691cc90a06f11809021bed93"
+        },
+        "created": "2025-01-15T10:00:00Z",
+        "format": "cyclonedx-1.6+json",
+        "tools": [
+          {
+            "name": "bomly-cli-test",
+            "version": "0.0.1"
+          }
+        ],
+        "version": 1
+      },
       "ecosystem": "sbom",
       "kind": "go.cdx.json",
       "package_manager": "sbom",

@@ -337,7 +337,10 @@ func scanManifestFromConsolidated(manifest plugin.ConsolidatedManifest, idx int,
 		PackageManager: manifest.Subproject.PrimaryPackageManager(),
 		Detector:       manifest.DetectorName,
 		Resolution:     manifest.Entry.Manifest.Resolution,
-		Dependencies:   DependenciesFromGraph(manifest.Entry.Graph, registry),
+		// An ingested document's own assertions ride on its manifest, so the
+		// record restates the document's provenance and not only its contents.
+		Document:     manifest.Entry.Document,
+		Dependencies: DependenciesFromGraph(manifest.Entry.Graph, registry),
 	}
 }
 

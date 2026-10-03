@@ -299,6 +299,12 @@ func DependenciesFromGraph(g *model.Graph, registry *model.PackageRegistry) []sc
 			entry.PURL = module.PURL()
 		}
 		if dep, isDependency := node.(*model.DependencyNode); isDependency {
+			// Where the dependency was resolved from and whether its manifest
+			// declared it directly travel with the record, as the SDK's own
+			// builder writes them: a comparison rebuilt from the record has
+			// no structural root and reads the stated relationship instead.
+			entry.Source = dep.Source
+			entry.Relationship = dep.Relationship
 			matched := dep.Matched
 			if pkg := RegistryPackageForNode(registry, dep); pkg != nil {
 				matched = matched || pkg.Matched

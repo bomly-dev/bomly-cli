@@ -50,6 +50,7 @@
           "name": "alpine:alpine-baselayout",
           "package_ref": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "purl": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
+          "relationship": "unknown",
           "version": "3.6.5-r0"
         },
         {
@@ -70,6 +71,7 @@
           "name": "alpine:alpine-keys",
           "package_ref": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
+          "relationship": "unknown",
           "version": "2.4-r1"
         },
         {
@@ -97,6 +99,7 @@
           "name": "alpine:apk-tools",
           "package_ref": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
           "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
+          "relationship": "unknown",
           "version": "2.14.4-r1"
         },
         {
@@ -234,6 +237,7 @@
           "name": "alpine:musl-utils",
           "package_ref": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=musl",
           "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=musl",
+          "relationship": "unknown",
           "version": "1.2.5-r3"
         },
         {
@@ -302,6 +306,7 @@
           "name": "alpine:ssl_client",
           "package_ref": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
           "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+          "relationship": "unknown",
           "version": "1.36.1-r31"
         },
         {

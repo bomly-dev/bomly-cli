@@ -1,5 +1,9 @@
 {
-  "audit": {},
+  "audit": {
+    "introduced": [],
+    "persisted": [],
+    "resolved": []
+  },
   "command": "diff",
   "comparison": {
     "base": "v0.9.0",
@@ -15,10 +19,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
+      "licenses": [],
       "name": "go-simplejson",
       "org": "github.com/bitly",
       "purl": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
-      "version": "v0.5.0"
+      "version": "v0.5.0",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -29,10 +35,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
+      "licenses": [],
       "name": "assert",
       "org": "github.com/bmizerany",
       "purl": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
-      "version": "v0.0.0-20160611221934-b7ed37b82869"
+      "version": "v0.0.0-20160611221934-b7ed37b82869",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -43,10 +51,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
+      "licenses": [],
       "name": "go-spew",
       "org": "github.com/davecgh",
       "purl": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
-      "version": "v1.1.1"
+      "version": "v1.1.1",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -57,10 +67,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/fatih/color@v1.7.0",
+      "licenses": [],
       "name": "color",
       "org": "github.com/fatih",
       "purl": "pkg:golang/github.com/fatih/color@v1.7.0",
-      "version": "v1.7.0"
+      "version": "v1.7.0",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -71,10 +83,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/google/go-cmp@v0.5.2",
+      "licenses": [],
       "name": "go-cmp",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
-      "version": "v0.5.2"
+      "version": "v0.5.2",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -85,10 +99,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
+      "licenses": [],
       "name": "go-github",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
-      "version": "v17.0.0+incompatible"
+      "version": "v17.0.0+incompatible",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -99,10 +115,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/google/go-querystring@v1.0.0",
+      "licenses": [],
       "name": "go-querystring",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-querystring@v1.0.0",
-      "version": "v1.0.0"
+      "version": "v1.0.0",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -113,10 +131,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/google/go-querystring@v1.1.0",
+      "licenses": [],
       "name": "go-querystring",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-querystring@v1.1.0",
-      "version": "v1.1.0"
+      "version": "v1.1.0",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -127,10 +147,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/google/uuid@v1.6.0",
+      "licenses": [],
       "name": "uuid",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/uuid@v1.6.0",
-      "version": "v1.6.0"
+      "version": "v1.6.0",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -141,10 +163,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/kr/pretty@v0.3.1",
+      "licenses": [],
       "name": "pretty",
       "org": "github.com/kr",
       "purl": "pkg:golang/github.com/kr/pretty@v0.3.1",
-      "version": "v0.3.1"
+      "version": "v0.3.1",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -155,10 +179,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/kr/text@v0.2.0",
+      "licenses": [],
       "name": "text",
       "org": "github.com/kr",
       "purl": "pkg:golang/github.com/kr/text@v0.2.0",
-      "version": "v0.2.0"
+      "version": "v0.2.0",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -169,10 +195,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
+      "licenses": [],
       "name": "go-colorable",
       "org": "github.com/mattn",
       "purl": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
-      "version": "v0.0.9"
+      "version": "v0.0.9",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -183,10 +211,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
+      "licenses": [],
       "name": "go-isatty",
       "org": "github.com/mattn",
       "purl": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
-      "version": "v0.0.4"
+      "version": "v0.0.4",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -197,10 +227,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
+      "licenses": [],
       "name": "go-runewidth",
       "org": "github.com/mattn",
       "purl": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
-      "version": "v0.0.4"
+      "version": "v0.0.4",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -211,10 +243,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
+      "licenses": [],
       "name": "termbox-go",
       "org": "github.com/nsf",
       "purl": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
-      "version": "v0.0.0-20181027232701-60ab7e3d12ed"
+      "version": "v0.0.0-20181027232701-60ab7e3d12ed",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -225,10 +259,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
+      "licenses": [],
       "name": "jsoncolor",
       "org": "github.com/nwidger",
       "purl": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
-      "version": "v0.0.0-20170215171346-75a6de4340e5"
+      "version": "v0.0.0-20170215171346-75a6de4340e5",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -239,10 +275,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/pkg/errors@v0.8.0",
+      "licenses": [],
       "name": "errors",
       "org": "github.com/pkg",
       "purl": "pkg:golang/github.com/pkg/errors@v0.8.0",
-      "version": "v0.8.0"
+      "version": "v0.8.0",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -253,10 +291,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
+      "licenses": [],
       "name": "go-difflib",
       "org": "github.com/pmezard",
       "purl": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
-      "version": "v1.0.0"
+      "version": "v1.0.0",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -267,10 +307,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
+      "licenses": [],
       "name": "go-internal",
       "org": "github.com/rogpeppe",
       "purl": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
-      "version": "v1.9.0"
+      "version": "v1.9.0",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -281,10 +323,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/simeji/jid@v0.7.6",
+      "licenses": [],
       "name": "jid",
       "org": "github.com/simeji",
       "purl": "pkg:golang/github.com/simeji/jid@v0.7.6",
-      "version": "v0.7.6"
+      "version": "v0.7.6",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -295,10 +339,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/stretchr/testify@v1.8.2",
+      "licenses": [],
       "name": "testify",
       "org": "github.com/stretchr",
       "purl": "pkg:golang/github.com/stretchr/testify@v1.8.2",
-      "version": "v1.8.2"
+      "version": "v1.8.2",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -309,10 +355,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/golang.org/x/text@v0.3.5",
+      "licenses": [],
       "name": "text",
       "org": "golang.org/x",
       "purl": "pkg:golang/golang.org/x/text@v0.3.5",
-      "version": "v0.3.5"
+      "version": "v0.3.5",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -323,10 +371,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
+      "licenses": [],
       "name": "xerrors",
       "org": "golang.org/x",
       "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
-      "version": "v0.0.0-20191204190536-9bdfabe68543"
+      "version": "v0.0.0-20191204190536-9bdfabe68543",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -337,10 +387,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
+      "licenses": [],
       "name": "check.v1",
       "org": "gopkg.in",
       "purl": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
-      "version": "v0.0.0-20161208181325-20d25e280405"
+      "version": "v0.0.0-20161208181325-20d25e280405",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -351,10 +403,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
+      "licenses": [],
       "name": "yaml.v3",
       "org": "gopkg.in",
       "purl": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
-      "version": "v3.0.1"
+      "version": "v3.0.1",
+      "vulnerabilities": []
     }
   ],
   "project": {
@@ -372,6 +426,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/google/go-cmp@v0.5.2",
             "licenses": [],
+            "locations": [],
             "name": "github.com/google/go-cmp",
             "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
             "relationship": "transitive",
@@ -413,6 +468,7 @@
             "direct": false,
             "id": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
             "licenses": [],
+            "locations": [],
             "name": "golang.org/x/xerrors",
             "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
             "relationship": "transitive",
@@ -484,6 +540,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
             "licenses": [],
+            "locations": [],
             "name": "github.com/bitly/go-simplejson",
             "purl": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
             "relationship": "transitive",
@@ -525,6 +582,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
             "licenses": [],
+            "locations": [],
             "name": "github.com/davecgh/go-spew",
             "purl": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
             "relationship": "transitive",
@@ -538,6 +596,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/fatih/color@v1.7.0",
             "licenses": [],
+            "locations": [],
             "name": "github.com/fatih/color",
             "purl": "pkg:golang/github.com/fatih/color@v1.7.0",
             "relationship": "transitive",
@@ -579,6 +638,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/kr/text@v0.2.0",
             "licenses": [],
+            "locations": [],
             "name": "github.com/kr/text",
             "purl": "pkg:golang/github.com/kr/text@v0.2.0",
             "relationship": "transitive",
@@ -592,6 +652,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
             "licenses": [],
+            "locations": [],
             "name": "github.com/mattn/go-colorable",
             "purl": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
             "relationship": "transitive",
@@ -605,6 +666,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
             "licenses": [],
+            "locations": [],
             "name": "github.com/mattn/go-isatty",
             "purl": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
             "relationship": "transitive",
@@ -618,6 +680,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
             "licenses": [],
+            "locations": [],
             "name": "github.com/mattn/go-runewidth",
             "purl": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
             "relationship": "transitive",
@@ -631,6 +694,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
             "licenses": [],
+            "locations": [],
             "name": "github.com/nsf/termbox-go",
             "purl": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
             "relationship": "transitive",
@@ -644,6 +708,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
             "licenses": [],
+            "locations": [],
             "name": "github.com/nwidger/jsoncolor",
             "purl": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
             "relationship": "transitive",
@@ -657,6 +722,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/pkg/errors@v0.8.0",
             "licenses": [],
+            "locations": [],
             "name": "github.com/pkg/errors",
             "purl": "pkg:golang/github.com/pkg/errors@v0.8.0",
             "relationship": "transitive",
@@ -670,6 +736,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
             "licenses": [],
+            "locations": [],
             "name": "github.com/pmezard/go-difflib",
             "purl": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
             "relationship": "transitive",
@@ -683,6 +750,7 @@
             "direct": false,
             "id": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
             "licenses": [],
+            "locations": [],
             "name": "github.com/rogpeppe/go-internal",
             "purl": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
             "relationship": "transitive",
@@ -752,6 +820,7 @@
             "direct": false,
             "id": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
             "licenses": [],
+            "locations": [],
             "name": "gopkg.in/check.v1",
             "purl": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
             "relationship": "transitive",
@@ -765,6 +834,7 @@
             "direct": false,
             "id": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
             "licenses": [],
+            "locations": [],
             "name": "gopkg.in/yaml.v3",
             "purl": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
             "relationship": "transitive",
@@ -773,9 +843,14 @@
             "vulnerabilities": []
           }
         }
-      ]
+      ],
+      "transitions": []
     },
-    "licenses": {},
+    "licenses": {
+      "added": [],
+      "changed": [],
+      "removed": []
+    },
     "manifests": [
       {
         "added": [
@@ -784,6 +859,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/google/go-cmp@v0.5.2",
               "licenses": [],
+              "locations": [],
               "name": "github.com/google/go-cmp",
               "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
               "relationship": "transitive",
@@ -825,6 +901,7 @@
               "direct": false,
               "id": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
               "licenses": [],
+              "locations": [],
               "name": "golang.org/x/xerrors",
               "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
               "relationship": "transitive",
@@ -900,6 +977,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
               "licenses": [],
+              "locations": [],
               "name": "github.com/bitly/go-simplejson",
               "purl": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
               "relationship": "transitive",
@@ -941,6 +1019,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
               "licenses": [],
+              "locations": [],
               "name": "github.com/davecgh/go-spew",
               "purl": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
               "relationship": "transitive",
@@ -954,6 +1033,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/fatih/color@v1.7.0",
               "licenses": [],
+              "locations": [],
               "name": "github.com/fatih/color",
               "purl": "pkg:golang/github.com/fatih/color@v1.7.0",
               "relationship": "transitive",
@@ -995,6 +1075,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/kr/text@v0.2.0",
               "licenses": [],
+              "locations": [],
               "name": "github.com/kr/text",
               "purl": "pkg:golang/github.com/kr/text@v0.2.0",
               "relationship": "transitive",
@@ -1008,6 +1089,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
               "licenses": [],
+              "locations": [],
               "name": "github.com/mattn/go-colorable",
               "purl": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
               "relationship": "transitive",
@@ -1021,6 +1103,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
               "licenses": [],
+              "locations": [],
               "name": "github.com/mattn/go-isatty",
               "purl": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
               "relationship": "transitive",
@@ -1034,6 +1117,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
               "licenses": [],
+              "locations": [],
               "name": "github.com/mattn/go-runewidth",
               "purl": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
               "relationship": "transitive",
@@ -1047,6 +1131,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
               "licenses": [],
+              "locations": [],
               "name": "github.com/nsf/termbox-go",
               "purl": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
               "relationship": "transitive",
@@ -1060,6 +1145,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
               "licenses": [],
+              "locations": [],
               "name": "github.com/nwidger/jsoncolor",
               "purl": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
               "relationship": "transitive",
@@ -1073,6 +1159,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/pkg/errors@v0.8.0",
               "licenses": [],
+              "locations": [],
               "name": "github.com/pkg/errors",
               "purl": "pkg:golang/github.com/pkg/errors@v0.8.0",
               "relationship": "transitive",
@@ -1086,6 +1173,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
               "licenses": [],
+              "locations": [],
               "name": "github.com/pmezard/go-difflib",
               "purl": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
               "relationship": "transitive",
@@ -1099,6 +1187,7 @@
               "direct": false,
               "id": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
               "licenses": [],
+              "locations": [],
               "name": "github.com/rogpeppe/go-internal",
               "purl": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
               "relationship": "transitive",
@@ -1168,6 +1257,7 @@
               "direct": false,
               "id": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
               "licenses": [],
+              "locations": [],
               "name": "gopkg.in/check.v1",
               "purl": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
               "relationship": "transitive",
@@ -1181,6 +1271,7 @@
               "direct": false,
               "id": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
               "licenses": [],
+              "locations": [],
               "name": "gopkg.in/yaml.v3",
               "purl": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
               "relationship": "transitive",
@@ -1191,10 +1282,15 @@
           }
         ],
         "status": "changed",
-        "subproject": "."
+        "subproject": ".",
+        "transitions": []
       }
     ],
-    "vulnerabilities": {}
+    "vulnerabilities": {
+      "added": [],
+      "persisted": [],
+      "removed": []
+    }
   },
   "schema_version": "1.0",
   "summary": {
@@ -1209,5 +1305,6 @@
     "transitioned_package_count": 0,
     "unchanged_manifest_count": 0,
     "unmatched_package_count": 21
-  }
+  },
+  "warnings": []
 }

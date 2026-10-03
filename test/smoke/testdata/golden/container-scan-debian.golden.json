@@ -5,6 +5,7 @@
     "manifests": "\u003cnormalized\u003e",
     "packages": "\u003cnormalized\u003e"
   },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -147,6 +148,7 @@
           "version": "2.6.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/debconf@1.5.82?arch=all\u0026distro=debian-12.15",
           "licenses": [
             {
@@ -195,6 +197,7 @@
           "version": "1.5.82"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/debian-archive-keyring@2023.3%2Bdeb12u2?arch=all\u0026distro=debian-12.15",
           "licenses": [
             {
@@ -246,6 +249,7 @@
           "version": "2023.3+deb12u2"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -419,6 +423,7 @@
           "version": "2.6.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/libaudit-common@1:3.0.9-1?arch=all\u0026distro=debian-12.15\u0026upstream=audit",
           "licenses": [
             {
@@ -1817,6 +1822,7 @@
           "version": "3.4-1+b6"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/libsemanage-common@3.4-1?arch=all\u0026distro=debian-12.15\u0026upstream=libsemanage",
           "licenses": [
             {
@@ -2455,6 +2461,7 @@
           "version": "3.6.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -2884,6 +2891,7 @@
           "version": "5.7-0.5~deb12u1"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -3185,6 +3193,7 @@
           "version": "1:2.38.1-5+deb12u3"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -3726,6 +3735,7 @@
           "version": "9.1-1"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -4263,6 +4273,7 @@
           "version": "1.21.23"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -4933,6 +4944,7 @@
           "version": "1:3.8-4"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -5138,6 +5150,7 @@
           "version": "1.47.0-2+b2"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -5872,6 +5885,7 @@
           "version": "4.9.0-4"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -6124,6 +6138,7 @@
           "version": "1.21.23"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -6800,6 +6815,7 @@
           "version": "1.21.23"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -7415,6 +7431,7 @@
     {
       "dependencies": [
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -7599,6 +7616,7 @@
           "version": "1.65.2+deb12u1"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/usr-is-merged@37~deb12u1?arch=all\u0026distro=debian-12.15\u0026upstream=usrmerge",
           "licenses": [
             {
@@ -7652,6 +7670,7 @@
     {
       "dependencies": [
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -7798,6 +7817,7 @@
     {
       "dependencies": [
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/debconf@1.5.82?arch=all\u0026distro=debian-12.15",
           "licenses": [
             {
@@ -7846,6 +7866,7 @@
           "version": "1.5.82"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -7873,6 +7894,7 @@
           "version": "12.2.0-14+deb12u1"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/libaudit-common@1:3.0.9-1?arch=all\u0026distro=debian-12.15\u0026upstream=audit",
           "licenses": [
             {
@@ -8709,6 +8731,7 @@
     {
       "dependencies": [
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -9311,6 +9334,7 @@
     {
       "dependencies": [
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/ncurses-base@6.4-4?arch=all\u0026distro=debian-12.15\u0026upstream=ncurses",
           "licenses": [
             {
@@ -9364,6 +9388,7 @@
     {
       "dependencies": [
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -9621,6 +9646,7 @@
           "version": "1.21.23"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -10370,6 +10396,7 @@
     {
       "dependencies": [
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -10671,6 +10698,7 @@
     {
       "dependencies": [
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -10826,6 +10854,7 @@
     {
       "dependencies": [
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/debconf@1.5.82?arch=all\u0026distro=debian-12.15",
           "licenses": [
             {
@@ -10940,6 +10969,7 @@
     {
       "dependencies": [
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/debconf@1.5.82?arch=all\u0026distro=debian-12.15",
           "licenses": [
             {
@@ -10988,6 +11018,7 @@
           "version": "1.5.82"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
           "licenses": [
             {
@@ -11015,6 +11046,7 @@
           "version": "12.2.0-14+deb12u1"
         },
         {
+          "depends_on": [],
           "id": "pkg:deb/debian/libaudit-common@1:3.0.9-1?arch=all\u0026distro=debian-12.15\u0026upstream=audit",
           "licenses": [
             {
@@ -12610,7 +12642,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/adduser@3.134?arch=all\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "3.134"
+      "version": "3.134",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -12644,7 +12677,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/apt@2.6.1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "2.6.1"
+      "version": "2.6.1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -12668,7 +12702,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/base-files@12.4%2Bdeb12u15?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "12.4+deb12u15"
+      "version": "12.4+deb12u15",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -12697,7 +12732,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/base-passwd@3.6.1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "3.6.1"
+      "version": "3.6.1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -12759,7 +12795,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/bash@5.2.15-2%2Bb13?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=bash%405.2.15-2",
       "type": "deb",
-      "version": "5.2.15-2+b13"
+      "version": "5.2.15-2+b13",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -12851,7 +12888,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/bsdutils@1:2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux%402.38.1-5%2Bdeb12u3",
       "type": "deb",
-      "version": "1:2.38.1-5+deb12u3"
+      "version": "1:2.38.1-5+deb12u3",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -12900,7 +12938,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/coreutils@9.1-1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "9.1-1"
+      "version": "9.1-1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -12939,7 +12978,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/dash@0.5.12-2?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "0.5.12-2"
+      "version": "0.5.12-2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -12959,7 +12999,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/debconf@1.5.82?arch=all\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "1.5.82"
+      "version": "1.5.82",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -12987,7 +13028,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/debian-archive-keyring@2023.3%2Bdeb12u2?arch=all\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "2023.3+deb12u2"
+      "version": "2023.3+deb12u2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13021,7 +13063,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/debianutils@5.7-0.5~deb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "5.7-0.5~deb12u1"
+      "version": "5.7-0.5~deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13114,7 +13157,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/diffutils@1:3.8-4?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "1:3.8-4"
+      "version": "1:3.8-4",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13148,7 +13192,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/dpkg@1.21.23?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "1.21.23"
+      "version": "1.21.23",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13212,7 +13257,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/e2fsprogs@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
       "type": "deb",
-      "version": "1.47.0-2+b2"
+      "version": "1.47.0-2+b2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13319,7 +13365,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/findutils@4.9.0-4?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "4.9.0-4"
+      "version": "4.9.0-4",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13347,7 +13394,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
       "type": "deb",
-      "version": "12.2.0-14+deb12u1"
+      "version": "12.2.0-14+deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13418,7 +13466,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/gpgv@2.2.40-1.1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gnupg2",
       "type": "deb",
-      "version": "2.2.40-1.1+deb12u2"
+      "version": "2.2.40-1.1+deb12u2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13443,7 +13492,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/grep@3.8-5?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "3.8-5"
+      "version": "3.8-5",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13480,7 +13530,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/gzip@1.12-1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "1.12-1"
+      "version": "1.12-1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13500,7 +13551,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/hostname@3.23%2Bnmu1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "3.23+nmu1"
+      "version": "3.23+nmu1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13539,7 +13591,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/init-system-helpers@1.65.2%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "1.65.2+deb12u1"
+      "version": "1.65.2+deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13574,7 +13627,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libacl1@2.3.1-3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=acl",
       "type": "deb",
-      "version": "2.3.1-3"
+      "version": "2.3.1-3",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13613,7 +13667,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libapt-pkg6.0@2.6.1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=apt",
       "type": "deb",
-      "version": "2.6.1"
+      "version": "2.6.1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13648,7 +13703,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libattr1@1:2.5.1-4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=attr",
       "type": "deb",
-      "version": "1:2.5.1-4"
+      "version": "1:2.5.1-4",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13683,7 +13739,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libaudit-common@1:3.0.9-1?arch=all\u0026distro=debian-12.15\u0026upstream=audit",
       "type": "deb",
-      "version": "1:3.0.9-1"
+      "version": "1:3.0.9-1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13713,7 +13770,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libaudit1@1:3.0.9-1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=audit",
       "type": "deb",
-      "version": "1:3.0.9-1"
+      "version": "1:3.0.9-1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13805,7 +13863,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libblkid1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "type": "deb",
-      "version": "2.38.1-5+deb12u3"
+      "version": "2.38.1-5+deb12u3",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13834,7 +13893,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libbz2-1.0@1.0.8-5%2Bb1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=bzip2%401.0.8-5",
       "type": "deb",
-      "version": "1.0.8-5+b1"
+      "version": "1.0.8-5+b1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13858,7 +13918,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libc-bin@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
       "type": "deb",
-      "version": "2.36-9+deb12u14"
+      "version": "2.36-9+deb12u14",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13877,7 +13938,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
       "type": "deb",
-      "version": "2.36-9+deb12u14"
+      "version": "2.36-9+deb12u14",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13922,7 +13984,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libcap-ng0@0.8.3-1%2Bb3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libcap-ng%400.8.3-1",
       "type": "deb",
-      "version": "0.8.3-1+b3"
+      "version": "0.8.3-1+b3",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -13952,7 +14015,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libcap2@1:2.66-4%2Bdeb12u3%2Bb1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libcap2%401:2.66-4%2Bdeb12u3",
       "type": "deb",
-      "version": "1:2.66-4+deb12u3+b1"
+      "version": "1:2.66-4+deb12u3+b1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14021,7 +14085,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libcom-err2@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
       "type": "deb",
-      "version": "1.47.0-2+b2"
+      "version": "1.47.0-2+b2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14040,7 +14105,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libcrypt1@1:4.4.33-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libxcrypt",
       "type": "deb",
-      "version": "1:4.4.33-2"
+      "version": "1:4.4.33-2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14105,7 +14171,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libdb5.3@5.3.28%2Bdfsg2-1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=db5.3",
       "type": "deb",
-      "version": "5.3.28+dfsg2-1"
+      "version": "5.3.28+dfsg2-1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14140,7 +14207,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libdebconfclient0@0.270?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=cdebconf",
       "type": "deb",
-      "version": "0.270"
+      "version": "0.270",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14204,7 +14272,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libext2fs2@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
       "type": "deb",
-      "version": "1.47.0-2+b2"
+      "version": "1.47.0-2+b2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14251,7 +14320,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libffi8@3.4.4-1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libffi",
       "type": "deb",
-      "version": "3.4.4-1"
+      "version": "3.4.4-1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14275,7 +14345,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libgcc-s1@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
       "type": "deb",
-      "version": "12.2.0-14+deb12u1"
+      "version": "12.2.0-14+deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14294,7 +14365,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "1.10.1-3+deb12u1"
+      "version": "1.10.1-3+deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14339,7 +14411,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libgmp10@2:6.2.1%2Bdfsg1-1.1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gmp",
       "type": "deb",
-      "version": "2:6.2.1+dfsg1-1.1"
+      "version": "2:6.2.1+dfsg1-1.1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14358,7 +14431,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libgnutls30@3.7.9-2%2Bdeb12u7?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gnutls28",
       "type": "deb",
-      "version": "3.7.9-2+deb12u7"
+      "version": "3.7.9-2+deb12u7",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14407,7 +14481,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libgpg-error0@1.46-1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libgpg-error",
       "type": "deb",
-      "version": "1.46-1"
+      "version": "1.46-1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14472,7 +14547,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libhogweed6@3.8.1-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=nettle",
       "type": "deb",
-      "version": "3.8.1-2"
+      "version": "3.8.1-2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14526,7 +14602,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libidn2-0@2.3.3-1%2Bb1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libidn2%402.3.3-1",
       "type": "deb",
-      "version": "2.3.3-1+b1"
+      "version": "2.3.3-1+b1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14561,7 +14638,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/liblz4-1@1.9.4-1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=lz4",
       "type": "deb",
-      "version": "1.9.4-1"
+      "version": "1.9.4-1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14638,7 +14716,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=xz-utils",
       "type": "deb",
-      "version": "5.4.1-1+deb12u2"
+      "version": "5.4.1-1+deb12u2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14694,7 +14773,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libmd0@1.0.4-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libmd",
       "type": "deb",
-      "version": "1.0.4-2"
+      "version": "1.0.4-2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14786,7 +14866,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libmount1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "type": "deb",
-      "version": "2.38.1-5+deb12u3"
+      "version": "2.38.1-5+deb12u3",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14851,7 +14932,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libnettle8@3.8.1-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=nettle",
       "type": "deb",
-      "version": "3.8.1-2"
+      "version": "3.8.1-2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14908,7 +14990,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libp11-kit0@0.24.1-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=p11-kit",
       "type": "deb",
-      "version": "0.24.1-2"
+      "version": "0.24.1-2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -14984,7 +15067,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libpam-modules-bin@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
       "type": "deb",
-      "version": "1.5.2-6+deb12u2"
+      "version": "1.5.2-6+deb12u2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15056,7 +15140,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libpam-modules@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
       "type": "deb",
-      "version": "1.5.2-6+deb12u2"
+      "version": "1.5.2-6+deb12u2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15128,7 +15213,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libpam-runtime@1.5.2-6%2Bdeb12u2?arch=all\u0026distro=debian-12.15\u0026upstream=pam",
       "type": "deb",
-      "version": "1.5.2-6+deb12u2"
+      "version": "1.5.2-6+deb12u2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15195,7 +15281,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libpam0g@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
       "type": "deb",
-      "version": "1.5.2-6+deb12u2"
+      "version": "1.5.2-6+deb12u2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15242,7 +15329,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
       "type": "deb",
-      "version": "10.42-1+deb12u1"
+      "version": "10.42-1+deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15262,7 +15350,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libseccomp2@2.5.4-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libseccomp",
       "type": "deb",
-      "version": "2.5.4-1+deb12u1"
+      "version": "2.5.4-1+deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15281,7 +15370,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
       "type": "deb",
-      "version": "3.4-1+b6"
+      "version": "3.4-1+b6",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15305,7 +15395,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libsemanage-common@3.4-1?arch=all\u0026distro=debian-12.15\u0026upstream=libsemanage",
       "type": "deb",
-      "version": "3.4-1"
+      "version": "3.4-1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15324,7 +15415,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libsemanage2@3.4-1%2Bb5?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libsemanage%403.4-1",
       "type": "deb",
-      "version": "3.4-1+b5"
+      "version": "3.4-1+b5",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15364,7 +15456,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libsepol2@3.4-2.1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libsepol",
       "type": "deb",
-      "version": "3.4-2.1"
+      "version": "3.4-2.1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15456,7 +15549,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libsmartcols1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "type": "deb",
-      "version": "2.38.1-5+deb12u3"
+      "version": "2.38.1-5+deb12u3",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15520,7 +15614,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libss2@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
       "type": "deb",
-      "version": "1.47.0-2+b2"
+      "version": "1.47.0-2+b2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15539,7 +15634,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libstdc%2B%2B6@12.2.0-14%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gcc-12",
       "type": "deb",
-      "version": "12.2.0-14+deb12u1"
+      "version": "12.2.0-14+deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15587,7 +15683,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libsystemd0@252.39-1~deb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=systemd",
       "type": "deb",
-      "version": "252.39-1~deb12u2"
+      "version": "252.39-1~deb12u2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15611,7 +15708,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libtasn1-6@4.19.0-2%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "4.19.0-2+deb12u1"
+      "version": "4.19.0-2+deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15640,7 +15738,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libtinfo6@6.4-4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=ncurses",
       "type": "deb",
-      "version": "6.4-4"
+      "version": "6.4-4",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15688,7 +15787,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libudev1@252.39-1~deb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=systemd",
       "type": "deb",
-      "version": "252.39-1~deb12u2"
+      "version": "252.39-1~deb12u2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15752,7 +15852,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libunistring2@1.0-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libunistring",
       "type": "deb",
-      "version": "1.0-2"
+      "version": "1.0-2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15844,7 +15945,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libuuid1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "type": "deb",
-      "version": "2.38.1-5+deb12u3"
+      "version": "2.38.1-5+deb12u3",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15869,7 +15971,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libxxhash0@0.8.1-1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=xxhash",
       "type": "deb",
-      "version": "0.8.1-1"
+      "version": "0.8.1-1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15903,7 +16006,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libzstd",
       "type": "deb",
-      "version": "1.5.4+dfsg2-5"
+      "version": "1.5.4+dfsg2-5",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -15942,7 +16046,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/login@1:4.13%2Bdfsg1-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=shadow",
       "type": "deb",
-      "version": "1:4.13+dfsg1-1+deb12u2"
+      "version": "1:4.13+dfsg1-1+deb12u2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16006,7 +16111,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/logsave@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
       "type": "deb",
-      "version": "1.47.0-2+b2"
+      "version": "1.47.0-2+b2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16036,7 +16142,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/mawk@1.3.4.20200120-3.1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "1.3.4.20200120-3.1"
+      "version": "1.3.4.20200120-3.1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16128,7 +16235,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/mount@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "type": "deb",
-      "version": "2.38.1-5+deb12u3"
+      "version": "2.38.1-5+deb12u3",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16162,7 +16270,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/ncurses-base@6.4-4?arch=all\u0026distro=debian-12.15\u0026upstream=ncurses",
       "type": "deb",
-      "version": "6.4-4"
+      "version": "6.4-4",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16196,7 +16305,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/ncurses-bin@6.4-4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=ncurses",
       "type": "deb",
-      "version": "6.4-4"
+      "version": "6.4-4",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16235,7 +16345,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/passwd@1:4.13%2Bdfsg1-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=shadow",
       "type": "deb",
-      "version": "1:4.13+dfsg1-1+deb12u2"
+      "version": "1:4.13+dfsg1-1+deb12u2",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16364,7 +16475,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/perl-base@5.36.0-7%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=perl",
       "type": "deb",
-      "version": "5.36.0-7+deb12u3"
+      "version": "5.36.0-7+deb12u3",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16422,7 +16534,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/sed@4.9-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "4.9-1+deb12u1"
+      "version": "4.9-1+deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16467,7 +16580,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/sysvinit-utils@3.06-4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=sysvinit",
       "type": "deb",
-      "version": "3.06-4"
+      "version": "3.06-4",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16512,7 +16626,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/tar@1.34%2Bdfsg-1.2%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "1.34+dfsg-1.2+deb12u1"
+      "version": "1.34+dfsg-1.2+deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16531,7 +16646,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/tzdata@2026b-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "2026b-0+deb12u1"
+      "version": "2026b-0+deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16565,7 +16681,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/usr-is-merged@37~deb12u1?arch=all\u0026distro=debian-12.15\u0026upstream=usrmerge",
       "type": "deb",
-      "version": "37~deb12u1"
+      "version": "37~deb12u1",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16666,7 +16783,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/util-linux-extra@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "type": "deb",
-      "version": "2.38.1-5+deb12u3"
+      "version": "2.38.1-5+deb12u3",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16763,7 +16881,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/util-linux@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "2.38.1-5+deb12u3"
+      "version": "2.38.1-5+deb12u3",
+      "vulnerabilities": []
     },
     {
       "cpes": [
@@ -16783,7 +16902,8 @@
       "package_manager": "dpkg",
       "purl": "pkg:deb/debian/zlib1g@1:1.2.13.dfsg-1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=zlib",
       "type": "deb",
-      "version": "1:1.2.13.dfsg-1"
+      "version": "1:1.2.13.dfsg-1",
+      "vulnerabilities": []
     }
   ],
   "run": {
@@ -16799,5 +16919,7 @@
   "subject": {
     "image_reference": "debian:bookworm-slim",
     "kind": "container-image"
-  }
+  },
+  "waivers": [],
+  "warnings": []
 }

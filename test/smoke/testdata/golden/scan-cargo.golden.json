@@ -5,6 +5,7 @@
     "manifests": "\u003cnormalized\u003e",
     "packages": "\u003cnormalized\u003e"
   },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -18,12 +19,15 @@
             "pkg:cargo/tokio@1.36.0"
           ],
           "id": "module:Cargo.toml#pkg:cargo/example-rust-cargo@0.1.0",
+          "licenses": [],
           "name": "example-rust-cargo",
           "purl": "pkg:cargo/example-rust-cargo@0.1.0",
           "version": "0.1.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/autocfg@1.4.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -49,7 +53,9 @@
           "version": "1.4.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/bitflags@1.3.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -75,7 +81,9 @@
           "version": "1.3.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/bytes@0.5.6",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -101,7 +109,9 @@
           "version": "0.5.6"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/cfg-if@1.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -131,6 +141,7 @@
             "pkg:cargo/time@0.1.44"
           ],
           "id": "pkg:cargo/chrono@0.4.19",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -156,7 +167,9 @@
           "version": "0.4.19"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/fnv@1.0.7",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -182,7 +195,9 @@
           "version": "1.0.7"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/foreign-types-shared@0.1.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -212,6 +227,7 @@
             "pkg:cargo/foreign-types-shared@0.1.1"
           ],
           "id": "pkg:cargo/foreign-types@0.3.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -244,6 +260,7 @@
             "pkg:cargo/indexmap@1.9.3"
           ],
           "id": "pkg:cargo/h2@0.2.7",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -275,6 +292,7 @@
             "pkg:cargo/itoa@1.0.11"
           ],
           "id": "pkg:cargo/http@0.2.12",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -307,6 +325,7 @@
             "pkg:cargo/tokio@1.36.0"
           ],
           "id": "pkg:cargo/hyper@0.13.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -336,6 +355,7 @@
             "pkg:cargo/autocfg@1.4.0"
           ],
           "id": "pkg:cargo/indexmap@1.9.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -361,7 +381,9 @@
           "version": "1.9.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/itoa@1.0.11",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -387,7 +409,9 @@
           "version": "1.0.11"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/libc@0.2.153",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -418,6 +442,7 @@
             "pkg:cargo/scopeguard@1.2.0"
           ],
           "id": "pkg:cargo/lock_api@0.4.12",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -447,6 +472,7 @@
             "pkg:cargo/libc@0.2.153"
           ],
           "id": "pkg:cargo/mio@0.7.14",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -476,6 +502,7 @@
             "pkg:cargo/libc@0.2.153"
           ],
           "id": "pkg:cargo/openssl-sys@0.9.90",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -509,6 +536,7 @@
             "pkg:cargo/openssl-sys@0.9.90"
           ],
           "id": "pkg:cargo/openssl@0.10.48",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -540,6 +568,7 @@
             "pkg:cargo/lock_api@0.4.12"
           ],
           "id": "pkg:cargo/parking_lot_core@0.9.10",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -565,7 +594,9 @@
           "version": "0.9.10"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/pin-project-lite@0.2.13",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -591,7 +622,9 @@
           "version": "0.2.13"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/scopeguard@1.2.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -617,7 +650,9 @@
           "version": "1.2.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/serde@1.0.210",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -648,6 +683,7 @@
             "pkg:cargo/serde@1.0.210"
           ],
           "id": "pkg:cargo/serde_json@1.0.127",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -673,7 +709,9 @@
           "version": "1.0.127"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/tempfile@3.8.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -699,7 +737,9 @@
           "version": "3.8.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/time@0.1.44",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -732,6 +772,7 @@
             "pkg:cargo/pin-project-lite@0.2.13"
           ],
           "id": "pkg:cargo/tokio@1.36.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -772,261 +813,313 @@
       "ecosystem": "rust",
       "id": "pkg:cargo/autocfg@1.4.0",
       "language": "rust",
+      "licenses": [],
       "name": "autocfg",
       "package_manager": "cargo",
       "purl": "pkg:cargo/autocfg@1.4.0",
       "type": "crate",
-      "version": "1.4.0"
+      "version": "1.4.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/bitflags@1.3.2",
       "language": "rust",
+      "licenses": [],
       "name": "bitflags",
       "package_manager": "cargo",
       "purl": "pkg:cargo/bitflags@1.3.2",
       "type": "crate",
-      "version": "1.3.2"
+      "version": "1.3.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/bytes@0.5.6",
       "language": "rust",
+      "licenses": [],
       "name": "bytes",
       "package_manager": "cargo",
       "purl": "pkg:cargo/bytes@0.5.6",
       "type": "crate",
-      "version": "0.5.6"
+      "version": "0.5.6",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/cfg-if@1.0.0",
       "language": "rust",
+      "licenses": [],
       "name": "cfg-if",
       "package_manager": "cargo",
       "purl": "pkg:cargo/cfg-if@1.0.0",
       "type": "crate",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/chrono@0.4.19",
       "language": "rust",
+      "licenses": [],
       "name": "chrono",
       "package_manager": "cargo",
       "purl": "pkg:cargo/chrono@0.4.19",
       "type": "crate",
-      "version": "0.4.19"
+      "version": "0.4.19",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/fnv@1.0.7",
       "language": "rust",
+      "licenses": [],
       "name": "fnv",
       "package_manager": "cargo",
       "purl": "pkg:cargo/fnv@1.0.7",
       "type": "crate",
-      "version": "1.0.7"
+      "version": "1.0.7",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/foreign-types-shared@0.1.1",
       "language": "rust",
+      "licenses": [],
       "name": "foreign-types-shared",
       "package_manager": "cargo",
       "purl": "pkg:cargo/foreign-types-shared@0.1.1",
       "type": "crate",
-      "version": "0.1.1"
+      "version": "0.1.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/foreign-types@0.3.2",
       "language": "rust",
+      "licenses": [],
       "name": "foreign-types",
       "package_manager": "cargo",
       "purl": "pkg:cargo/foreign-types@0.3.2",
       "type": "crate",
-      "version": "0.3.2"
+      "version": "0.3.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/h2@0.2.7",
       "language": "rust",
+      "licenses": [],
       "name": "h2",
       "package_manager": "cargo",
       "purl": "pkg:cargo/h2@0.2.7",
       "type": "crate",
-      "version": "0.2.7"
+      "version": "0.2.7",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/http@0.2.12",
       "language": "rust",
+      "licenses": [],
       "name": "http",
       "package_manager": "cargo",
       "purl": "pkg:cargo/http@0.2.12",
       "type": "crate",
-      "version": "0.2.12"
+      "version": "0.2.12",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/hyper@0.13.0",
       "language": "rust",
+      "licenses": [],
       "name": "hyper",
       "package_manager": "cargo",
       "purl": "pkg:cargo/hyper@0.13.0",
       "type": "crate",
-      "version": "0.13.0"
+      "version": "0.13.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/indexmap@1.9.3",
       "language": "rust",
+      "licenses": [],
       "name": "indexmap",
       "package_manager": "cargo",
       "purl": "pkg:cargo/indexmap@1.9.3",
       "type": "crate",
-      "version": "1.9.3"
+      "version": "1.9.3",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/itoa@1.0.11",
       "language": "rust",
+      "licenses": [],
       "name": "itoa",
       "package_manager": "cargo",
       "purl": "pkg:cargo/itoa@1.0.11",
       "type": "crate",
-      "version": "1.0.11"
+      "version": "1.0.11",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/libc@0.2.153",
       "language": "rust",
+      "licenses": [],
       "name": "libc",
       "package_manager": "cargo",
       "purl": "pkg:cargo/libc@0.2.153",
       "type": "crate",
-      "version": "0.2.153"
+      "version": "0.2.153",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/lock_api@0.4.12",
       "language": "rust",
+      "licenses": [],
       "name": "lock_api",
       "package_manager": "cargo",
       "purl": "pkg:cargo/lock_api@0.4.12",
       "type": "crate",
-      "version": "0.4.12"
+      "version": "0.4.12",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/mio@0.7.14",
       "language": "rust",
+      "licenses": [],
       "name": "mio",
       "package_manager": "cargo",
       "purl": "pkg:cargo/mio@0.7.14",
       "type": "crate",
-      "version": "0.7.14"
+      "version": "0.7.14",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/openssl-sys@0.9.90",
       "language": "rust",
+      "licenses": [],
       "name": "openssl-sys",
       "package_manager": "cargo",
       "purl": "pkg:cargo/openssl-sys@0.9.90",
       "type": "crate",
-      "version": "0.9.90"
+      "version": "0.9.90",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/openssl@0.10.48",
       "language": "rust",
+      "licenses": [],
       "name": "openssl",
       "package_manager": "cargo",
       "purl": "pkg:cargo/openssl@0.10.48",
       "type": "crate",
-      "version": "0.10.48"
+      "version": "0.10.48",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/parking_lot_core@0.9.10",
       "language": "rust",
+      "licenses": [],
       "name": "parking_lot_core",
       "package_manager": "cargo",
       "purl": "pkg:cargo/parking_lot_core@0.9.10",
       "type": "crate",
-      "version": "0.9.10"
+      "version": "0.9.10",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/pin-project-lite@0.2.13",
       "language": "rust",
+      "licenses": [],
       "name": "pin-project-lite",
       "package_manager": "cargo",
       "purl": "pkg:cargo/pin-project-lite@0.2.13",
       "type": "crate",
-      "version": "0.2.13"
+      "version": "0.2.13",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/scopeguard@1.2.0",
       "language": "rust",
+      "licenses": [],
       "name": "scopeguard",
       "package_manager": "cargo",
       "purl": "pkg:cargo/scopeguard@1.2.0",
       "type": "crate",
-      "version": "1.2.0"
+      "version": "1.2.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/serde@1.0.210",
       "language": "rust",
+      "licenses": [],
       "name": "serde",
       "package_manager": "cargo",
       "purl": "pkg:cargo/serde@1.0.210",
       "type": "crate",
-      "version": "1.0.210"
+      "version": "1.0.210",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/serde_json@1.0.127",
       "language": "rust",
+      "licenses": [],
       "name": "serde_json",
       "package_manager": "cargo",
       "purl": "pkg:cargo/serde_json@1.0.127",
       "type": "crate",
-      "version": "1.0.127"
+      "version": "1.0.127",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/tempfile@3.8.1",
       "language": "rust",
+      "licenses": [],
       "name": "tempfile",
       "package_manager": "cargo",
       "purl": "pkg:cargo/tempfile@3.8.1",
       "type": "crate",
-      "version": "3.8.1"
+      "version": "3.8.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/time@0.1.44",
       "language": "rust",
+      "licenses": [],
       "name": "time",
       "package_manager": "cargo",
       "purl": "pkg:cargo/time@0.1.44",
       "type": "crate",
-      "version": "0.1.44"
+      "version": "0.1.44",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/tokio@1.36.0",
       "language": "rust",
+      "licenses": [],
       "name": "tokio",
       "package_manager": "cargo",
       "purl": "pkg:cargo/tokio@1.36.0",
       "type": "crate",
-      "version": "1.36.0"
+      "version": "1.36.0",
+      "vulnerabilities": []
     }
   ],
   "run": {
@@ -1044,5 +1137,7 @@
     "kind": "git-repository",
     "ref": "v1.0.0",
     "repository_url": "https://github.com/bomly-dev/example-rust-cargo"
-  }
+  },
+  "waivers": [],
+  "warnings": []
 }

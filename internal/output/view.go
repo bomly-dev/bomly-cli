@@ -32,15 +32,15 @@ type DiffResponse struct {
 	Summary       DiffSummary              `json:"summary"`
 	Packages      []*model.Package         `json:"packages"`
 	Audit         *DiffAudit               `json:"audit,omitempty"`
-	Warnings      []plugin.DetectorWarning `json:"warnings,omitempty"`
+	Warnings      []plugin.DetectorWarning `json:"warnings"`
 	Metadata      scan.Metadata            `json:"metadata"`
 }
 
 // DiffAudit groups audit deltas for diff output.
 type DiffAudit struct {
-	Introduced   []model.Finding    `json:"introduced,omitempty"`
-	Resolved     []model.Finding    `json:"resolved,omitempty"`
-	Persisted    []model.Finding    `json:"persisted,omitempty"`
+	Introduced   []model.Finding    `json:"introduced"`
+	Resolved     []model.Finding    `json:"resolved"`
+	Persisted    []model.Finding    `json:"persisted"`
 	AuditSummary *scan.AuditSummary `json:"audit_summary,omitempty"`
 }
 
@@ -60,17 +60,17 @@ type DiffResults struct {
 
 // DiffDependencyResults aggregates package changes across all manifests.
 type DiffDependencyResults struct {
-	Added       []DiffPackageChange        `json:"added,omitempty"`
-	Removed     []DiffPackageChange        `json:"removed,omitempty"`
-	Changed     []DiffChangedPackage       `json:"changed,omitempty"`
-	Transitions []DiffDependencyTransition `json:"transitions,omitempty"`
+	Added       []DiffPackageChange        `json:"added"`
+	Removed     []DiffPackageChange        `json:"removed"`
+	Changed     []DiffChangedPackage       `json:"changed"`
+	Transitions []DiffDependencyTransition `json:"transitions"`
 }
 
 // DiffLicenseResults aggregates license changes across all manifests.
 type DiffLicenseResults struct {
-	Added   []DiffLicenseChange `json:"added,omitempty"`
-	Removed []DiffLicenseChange `json:"removed,omitempty"`
-	Changed []DiffLicenseDelta  `json:"changed,omitempty"`
+	Added   []DiffLicenseChange `json:"added"`
+	Removed []DiffLicenseChange `json:"removed"`
+	Changed []DiffLicenseDelta  `json:"changed"`
 }
 
 // DiffLicenseChange is a package whose license set was introduced or removed.
@@ -90,9 +90,9 @@ type DiffLicenseDelta struct {
 // Persisted holds vulnerabilities that affect a version-changed package on both
 // sides of the diff — i.e. carried-over findings the upgrade did not remediate.
 type DiffVulnerabilityResults struct {
-	Added     []DiffVulnerabilityChange `json:"added,omitempty"`
-	Removed   []DiffVulnerabilityChange `json:"removed,omitempty"`
-	Persisted []DiffVulnerabilityChange `json:"persisted,omitempty"`
+	Added     []DiffVulnerabilityChange `json:"added"`
+	Removed   []DiffVulnerabilityChange `json:"removed"`
+	Persisted []DiffVulnerabilityChange `json:"persisted"`
 }
 
 // DiffVulnerabilityChange is one vulnerability introduced or removed for a package.
@@ -141,10 +141,10 @@ type DiffManifestResult struct {
 	Subproject     string                     `json:"subproject,omitempty"`
 	Ecosystem      model.Ecosystem            `json:"ecosystem,omitempty"`
 	PackageManager model.PackageManager       `json:"package_manager,omitempty"`
-	Added          []DiffPackageChange        `json:"added,omitempty"`
-	Removed        []DiffPackageChange        `json:"removed,omitempty"`
-	Changed        []DiffChangedPackage       `json:"changed,omitempty"`
-	Transitions    []DiffDependencyTransition `json:"transitions,omitempty"`
+	Added          []DiffPackageChange        `json:"added"`
+	Removed        []DiffPackageChange        `json:"removed"`
+	Changed        []DiffChangedPackage       `json:"changed"`
+	Transitions    []DiffDependencyTransition `json:"transitions"`
 }
 
 // DiffSummary aggregates manifest and package counts for a diff.
@@ -169,11 +169,11 @@ type ExplainResponse struct {
 	Project       ProjectDescriptor        `json:"project"`
 	Query         ExplainQuery             `json:"query"`
 	Dependency    ExplainDependency        `json:"dependency,omitempty"`
-	Paths         []DependencyPath         `json:"paths,omitempty"`
-	Findings      []model.Finding          `json:"findings,omitempty"`
+	Paths         []DependencyPath         `json:"paths"`
+	Findings      []model.Finding          `json:"findings"`
 	AuditSummary  *scan.AuditSummary       `json:"audit_summary,omitempty"`
-	Targets       []ExplainTargetResponse  `json:"targets,omitempty"`
-	Warnings      []plugin.DetectorWarning `json:"warnings,omitempty"`
+	Targets       []ExplainTargetResponse  `json:"targets"`
+	Warnings      []plugin.DetectorWarning `json:"warnings"`
 	Metadata      scan.Metadata            `json:"metadata"`
 }
 
@@ -189,7 +189,7 @@ type ExplainTargetResponse struct {
 	PackageManager model.PackageManager `json:"package_manager,omitempty"`
 	Dependency     ExplainDependency    `json:"dependency"`
 	Paths          []DependencyPath     `json:"paths"`
-	Findings       []model.Finding      `json:"findings,omitempty"`
+	Findings       []model.Finding      `json:"findings"`
 	AuditSummary   *scan.AuditSummary   `json:"audit_summary,omitempty"`
 }
 

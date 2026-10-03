@@ -900,6 +900,7 @@
       },
       "required": [
         "name",
+        "locations",
         "licenses",
         "vulnerabilities"
       ],
@@ -1860,6 +1861,7 @@
               },
               "required": [
                 "name",
+                "locations",
                 "licenses",
                 "vulnerabilities"
               ],
@@ -2817,6 +2819,7 @@
             },
             "required": [
               "name",
+              "locations",
               "licenses",
               "vulnerabilities"
             ],
@@ -3743,6 +3746,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -3792,7 +3796,8 @@
         "required": [
           "project",
           "dependency",
-          "paths"
+          "paths",
+          "findings"
         ],
         "type": "object"
       },
@@ -3834,6 +3839,10 @@
     "command",
     "project",
     "query",
+    "paths",
+    "findings",
+    "targets",
+    "warnings",
     "metadata"
   ],
   "title": "Bomly explain output",

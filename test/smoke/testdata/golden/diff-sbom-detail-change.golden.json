@@ -8,29 +8,35 @@
     {
       "ecosystem": "go",
       "id": "pkg:golang/example.com/app@1.0.0",
+      "licenses": [],
       "name": "app",
       "org": "example.com",
       "package_manager": "gomod",
       "purl": "pkg:golang/example.com/app@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "go",
       "id": "pkg:golang/example.com/parent@1.0.0",
+      "licenses": [],
       "name": "parent",
       "org": "example.com",
       "package_manager": "gomod",
       "purl": "pkg:golang/example.com/parent@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "go",
       "id": "pkg:golang/example.com/shared@1.0.0",
+      "licenses": [],
       "name": "shared",
       "org": "example.com",
       "package_manager": "gomod",
       "purl": "pkg:golang/example.com/shared@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     }
   ],
   "project": {
@@ -48,6 +54,7 @@
             "direct": true,
             "id": "pkg:golang/example.com/parent@1.0.0",
             "licenses": [],
+            "locations": [],
             "name": "example.com/parent",
             "purl": "pkg:golang/example.com/parent@1.0.0",
             "relationship": "direct",
@@ -56,6 +63,8 @@
           }
         }
       ],
+      "changed": [],
+      "removed": [],
       "transitions": [
         {
           "after": {
@@ -80,7 +89,11 @@
         }
       ]
     },
-    "licenses": {},
+    "licenses": {
+      "added": [],
+      "changed": [],
+      "removed": []
+    },
     "manifests": [
       {
         "added": [
@@ -89,6 +102,7 @@
               "direct": true,
               "id": "pkg:golang/example.com/parent@1.0.0",
               "licenses": [],
+              "locations": [],
               "name": "example.com/parent",
               "purl": "pkg:golang/example.com/parent@1.0.0",
               "relationship": "direct",
@@ -97,6 +111,7 @@
             }
           }
         ],
+        "changed": [],
         "ecosystem": "sbom",
         "kind": "detail-change-head.spdx.json",
         "package_manager": "sbom",
@@ -128,7 +143,11 @@
         ]
       }
     ],
-    "vulnerabilities": {}
+    "vulnerabilities": {
+      "added": [],
+      "persisted": [],
+      "removed": []
+    }
   },
   "schema_version": "1.0",
   "summary": {
@@ -143,5 +162,6 @@
     "transitioned_package_count": 1,
     "unchanged_manifest_count": 0,
     "unmatched_package_count": 1
-  }
+  },
+  "warnings": []
 }

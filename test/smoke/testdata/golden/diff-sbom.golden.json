@@ -8,53 +8,65 @@
     {
       "ecosystem": "go",
       "id": "pkg:golang/example.com/app@1.0.0",
+      "licenses": [],
       "name": "app",
       "org": "example.com",
       "package_manager": "gomod",
       "purl": "pkg:golang/example.com/app@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "go",
       "id": "pkg:golang/github.com/google/uuid@1.6.0",
+      "licenses": [],
       "name": "uuid",
       "org": "github.com/google",
       "package_manager": "gomod",
       "purl": "pkg:golang/github.com/google/uuid@1.6.0",
-      "version": "1.6.0"
+      "version": "1.6.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "go",
       "id": "pkg:golang/github.com/pkg/errors@0.9.1",
+      "licenses": [],
       "name": "errors",
       "org": "github.com/pkg",
       "package_manager": "gomod",
       "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
-      "version": "0.9.1"
+      "version": "0.9.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "npm",
       "id": "pkg:npm/lodash@4.17.21",
+      "licenses": [],
       "name": "lodash",
       "package_manager": "npm",
       "purl": "pkg:npm/lodash@4.17.21",
-      "version": "4.17.21"
+      "version": "4.17.21",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "npm",
       "id": "pkg:npm/my-js-app@2.0.0",
+      "licenses": [],
       "name": "my-js-app",
       "package_manager": "npm",
       "purl": "pkg:npm/my-js-app@2.0.0",
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "npm",
       "id": "pkg:npm/react@18.2.0",
+      "licenses": [],
       "name": "react",
       "package_manager": "npm",
       "purl": "pkg:npm/react@18.2.0",
-      "version": "18.2.0"
+      "version": "18.2.0",
+      "vulnerabilities": []
     }
   ],
   "project": {
@@ -72,6 +84,7 @@
             "direct": true,
             "id": "pkg:npm/lodash@4.17.21",
             "licenses": [],
+            "locations": [],
             "name": "lodash",
             "purl": "pkg:npm/lodash@4.17.21",
             "relationship": "direct",
@@ -84,6 +97,7 @@
             "direct": false,
             "id": "pkg:npm/my-js-app@2.0.0",
             "licenses": [],
+            "locations": [],
             "name": "my-js-app",
             "purl": "pkg:npm/my-js-app@2.0.0",
             "relationship": "transitive",
@@ -96,6 +110,7 @@
             "direct": true,
             "id": "pkg:npm/react@18.2.0",
             "licenses": [],
+            "locations": [],
             "name": "react",
             "purl": "pkg:npm/react@18.2.0",
             "relationship": "direct",
@@ -104,12 +119,14 @@
           }
         }
       ],
+      "changed": [],
       "removed": [
         {
           "package": {
             "direct": false,
             "id": "pkg:golang/example.com/app@1.0.0",
             "licenses": [],
+            "locations": [],
             "name": "example.com/app",
             "purl": "pkg:golang/example.com/app@1.0.0",
             "relationship": "transitive",
@@ -122,6 +139,7 @@
             "direct": true,
             "id": "pkg:golang/github.com/google/uuid@1.6.0",
             "licenses": [],
+            "locations": [],
             "name": "github.com/google/uuid",
             "purl": "pkg:golang/github.com/google/uuid@1.6.0",
             "relationship": "direct",
@@ -134,6 +152,7 @@
             "direct": true,
             "id": "pkg:golang/github.com/pkg/errors@0.9.1",
             "licenses": [],
+            "locations": [],
             "name": "github.com/pkg/errors",
             "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
             "relationship": "direct",
@@ -141,9 +160,14 @@
             "vulnerabilities": []
           }
         }
-      ]
+      ],
+      "transitions": []
     },
-    "licenses": {},
+    "licenses": {
+      "added": [],
+      "changed": [],
+      "removed": []
+    },
     "manifests": [
       {
         "added": [
@@ -152,6 +176,7 @@
               "direct": true,
               "id": "pkg:npm/lodash@4.17.21",
               "licenses": [],
+              "locations": [],
               "name": "lodash",
               "purl": "pkg:npm/lodash@4.17.21",
               "relationship": "direct",
@@ -164,6 +189,7 @@
               "direct": false,
               "id": "pkg:npm/my-js-app@2.0.0",
               "licenses": [],
+              "locations": [],
               "name": "my-js-app",
               "purl": "pkg:npm/my-js-app@2.0.0",
               "relationship": "transitive",
@@ -176,6 +202,7 @@
               "direct": true,
               "id": "pkg:npm/react@18.2.0",
               "licenses": [],
+              "locations": [],
               "name": "react",
               "purl": "pkg:npm/react@18.2.0",
               "relationship": "direct",
@@ -184,6 +211,7 @@
             }
           }
         ],
+        "changed": [],
         "ecosystem": "sbom",
         "kind": "js.spdx.json",
         "package_manager": "sbom",
@@ -194,6 +222,7 @@
               "direct": false,
               "id": "pkg:golang/example.com/app@1.0.0",
               "licenses": [],
+              "locations": [],
               "name": "example.com/app",
               "purl": "pkg:golang/example.com/app@1.0.0",
               "relationship": "transitive",
@@ -206,6 +235,7 @@
               "direct": true,
               "id": "pkg:golang/github.com/google/uuid@1.6.0",
               "licenses": [],
+              "locations": [],
               "name": "github.com/google/uuid",
               "purl": "pkg:golang/github.com/google/uuid@1.6.0",
               "relationship": "direct",
@@ -218,6 +248,7 @@
               "direct": true,
               "id": "pkg:golang/github.com/pkg/errors@0.9.1",
               "licenses": [],
+              "locations": [],
               "name": "github.com/pkg/errors",
               "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
               "relationship": "direct",
@@ -227,10 +258,15 @@
           }
         ],
         "status": "changed",
-        "subproject": "."
+        "subproject": ".",
+        "transitions": []
       }
     ],
-    "vulnerabilities": {}
+    "vulnerabilities": {
+      "added": [],
+      "persisted": [],
+      "removed": []
+    }
   },
   "schema_version": "1.0",
   "summary": {
@@ -245,5 +281,6 @@
     "transitioned_package_count": 0,
     "unchanged_manifest_count": 0,
     "unmatched_package_count": 6
-  }
+  },
+  "warnings": []
 }

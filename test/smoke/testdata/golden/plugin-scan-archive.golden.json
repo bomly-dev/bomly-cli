@@ -5,11 +5,14 @@
     "manifests": "\u003cnormalized\u003e",
     "packages": "\u003cnormalized\u003e"
   },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
         {
+          "depends_on": [],
           "id": "pkg:golang/example.com/plugin-smoke@v0.0.0",
+          "licenses": [],
           "name": "example.com/plugin-smoke",
           "package_ref": "pkg:golang/example.com/plugin-smoke@v0.0.0",
           "purl": "pkg:golang/example.com/plugin-smoke@v0.0.0",
@@ -28,10 +31,12 @@
     {
       "ecosystem": "go",
       "id": "pkg:golang/example.com/plugin-smoke@v0.0.0",
+      "licenses": [],
       "name": "plugin-smoke",
       "org": "example.com",
       "purl": "pkg:golang/example.com/plugin-smoke@v0.0.0",
-      "version": "v0.0.0"
+      "version": "v0.0.0",
+      "vulnerabilities": []
     }
   ],
   "run": {
@@ -46,5 +51,7 @@
   "schema_version": "bomly.scan.v1",
   "subject": {
     "kind": "filesystem"
-  }
+  },
+  "waivers": [],
+  "warnings": []
 }

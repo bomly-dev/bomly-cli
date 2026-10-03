@@ -25,6 +25,7 @@
     "version": "v0.3.5",
     "vulnerabilities": []
   },
+  "findings": [],
   "paths": [
     {
       "introduced_via": "module:go.mod#pkg:golang/github.com/bomly/example-go-modules",
@@ -32,6 +33,7 @@
         {
           "id": "module:go.mod#pkg:golang/github.com/bomly/example-go-modules",
           "licenses": [],
+          "locations": [],
           "name": "github.com/bomly/example-go-modules",
           "purl": "pkg:golang/github.com/bomly/example-go-modules",
           "vulnerabilities": []
@@ -105,6 +107,7 @@
         "vulnerabilities": []
       },
       "detector": "go-detector",
+      "findings": [],
       "package_manager": "gomod",
       "paths": [
         {
@@ -113,6 +116,7 @@
             {
               "id": "module:go.mod#pkg:golang/github.com/bomly/example-go-modules",
               "licenses": [],
+              "locations": [],
               "name": "github.com/bomly/example-go-modules",
               "purl": "pkg:golang/github.com/bomly/example-go-modules",
               "vulnerabilities": []
@@ -155,5 +159,6 @@
         "target_type": "filesystem"
       }
     }
-  ]
+  ],
+  "warnings": []
 }

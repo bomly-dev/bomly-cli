@@ -5,6 +5,7 @@
     "manifests": "\u003cnormalized\u003e",
     "packages": "\u003cnormalized\u003e"
   },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -26,11 +27,14 @@
             "pkg:pypi/sgmllib3k@1.0.0"
           ],
           "id": "module:Pipfile#pkg:pypi/example-python-pipenv",
+          "licenses": [],
           "name": "example-python-pipenv",
           "purl": "pkg:pypi/example-python-pipenv"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/colorama@0.4.6",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -58,7 +62,9 @@
           "version": "0.4.6"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/django@1.7.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -84,7 +90,9 @@
           "version": "1.7.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/feedparser@6.0.8",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -110,7 +118,9 @@
           "version": "6.0.8"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/iniconfig@2.3.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -138,7 +148,9 @@
           "version": "2.3.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/packaging@26.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -166,7 +178,9 @@
           "version": "26.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/pluggy@1.6.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -194,7 +208,9 @@
           "version": "1.6.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/pyasn1@0.6.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -220,7 +236,9 @@
           "version": "0.6.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/pygments@2.20.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -248,7 +266,9 @@
           "version": "2.20.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/pyjwt@0.4.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -274,7 +294,9 @@
           "version": "0.4.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/pytest@9.0.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -300,7 +322,9 @@
           "version": "9.0.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/pyyaml@5.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -326,7 +350,9 @@
           "version": "5.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/requests@2.2.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -352,7 +378,9 @@
           "version": "2.2.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/rsa@3.4",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -378,7 +406,9 @@
           "version": "3.4"
         },
         {
+          "depends_on": [],
           "id": "pkg:pypi/sgmllib3k@1.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Pipfile.lock",
@@ -420,114 +450,142 @@
     {
       "ecosystem": "python",
       "id": "pkg:pypi/colorama@0.4.6",
+      "licenses": [],
       "name": "colorama",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/colorama@0.4.6",
-      "version": "0.4.6"
+      "version": "0.4.6",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/django@1.7.1",
+      "licenses": [],
       "name": "django",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/django@1.7.1",
-      "version": "1.7.1"
+      "version": "1.7.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/feedparser@6.0.8",
+      "licenses": [],
       "name": "feedparser",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/feedparser@6.0.8",
-      "version": "6.0.8"
+      "version": "6.0.8",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/iniconfig@2.3.0",
+      "licenses": [],
       "name": "iniconfig",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/iniconfig@2.3.0",
-      "version": "2.3.0"
+      "version": "2.3.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/packaging@26.2",
+      "licenses": [],
       "name": "packaging",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/packaging@26.2",
-      "version": "26.2"
+      "version": "26.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/pluggy@1.6.0",
+      "licenses": [],
       "name": "pluggy",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/pluggy@1.6.0",
-      "version": "1.6.0"
+      "version": "1.6.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/pyasn1@0.6.3",
+      "licenses": [],
       "name": "pyasn1",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/pyasn1@0.6.3",
-      "version": "0.6.3"
+      "version": "0.6.3",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/pygments@2.20.0",
+      "licenses": [],
       "name": "pygments",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/pygments@2.20.0",
-      "version": "2.20.0"
+      "version": "2.20.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/pyjwt@0.4.2",
+      "licenses": [],
       "name": "pyjwt",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/pyjwt@0.4.2",
-      "version": "0.4.2"
+      "version": "0.4.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/pytest@9.0.3",
+      "licenses": [],
       "name": "pytest",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/pytest@9.0.3",
-      "version": "9.0.3"
+      "version": "9.0.3",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/pyyaml@5.3",
+      "licenses": [],
       "name": "pyyaml",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/pyyaml@5.3",
-      "version": "5.3"
+      "version": "5.3",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/requests@2.2.1",
+      "licenses": [],
       "name": "requests",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/requests@2.2.1",
-      "version": "2.2.1"
+      "version": "2.2.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/rsa@3.4",
+      "licenses": [],
       "name": "rsa",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/rsa@3.4",
-      "version": "3.4"
+      "version": "3.4",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
       "id": "pkg:pypi/sgmllib3k@1.0.0",
+      "licenses": [],
       "name": "sgmllib3k",
       "package_manager": "pipenv",
       "purl": "pkg:pypi/sgmllib3k@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     }
   ],
   "run": {
@@ -545,5 +603,7 @@
     "kind": "git-repository",
     "ref": "v1.0.0",
     "repository_url": "https://github.com/bomly-dev/example-python-pipenv"
-  }
+  },
+  "waivers": [],
+  "warnings": []
 }

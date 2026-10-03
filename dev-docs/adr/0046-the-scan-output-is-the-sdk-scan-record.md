@@ -44,7 +44,7 @@ not written into the document.
 
 - `findings[].package` (an identity block) becomes `findings[].package_ref`
   (the package URL); `packages[].name` and `org` are coordinates, not a
-  display name; empty collections are omitted rather than written empty. The
+  display name; collections are always written, as `[]` when empty (`scan.IteratedCollections`), so user automations iterating them never meet a missing key. The
   goldens and generated schemas were regenerated once.
 - `subject`, `run`, `verdict`, `policy`, `waivers` and per-section `digests`
   are new optional keys; `findings[].decision` records which resolver settled

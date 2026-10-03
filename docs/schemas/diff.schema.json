@@ -250,6 +250,11 @@
           "type": "array"
         }
       },
+      "required": [
+        "introduced",
+        "resolved",
+        "persisted"
+      ],
       "type": "object"
     },
     "command": {
@@ -2193,6 +2198,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -3037,6 +3043,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -3870,6 +3877,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -4715,6 +4723,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -4818,6 +4827,12 @@
               "type": "array"
             }
           },
+          "required": [
+            "added",
+            "removed",
+            "changed",
+            "transitions"
+          ],
           "type": "object"
         },
         "licenses": {
@@ -5679,6 +5694,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -6576,6 +6592,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -7448,6 +7465,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -7463,6 +7481,11 @@
               "type": "array"
             }
           },
+          "required": [
+            "added",
+            "removed",
+            "changed"
+          ],
           "type": "object"
         },
         "manifests": {
@@ -8299,6 +8322,7 @@
                       },
                       "required": [
                         "name",
+                        "locations",
                         "licenses",
                         "vulnerabilities"
                       ],
@@ -9143,6 +9167,7 @@
                       },
                       "required": [
                         "name",
+                        "locations",
                         "licenses",
                         "vulnerabilities"
                       ],
@@ -9976,6 +10001,7 @@
                       },
                       "required": [
                         "name",
+                        "locations",
                         "licenses",
                         "vulnerabilities"
                       ],
@@ -10833,6 +10859,7 @@
                       },
                       "required": [
                         "name",
+                        "locations",
                         "licenses",
                         "vulnerabilities"
                       ],
@@ -10943,7 +10970,11 @@
               }
             },
             "required": [
-              "status"
+              "status",
+              "added",
+              "removed",
+              "changed",
+              "transitions"
             ],
             "type": "object"
           },
@@ -11782,6 +11813,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -13302,6 +13334,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -14822,6 +14855,7 @@
                     },
                     "required": [
                       "name",
+                      "locations",
                       "licenses",
                       "vulnerabilities"
                     ],
@@ -15512,6 +15546,11 @@
               "type": "array"
             }
           },
+          "required": [
+            "added",
+            "removed",
+            "persisted"
+          ],
           "type": "object"
         }
       },
@@ -15616,6 +15655,7 @@
     "results",
     "summary",
     "packages",
+    "warnings",
     "metadata"
   ],
   "title": "Bomly diff output",

@@ -5,6 +5,7 @@
     "manifests": "\u003cnormalized\u003e",
     "packages": "\u003cnormalized\u003e"
   },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -21,6 +22,7 @@
             "pkg:cocoapods/Specta@1.0.7"
           ],
           "id": "module:Podfile#pkg:cocoapods/root",
+          "licenses": [],
           "name": "root",
           "purl": "pkg:cocoapods/root"
         },
@@ -31,6 +33,7 @@
             "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1"
           ],
           "id": "pkg:cocoapods/AFNetworking%2FNSURLSession@3.2.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -55,7 +58,9 @@
           "version": "3.2.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:cocoapods/AFNetworking%2FReachability@3.2.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -80,7 +85,9 @@
           "version": "3.2.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:cocoapods/AFNetworking%2FSecurity@3.2.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -105,7 +112,9 @@
           "version": "3.2.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -134,6 +143,7 @@
             "pkg:cocoapods/AFNetworking%2FNSURLSession@3.2.1"
           ],
           "id": "pkg:cocoapods/AFNetworking%2FUIKit@3.2.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -166,6 +176,7 @@
             "pkg:cocoapods/AFNetworking%2FUIKit@3.2.1"
           ],
           "id": "pkg:cocoapods/AFNetworking@3.2.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -190,7 +201,9 @@
           "version": "3.2.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:cocoapods/Alamofire@4.3.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -215,7 +228,9 @@
           "version": "4.3.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:cocoapods/Expecta@1.0.6",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -240,7 +255,9 @@
           "version": "1.0.6"
         },
         {
+          "depends_on": [],
           "id": "pkg:cocoapods/HockeyKit@2.0.7",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -265,7 +282,9 @@
           "version": "2.0.7"
         },
         {
+          "depends_on": [],
           "id": "pkg:cocoapods/KIF@3.7.7",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -290,7 +309,9 @@
           "version": "3.7.7"
         },
         {
+          "depends_on": [],
           "id": "pkg:cocoapods/OCMock@3.4.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -315,7 +336,9 @@
           "version": "3.4.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -344,6 +367,7 @@
             "pkg:cocoapods/ReactiveSwift@1.0.0"
           ],
           "id": "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -372,6 +396,7 @@
             "pkg:cocoapods/Result@3.1.0"
           ],
           "id": "pkg:cocoapods/ReactiveSwift@1.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -396,7 +421,9 @@
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:cocoapods/Result@3.1.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -421,7 +448,9 @@
           "version": "3.1.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:cocoapods/Specta@1.0.7",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Podfile.lock",
@@ -459,161 +488,193 @@
       "ecosystem": "swift",
       "id": "pkg:cocoapods/AFNetworking%2FNSURLSession@3.2.1",
       "language": "swift",
+      "licenses": [],
       "name": "AFNetworking/NSURLSession",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/AFNetworking%2FNSURLSession@3.2.1",
       "type": "pod",
-      "version": "3.2.1"
+      "version": "3.2.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/AFNetworking%2FReachability@3.2.1",
       "language": "swift",
+      "licenses": [],
       "name": "AFNetworking/Reachability",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/AFNetworking%2FReachability@3.2.1",
       "type": "pod",
-      "version": "3.2.1"
+      "version": "3.2.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/AFNetworking%2FSecurity@3.2.1",
       "language": "swift",
+      "licenses": [],
       "name": "AFNetworking/Security",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/AFNetworking%2FSecurity@3.2.1",
       "type": "pod",
-      "version": "3.2.1"
+      "version": "3.2.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1",
       "language": "swift",
+      "licenses": [],
       "name": "AFNetworking/Serialization",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1",
       "type": "pod",
-      "version": "3.2.1"
+      "version": "3.2.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/AFNetworking%2FUIKit@3.2.1",
       "language": "swift",
+      "licenses": [],
       "name": "AFNetworking/UIKit",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/AFNetworking%2FUIKit@3.2.1",
       "type": "pod",
-      "version": "3.2.1"
+      "version": "3.2.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/AFNetworking@3.2.1",
       "language": "swift",
+      "licenses": [],
       "name": "AFNetworking",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/AFNetworking@3.2.1",
       "type": "pod",
-      "version": "3.2.1"
+      "version": "3.2.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/Alamofire@4.3.0",
       "language": "swift",
+      "licenses": [],
       "name": "Alamofire",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/Alamofire@4.3.0",
       "type": "pod",
-      "version": "4.3.0"
+      "version": "4.3.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/Expecta@1.0.6",
       "language": "swift",
+      "licenses": [],
       "name": "Expecta",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/Expecta@1.0.6",
       "type": "pod",
-      "version": "1.0.6"
+      "version": "1.0.6",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/HockeyKit@2.0.7",
       "language": "swift",
+      "licenses": [],
       "name": "HockeyKit",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/HockeyKit@2.0.7",
       "type": "pod",
-      "version": "2.0.7"
+      "version": "2.0.7",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/KIF@3.7.7",
       "language": "swift",
+      "licenses": [],
       "name": "KIF",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/KIF@3.7.7",
       "type": "pod",
-      "version": "3.7.7"
+      "version": "3.7.7",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/OCMock@3.4.3",
       "language": "swift",
+      "licenses": [],
       "name": "OCMock",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/OCMock@3.4.3",
       "type": "pod",
-      "version": "3.4.3"
+      "version": "3.4.3",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
       "language": "swift",
+      "licenses": [],
       "name": "OpenSSL-Static",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
       "type": "pod",
-      "version": "1.0.2.c1"
+      "version": "1.0.2.c1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
       "language": "swift",
+      "licenses": [],
       "name": "ReactiveCocoa",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
       "type": "pod",
-      "version": "5.0.0-rc.1"
+      "version": "5.0.0-rc.1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/ReactiveSwift@1.0.0",
       "language": "swift",
+      "licenses": [],
       "name": "ReactiveSwift",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/ReactiveSwift@1.0.0",
       "type": "pod",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/Result@3.1.0",
       "language": "swift",
+      "licenses": [],
       "name": "Result",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/Result@3.1.0",
       "type": "pod",
-      "version": "3.1.0"
+      "version": "3.1.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "id": "pkg:cocoapods/Specta@1.0.7",
       "language": "swift",
+      "licenses": [],
       "name": "Specta",
       "package_manager": "cocoapods",
       "purl": "pkg:cocoapods/Specta@1.0.7",
       "type": "pod",
-      "version": "1.0.7"
+      "version": "1.0.7",
+      "vulnerabilities": []
     }
   ],
   "run": {
@@ -631,5 +692,7 @@
     "kind": "git-repository",
     "ref": "v1.0.0",
     "repository_url": "https://github.com/bomly-dev/example-swift-cocoapods"
-  }
+  },
+  "waivers": [],
+  "warnings": []
 }

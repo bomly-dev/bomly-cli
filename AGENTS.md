@@ -220,6 +220,10 @@ In practice:
 
 - Use canonical shared types directly instead of creating local type aliases or re-exported constants just to rename them. For example, if `internal/output.Format` owns CLI output formats, downstream packages should store and compare `output.Format` / `output.FormatJSON` directly rather than introducing `render.OutputFormat` aliases.
 
+### JSON Output Collections
+
+- Every collection in a JSON document users script against (`scan`, `diff`, `explain`) is always written: `[]` when empty, never omitted and never `null`. This is a standing maintainer decision for the stability of user automations: `jq '.audit.introduced[]'` must not break on a run that found nothing. Do not add `omitempty` to a slice field in `internal/output`'s document types; `TestDocumentCollectionsAreAlwaysArrays` enforces it and `fillEmptyCollections` writes nil as `[]`. The scan record holds to the same rule in the SDK (`scan.IteratedCollections`), and a registry package goes into a document as `scan.Package` so its licenses and vulnerabilities are written too. SARIF follows its own specification and is out of scope; the plugin wire stays optional by contract.
+
 ### Errors
 
 ```go

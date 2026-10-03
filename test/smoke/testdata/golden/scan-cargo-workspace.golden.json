@@ -5,6 +5,7 @@
     "manifests": "\u003cnormalized\u003e",
     "packages": "\u003cnormalized\u003e"
   },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -15,6 +16,7 @@
             "pkg:cargo/time@0.1.45"
           ],
           "id": "module:crates/api/Cargo.toml#pkg:cargo/api@1.0.0",
+          "licenses": [],
           "name": "api",
           "purl": "pkg:cargo/api@1.0.0",
           "version": "1.0.0"
@@ -24,12 +26,15 @@
             "pkg:cargo/time@0.1.45"
           ],
           "id": "module:crates/core/Cargo.toml#pkg:cargo/core-lib@1.0.0",
+          "licenses": [],
           "name": "core-lib",
           "purl": "pkg:cargo/core-lib@1.0.0",
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/lazy_static@1.4.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -55,7 +60,9 @@
           "version": "1.4.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/libc@0.2.155",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -94,6 +101,7 @@
             "pkg:cargo/winapi@0.3.9"
           ],
           "id": "pkg:cargo/time@0.1.45",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -126,7 +134,9 @@
           "version": "0.1.45"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -159,7 +169,9 @@
           "version": "0.10.0+wasi-snapshot-preview1"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/winapi@0.3.9",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -206,12 +218,15 @@
             "pkg:cargo/time@0.1.45"
           ],
           "id": "module:crates/core/Cargo.toml#pkg:cargo/core-lib@1.0.0",
+          "licenses": [],
           "name": "core-lib",
           "purl": "pkg:cargo/core-lib@1.0.0",
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/libc@0.2.155",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -250,6 +265,7 @@
             "pkg:cargo/winapi@0.3.9"
           ],
           "id": "pkg:cargo/time@0.1.45",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -282,7 +298,9 @@
           "version": "0.1.45"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -315,7 +333,9 @@
           "version": "0.10.0+wasi-snapshot-preview1"
         },
         {
+          "depends_on": [],
           "id": "pkg:cargo/winapi@0.3.9",
+          "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
@@ -361,51 +381,61 @@
       "ecosystem": "rust",
       "id": "pkg:cargo/lazy_static@1.4.0",
       "language": "rust",
+      "licenses": [],
       "name": "lazy_static",
       "package_manager": "cargo",
       "purl": "pkg:cargo/lazy_static@1.4.0",
       "type": "crate",
-      "version": "1.4.0"
+      "version": "1.4.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/libc@0.2.155",
       "language": "rust",
+      "licenses": [],
       "name": "libc",
       "package_manager": "cargo",
       "purl": "pkg:cargo/libc@0.2.155",
       "type": "crate",
-      "version": "0.2.155"
+      "version": "0.2.155",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/time@0.1.45",
       "language": "rust",
+      "licenses": [],
       "name": "time",
       "package_manager": "cargo",
       "purl": "pkg:cargo/time@0.1.45",
       "type": "crate",
-      "version": "0.1.45"
+      "version": "0.1.45",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
       "language": "rust",
+      "licenses": [],
       "name": "wasi",
       "package_manager": "cargo",
       "purl": "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
       "type": "crate",
-      "version": "0.10.0+wasi-snapshot-preview1"
+      "version": "0.10.0+wasi-snapshot-preview1",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "rust",
       "id": "pkg:cargo/winapi@0.3.9",
       "language": "rust",
+      "licenses": [],
       "name": "winapi",
       "package_manager": "cargo",
       "purl": "pkg:cargo/winapi@0.3.9",
       "type": "crate",
-      "version": "0.3.9"
+      "version": "0.3.9",
+      "vulnerabilities": []
     }
   ],
   "run": {
@@ -423,5 +453,7 @@
     "kind": "git-repository",
     "ref": "v1.0.0",
     "repository_url": "https://github.com/bomly-dev/example-rust-cargo-workspace"
-  }
+  },
+  "waivers": [],
+  "warnings": []
 }

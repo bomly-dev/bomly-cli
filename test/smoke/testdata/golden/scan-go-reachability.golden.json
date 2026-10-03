@@ -5,6 +5,7 @@
     "manifests": "\u003cnormalized\u003e",
     "packages": "\u003cnormalized\u003e"
   },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -16,6 +17,7 @@
             "pkg:golang/golang.org/x/text@v0.3.5"
           ],
           "id": "module:go.mod#pkg:golang/github.com/bomly/example-go-modules",
+          "licenses": [],
           "name": "github.com/bomly/example-go-modules",
           "purl": "pkg:golang/github.com/bomly/example-go-modules"
         },
@@ -24,6 +26,7 @@
             "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543"
           ],
           "id": "pkg:golang/github.com/google/go-cmp@v0.5.2",
+          "licenses": [],
           "matched": true,
           "name": "github.com/google/go-cmp",
           "package_ref": "pkg:golang/github.com/google/go-cmp@v0.5.2",
@@ -38,6 +41,7 @@
             "pkg:golang/github.com/google/go-querystring@v1.1.0"
           ],
           "id": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
+          "licenses": [],
           "locations": [
             {
               "access_path": "go.mod",
@@ -68,6 +72,7 @@
             "pkg:golang/github.com/google/go-cmp@v0.5.2"
           ],
           "id": "pkg:golang/github.com/google/go-querystring@v1.1.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "go.mod",
@@ -93,7 +98,9 @@
           "version": "v1.1.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:golang/github.com/google/uuid@v1.6.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "go.mod",
@@ -119,7 +126,9 @@
           "version": "v1.6.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:golang/golang.org/x/text@v0.3.5",
+          "licenses": [],
           "locations": [
             {
               "access_path": "go.mod",
@@ -147,7 +156,9 @@
           "version": "v0.3.5"
         },
         {
+          "depends_on": [],
           "id": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
+          "licenses": [],
           "matched": true,
           "name": "golang.org/x/xerrors",
           "package_ref": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
@@ -199,7 +210,8 @@
       "name": "go-cmp",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
-      "version": "v0.5.2"
+      "version": "v0.5.2",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -210,10 +222,12 @@
       ],
       "ecosystem": "go",
       "id": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
+      "licenses": [],
       "name": "go-github",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
-      "version": "v17.0.0+incompatible"
+      "version": "v17.0.0+incompatible",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -236,7 +250,8 @@
       "name": "go-querystring",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-querystring@v1.1.0",
-      "version": "v1.1.0"
+      "version": "v1.1.0",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -259,7 +274,8 @@
       "name": "uuid",
       "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/uuid@v1.6.0",
-      "version": "v1.6.0"
+      "version": "v1.6.0",
+      "vulnerabilities": []
     },
     {
       "digests": [
@@ -549,7 +565,8 @@
       "name": "xerrors",
       "org": "golang.org/x",
       "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
-      "version": "v0.0.0-20191204190536-9bdfabe68543"
+      "version": "v0.0.0-20191204190536-9bdfabe68543",
+      "vulnerabilities": []
     }
   ],
   "run": {
@@ -571,5 +588,7 @@
     "kind": "git-repository",
     "ref": "v1.0.0",
     "repository_url": "https://github.com/bomly-dev/example-go-gomod"
-  }
+  },
+  "waivers": [],
+  "warnings": []
 }

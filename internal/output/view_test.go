@@ -1264,7 +1264,9 @@ func TestBuildScanResponseCarriesDetectorWarningsIntoJSON(t *testing.T) {
 	}
 }
 
-func TestBuildScanResponseOmitsWarningsWhenClean(t *testing.T) {
+// A clean scan writes an empty warnings array rather than omitting the key:
+// collections are always present so a user's `.warnings[]` never breaks.
+func TestBuildScanResponseWritesEmptyWarningsWhenClean(t *testing.T) {
 	graph := model.New()
 	if err := graph.AddNode(testnodes.Ref("react", "18.2.0")); err != nil {
 		t.Fatalf("add node: %v", err)
@@ -1280,8 +1282,8 @@ func TestBuildScanResponseOmitsWarningsWhenClean(t *testing.T) {
 	if err != nil {
 		t.Fatalf("marshal response: %v", err)
 	}
-	if strings.Contains(string(encoded), `"warnings"`) {
-		t.Fatalf("a clean scan must not emit a warnings key: %s", encoded)
+	if !strings.Contains(string(encoded), `"warnings":[]`) {
+		t.Fatalf("a clean scan must write warnings as []: %s", encoded)
 	}
 }
 

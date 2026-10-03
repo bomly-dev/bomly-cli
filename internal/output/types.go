@@ -57,7 +57,7 @@ type PackageRef struct {
 	Purl            string                  `json:"purl,omitempty"`
 	ID              string                  `json:"id,omitempty"`
 	Metadata        map[string]any          `json:"metadata,omitempty"`
-	Locations       []model.PackageLocation `json:"locations,omitempty"`
+	Locations       []model.PackageLocation `json:"locations"`
 	Licenses        []model.PackageLicense  `json:"licenses"`
 	Vulnerabilities []model.Vulnerability   `json:"vulnerabilities"`
 	Scorecard       *model.PackageScorecard `json:"scorecard,omitempty"`

@@ -5,6 +5,7 @@
     "manifests": "\u003cnormalized\u003e",
     "packages": "\u003cnormalized\u003e"
   },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -15,12 +16,15 @@
             "pkg:maven/org.junit.jupiter/junit-jupiter@5.10.2"
           ],
           "id": "module:fixtures/api-java/pom.xml#pkg:maven/dev.bomly.fixture/report-api@1.0.0",
+          "licenses": [],
           "name": "dev.bomly.fixture:report-api",
           "purl": "pkg:maven/dev.bomly.fixture/report-api@1.0.0",
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
+          "licenses": [],
           "name": "com.fasterxml.jackson.core:jackson-annotations",
           "package_ref": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
           "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
@@ -30,7 +34,9 @@
           "version": "2.13.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
+          "licenses": [],
           "name": "com.fasterxml.jackson.core:jackson-core",
           "package_ref": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
           "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
@@ -45,6 +51,7 @@
             "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0"
           ],
           "id": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "fixtures/api-java/pom.xml",
@@ -69,7 +76,9 @@
           "version": "2.13.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:maven/commons-logging/commons-logging@1.2",
+          "licenses": [],
           "name": "commons-logging:commons-logging",
           "package_ref": "pkg:maven/commons-logging/commons-logging@1.2",
           "purl": "pkg:maven/commons-logging/commons-logging@1.2",
@@ -85,6 +94,7 @@
             "pkg:maven/org.apache.commons/commons-text@1.8"
           ],
           "id": "pkg:maven/org.apache.commons/commons-configuration2@2.7",
+          "licenses": [],
           "locations": [
             {
               "access_path": "fixtures/api-java/pom.xml",
@@ -109,7 +119,9 @@
           "version": "2.7"
         },
         {
+          "depends_on": [],
           "id": "pkg:maven/org.apache.commons/commons-lang3@3.9",
+          "licenses": [],
           "name": "org.apache.commons:commons-lang3",
           "package_ref": "pkg:maven/org.apache.commons/commons-lang3@3.9",
           "purl": "pkg:maven/org.apache.commons/commons-lang3@3.9",
@@ -119,7 +131,9 @@
           "version": "3.9"
         },
         {
+          "depends_on": [],
           "id": "pkg:maven/org.apache.commons/commons-text@1.8",
+          "licenses": [],
           "name": "org.apache.commons:commons-text",
           "package_ref": "pkg:maven/org.apache.commons/commons-text@1.8",
           "purl": "pkg:maven/org.apache.commons/commons-text@1.8",
@@ -129,7 +143,9 @@
           "version": "1.8"
         },
         {
+          "depends_on": [],
           "id": "pkg:maven/org.apiguardian/apiguardian-api@1.1.2",
+          "licenses": [],
           "name": "org.apiguardian:apiguardian-api",
           "package_ref": "pkg:maven/org.apiguardian/apiguardian-api@1.1.2",
           "purl": "pkg:maven/org.apiguardian/apiguardian-api@1.1.2",
@@ -145,6 +161,7 @@
             "pkg:maven/org.opentest4j/opentest4j@1.3.0"
           ],
           "id": "pkg:maven/org.junit.jupiter/junit-jupiter-api@5.10.2",
+          "licenses": [],
           "name": "org.junit.jupiter:junit-jupiter-api",
           "package_ref": "pkg:maven/org.junit.jupiter/junit-jupiter-api@5.10.2",
           "purl": "pkg:maven/org.junit.jupiter/junit-jupiter-api@5.10.2",
@@ -158,6 +175,7 @@
             "pkg:maven/org.junit.platform/junit-platform-engine@1.10.2"
           ],
           "id": "pkg:maven/org.junit.jupiter/junit-jupiter-engine@5.10.2",
+          "licenses": [],
           "name": "org.junit.jupiter:junit-jupiter-engine",
           "package_ref": "pkg:maven/org.junit.jupiter/junit-jupiter-engine@5.10.2",
           "purl": "pkg:maven/org.junit.jupiter/junit-jupiter-engine@5.10.2",
@@ -167,7 +185,9 @@
           "version": "5.10.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:maven/org.junit.jupiter/junit-jupiter-params@5.10.2",
+          "licenses": [],
           "name": "org.junit.jupiter:junit-jupiter-params",
           "package_ref": "pkg:maven/org.junit.jupiter/junit-jupiter-params@5.10.2",
           "purl": "pkg:maven/org.junit.jupiter/junit-jupiter-params@5.10.2",
@@ -183,6 +203,7 @@
             "pkg:maven/org.junit.jupiter/junit-jupiter-params@5.10.2"
           ],
           "id": "pkg:maven/org.junit.jupiter/junit-jupiter@5.10.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "fixtures/api-java/pom.xml",
@@ -207,7 +228,9 @@
           "version": "5.10.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:maven/org.junit.platform/junit-platform-commons@1.10.2",
+          "licenses": [],
           "name": "org.junit.platform:junit-platform-commons",
           "package_ref": "pkg:maven/org.junit.platform/junit-platform-commons@1.10.2",
           "purl": "pkg:maven/org.junit.platform/junit-platform-commons@1.10.2",
@@ -217,7 +240,9 @@
           "version": "1.10.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:maven/org.junit.platform/junit-platform-engine@1.10.2",
+          "licenses": [],
           "name": "org.junit.platform:junit-platform-engine",
           "package_ref": "pkg:maven/org.junit.platform/junit-platform-engine@1.10.2",
           "purl": "pkg:maven/org.junit.platform/junit-platform-engine@1.10.2",
@@ -227,7 +252,9 @@
           "version": "1.10.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:maven/org.opentest4j/opentest4j@1.3.0",
+          "licenses": [],
           "name": "org.opentest4j:opentest4j",
           "package_ref": "pkg:maven/org.opentest4j/opentest4j@1.3.0",
           "purl": "pkg:maven/org.opentest4j/opentest4j@1.3.0",
@@ -256,6 +283,7 @@
             "pkg:npm/xml2js@0.6.2"
           ],
           "id": "module:fixtures/webapp/package.json#pkg:npm/team-bookmarks@1.0.0",
+          "licenses": [],
           "name": "team-bookmarks",
           "purl": "pkg:npm/team-bookmarks@1.0.0",
           "version": "1.0.0"
@@ -335,6 +363,7 @@
           "version": "6.15.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/array-flatten@1.1.1",
           "licenses": [
             {
@@ -402,6 +431,7 @@
           "version": "0.2.6"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/assert-plus@1.0.0",
           "licenses": [
             {
@@ -434,6 +464,7 @@
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/asynckit@0.4.0",
           "licenses": [
             {
@@ -466,6 +497,7 @@
           "version": "0.4.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/aws-sign2@0.7.0",
           "licenses": [
             {
@@ -498,6 +530,7 @@
           "version": "0.7.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/aws4@1.13.2",
           "licenses": [
             {
@@ -648,6 +681,7 @@
           "version": "1.20.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/buffer-equal-constant-time@1.0.1",
           "licenses": [
             {
@@ -680,6 +714,7 @@
           "version": "1.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/bytes@3.1.2",
           "licenses": [
             {
@@ -784,6 +819,7 @@
           "version": "1.0.4"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/caseless@0.12.0",
           "licenses": [
             {
@@ -886,6 +922,7 @@
           "version": "0.5.4"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/content-type@1.0.5",
           "licenses": [
             {
@@ -918,6 +955,7 @@
           "version": "1.0.5"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/cookie-signature@1.0.6",
           "licenses": [
             {
@@ -950,6 +988,7 @@
           "version": "1.0.6"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/cookie@0.6.0",
           "licenses": [
             {
@@ -982,6 +1021,7 @@
           "version": "0.6.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/core-util-is@1.0.2",
           "licenses": [
             {
@@ -1084,6 +1124,7 @@
           "version": "2.6.9"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/delayed-stream@1.0.0",
           "licenses": [
             {
@@ -1116,6 +1157,7 @@
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/depd@2.0.0",
           "licenses": [
             {
@@ -1148,6 +1190,7 @@
           "version": "2.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/destroy@1.2.0",
           "licenses": [
             {
@@ -1288,6 +1331,7 @@
           "version": "1.0.11"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/ee-first@1.1.1",
           "licenses": [
             {
@@ -1320,6 +1364,7 @@
           "version": "1.1.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/encodeurl@1.0.2",
           "licenses": [
             {
@@ -1352,6 +1397,7 @@
           "version": "1.0.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/es-define-property@1.0.1",
           "licenses": [
             {
@@ -1384,6 +1430,7 @@
           "version": "1.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/es-errors@1.3.0",
           "licenses": [
             {
@@ -1489,6 +1536,7 @@
           "version": "2.1.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/escape-html@1.0.3",
           "licenses": [
             {
@@ -1521,6 +1569,7 @@
           "version": "1.0.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/etag@1.8.1",
           "licenses": [
             {
@@ -1618,6 +1667,7 @@
           "version": "4.19.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/extend@3.0.2",
           "licenses": [
             {
@@ -1650,6 +1700,7 @@
           "version": "3.0.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/extsprintf@1.3.0",
           "licenses": [
             {
@@ -1682,6 +1733,7 @@
           "version": "1.3.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/fast-deep-equal@3.1.3",
           "licenses": [
             {
@@ -1714,6 +1766,7 @@
           "version": "3.1.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/fast-json-stable-stringify@2.1.0",
           "licenses": [
             {
@@ -1787,6 +1840,7 @@
           "version": "1.2.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/follow-redirects@1.16.0",
           "licenses": [
             {
@@ -1819,6 +1873,7 @@
           "version": "1.16.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/forever-agent@0.6.1",
           "licenses": [
             {
@@ -1927,6 +1982,7 @@
           "version": "4.0.6"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/forwarded@0.2.0",
           "licenses": [
             {
@@ -1959,6 +2015,7 @@
           "version": "0.2.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/fresh@0.5.2",
           "licenses": [
             {
@@ -1991,6 +2048,7 @@
           "version": "0.5.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/function-bind@1.1.2",
           "licenses": [
             {
@@ -2138,6 +2196,7 @@
           "version": "0.1.7"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/gopd@1.2.0",
           "licenses": [
             {
@@ -2170,6 +2229,7 @@
           "version": "1.2.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/har-schema@2.0.0",
           "licenses": [
             {
@@ -2238,6 +2298,7 @@
           "version": "5.1.5"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/has-symbols@1.1.0",
           "licenses": [
             {
@@ -2451,6 +2512,7 @@
           "version": "0.4.24"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/inherits@2.0.4",
           "licenses": [
             {
@@ -2483,6 +2545,7 @@
           "version": "2.0.4"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/ipaddr.js@1.9.1",
           "licenses": [
             {
@@ -2515,6 +2578,7 @@
           "version": "1.9.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/is-typedarray@1.0.0",
           "licenses": [
             {
@@ -2547,6 +2611,7 @@
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/isstream@0.1.2",
           "licenses": [
             {
@@ -2579,6 +2644,7 @@
           "version": "0.1.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/jsbn@0.1.1",
           "licenses": [
             {
@@ -2611,6 +2677,7 @@
           "version": "0.1.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/json-schema-traverse@0.4.1",
           "licenses": [
             {
@@ -2643,6 +2710,7 @@
           "version": "0.4.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/json-schema@0.4.0",
           "licenses": [
             {
@@ -2675,6 +2743,7 @@
           "version": "0.4.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/json-stringify-safe@5.0.1",
           "licenses": [
             {
@@ -2862,6 +2931,7 @@
           "version": "3.2.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/lodash.includes@4.3.0",
           "licenses": [
             {
@@ -2894,6 +2964,7 @@
           "version": "4.3.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/lodash.isboolean@3.0.3",
           "licenses": [
             {
@@ -2926,6 +2997,7 @@
           "version": "3.0.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/lodash.isinteger@4.0.4",
           "licenses": [
             {
@@ -2958,6 +3030,7 @@
           "version": "4.0.4"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/lodash.isnumber@3.0.3",
           "licenses": [
             {
@@ -2990,6 +3063,7 @@
           "version": "3.0.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/lodash.isplainobject@4.0.6",
           "licenses": [
             {
@@ -3022,6 +3096,7 @@
           "version": "4.0.6"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/lodash.isstring@4.0.1",
           "licenses": [
             {
@@ -3054,6 +3129,7 @@
           "version": "4.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/lodash.once@4.1.1",
           "licenses": [
             {
@@ -3086,6 +3162,7 @@
           "version": "4.1.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/lodash@4.17.20",
           "licenses": [
             {
@@ -3118,6 +3195,7 @@
           "version": "4.17.20"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/math-intrinsics@1.1.0",
           "licenses": [
             {
@@ -3150,6 +3228,7 @@
           "version": "1.1.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/media-typer@0.3.0",
           "licenses": [
             {
@@ -3182,6 +3261,7 @@
           "version": "0.3.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/merge-descriptors@1.0.1",
           "licenses": [
             {
@@ -3214,6 +3294,7 @@
           "version": "1.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/methods@1.1.2",
           "licenses": [
             {
@@ -3246,6 +3327,7 @@
           "version": "1.1.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/mime-db@1.52.0",
           "licenses": [
             {
@@ -3313,6 +3395,7 @@
           "version": "2.1.35"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/mime@1.6.0",
           "licenses": [
             {
@@ -3345,6 +3428,7 @@
           "version": "1.6.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/ms@2.0.0",
           "licenses": [
             {
@@ -3377,6 +3461,7 @@
           "version": "2.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/ms@2.1.3",
           "licenses": [
             {
@@ -3422,6 +3507,7 @@
           "version": "2.1.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/negotiator@0.6.3",
           "licenses": [
             {
@@ -3454,6 +3540,7 @@
           "version": "0.6.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/oauth-sign@0.9.0",
           "licenses": [
             {
@@ -3486,6 +3573,7 @@
           "version": "0.9.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/object-inspect@1.13.4",
           "licenses": [
             {
@@ -3553,6 +3641,7 @@
           "version": "2.4.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/parseurl@1.3.3",
           "licenses": [
             {
@@ -3585,6 +3674,7 @@
           "version": "1.3.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/path-to-regexp@0.1.7",
           "licenses": [
             {
@@ -3617,6 +3707,7 @@
           "version": "0.1.7"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/performance-now@2.1.0",
           "licenses": [
             {
@@ -3685,6 +3776,7 @@
           "version": "2.0.7"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/proxy-from-env@1.1.0",
           "licenses": [
             {
@@ -3752,6 +3844,7 @@
           "version": "1.15.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/punycode@2.3.1",
           "licenses": [
             {
@@ -3819,6 +3912,7 @@
           "version": "6.11.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/qs@6.5.5",
           "licenses": [
             {
@@ -3851,6 +3945,7 @@
           "version": "6.5.5"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/range-parser@1.2.1",
           "licenses": [
             {
@@ -3975,6 +4070,7 @@
           "version": "2.88.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/safe-buffer@5.2.1",
           "licenses": [
             {
@@ -4007,6 +4103,7 @@
           "version": "5.2.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/safer-buffer@2.1.2",
           "licenses": [
             {
@@ -4039,6 +4136,7 @@
           "version": "2.1.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/sax@1.6.0",
           "licenses": [
             {
@@ -4071,6 +4169,7 @@
           "version": "1.6.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/semver@5.7.2",
           "licenses": [
             {
@@ -4188,6 +4287,7 @@
           "version": "1.15.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/setprototypeof@1.2.0",
           "licenses": [
             {
@@ -4415,6 +4515,7 @@
           "version": "1.18.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/statuses@2.0.1",
           "licenses": [
             {
@@ -4447,6 +4548,7 @@
           "version": "2.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/toidentifier@1.0.1",
           "licenses": [
             {
@@ -4550,6 +4652,7 @@
           "version": "0.6.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/tweetnacl@0.14.5",
           "licenses": [
             {
@@ -4618,6 +4721,7 @@
           "version": "1.6.18"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/unpipe@1.0.0",
           "licenses": [
             {
@@ -4685,6 +4789,7 @@
           "version": "4.4.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/utils-merge@1.0.1",
           "licenses": [
             {
@@ -4717,6 +4822,7 @@
           "version": "1.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/uuid@3.4.0",
           "licenses": [
             {
@@ -4749,6 +4855,7 @@
           "version": "3.4.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/vary@1.1.2",
           "licenses": [
             {
@@ -4854,6 +4961,7 @@
           "version": "0.6.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/xmlbuilder@11.0.1",
           "licenses": [
             {
@@ -4898,137 +5006,167 @@
     {
       "ecosystem": "maven",
       "id": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
+      "licenses": [],
       "name": "jackson-annotations",
       "org": "com.fasterxml.jackson.core",
       "package_manager": "maven",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
-      "version": "2.13.0"
+      "version": "2.13.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
+      "licenses": [],
       "name": "jackson-core",
       "org": "com.fasterxml.jackson.core",
       "package_manager": "maven",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.0",
-      "version": "2.13.0"
+      "version": "2.13.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0",
+      "licenses": [],
       "name": "jackson-databind",
       "org": "com.fasterxml.jackson.core",
       "package_manager": "maven",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0",
-      "version": "2.13.0"
+      "version": "2.13.0",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/commons-logging/commons-logging@1.2",
+      "licenses": [],
       "name": "commons-logging",
       "org": "commons-logging",
       "package_manager": "maven",
       "purl": "pkg:maven/commons-logging/commons-logging@1.2",
-      "version": "1.2"
+      "version": "1.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/org.apache.commons/commons-configuration2@2.7",
+      "licenses": [],
       "name": "commons-configuration2",
       "org": "org.apache.commons",
       "package_manager": "maven",
       "purl": "pkg:maven/org.apache.commons/commons-configuration2@2.7",
-      "version": "2.7"
+      "version": "2.7",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/org.apache.commons/commons-lang3@3.9",
+      "licenses": [],
       "name": "commons-lang3",
       "org": "org.apache.commons",
       "package_manager": "maven",
       "purl": "pkg:maven/org.apache.commons/commons-lang3@3.9",
-      "version": "3.9"
+      "version": "3.9",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/org.apache.commons/commons-text@1.8",
+      "licenses": [],
       "name": "commons-text",
       "org": "org.apache.commons",
       "package_manager": "maven",
       "purl": "pkg:maven/org.apache.commons/commons-text@1.8",
-      "version": "1.8"
+      "version": "1.8",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/org.apiguardian/apiguardian-api@1.1.2",
+      "licenses": [],
       "name": "apiguardian-api",
       "org": "org.apiguardian",
       "package_manager": "maven",
       "purl": "pkg:maven/org.apiguardian/apiguardian-api@1.1.2",
-      "version": "1.1.2"
+      "version": "1.1.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/org.junit.jupiter/junit-jupiter-api@5.10.2",
+      "licenses": [],
       "name": "junit-jupiter-api",
       "org": "org.junit.jupiter",
       "package_manager": "maven",
       "purl": "pkg:maven/org.junit.jupiter/junit-jupiter-api@5.10.2",
-      "version": "5.10.2"
+      "version": "5.10.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/org.junit.jupiter/junit-jupiter-engine@5.10.2",
+      "licenses": [],
       "name": "junit-jupiter-engine",
       "org": "org.junit.jupiter",
       "package_manager": "maven",
       "purl": "pkg:maven/org.junit.jupiter/junit-jupiter-engine@5.10.2",
-      "version": "5.10.2"
+      "version": "5.10.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/org.junit.jupiter/junit-jupiter-params@5.10.2",
+      "licenses": [],
       "name": "junit-jupiter-params",
       "org": "org.junit.jupiter",
       "package_manager": "maven",
       "purl": "pkg:maven/org.junit.jupiter/junit-jupiter-params@5.10.2",
-      "version": "5.10.2"
+      "version": "5.10.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/org.junit.jupiter/junit-jupiter@5.10.2",
+      "licenses": [],
       "name": "junit-jupiter",
       "org": "org.junit.jupiter",
       "package_manager": "maven",
       "purl": "pkg:maven/org.junit.jupiter/junit-jupiter@5.10.2",
-      "version": "5.10.2"
+      "version": "5.10.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/org.junit.platform/junit-platform-commons@1.10.2",
+      "licenses": [],
       "name": "junit-platform-commons",
       "org": "org.junit.platform",
       "package_manager": "maven",
       "purl": "pkg:maven/org.junit.platform/junit-platform-commons@1.10.2",
-      "version": "1.10.2"
+      "version": "1.10.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/org.junit.platform/junit-platform-engine@1.10.2",
+      "licenses": [],
       "name": "junit-platform-engine",
       "org": "org.junit.platform",
       "package_manager": "maven",
       "purl": "pkg:maven/org.junit.platform/junit-platform-engine@1.10.2",
-      "version": "1.10.2"
+      "version": "1.10.2",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "id": "pkg:maven/org.opentest4j/opentest4j@1.3.0",
+      "licenses": [],
       "name": "opentest4j",
       "org": "org.opentest4j",
       "package_manager": "maven",
       "purl": "pkg:maven/org.opentest4j/opentest4j@1.3.0",
-      "version": "1.3.0"
+      "version": "1.3.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5052,7 +5190,8 @@
       ],
       "name": "accepts",
       "purl": "pkg:npm/accepts@1.3.8",
-      "version": "1.3.8"
+      "version": "1.3.8",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5076,7 +5215,8 @@
       ],
       "name": "ajv",
       "purl": "pkg:npm/ajv@6.15.0",
-      "version": "6.15.0"
+      "version": "6.15.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5100,7 +5240,8 @@
       ],
       "name": "array-flatten",
       "purl": "pkg:npm/array-flatten@1.1.1",
-      "version": "1.1.1"
+      "version": "1.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5124,7 +5265,8 @@
       ],
       "name": "asn1",
       "purl": "pkg:npm/asn1@0.2.6",
-      "version": "0.2.6"
+      "version": "0.2.6",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5148,7 +5290,8 @@
       ],
       "name": "assert-plus",
       "purl": "pkg:npm/assert-plus@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5172,7 +5315,8 @@
       ],
       "name": "asynckit",
       "purl": "pkg:npm/asynckit@0.4.0",
-      "version": "0.4.0"
+      "version": "0.4.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5196,7 +5340,8 @@
       ],
       "name": "aws-sign2",
       "purl": "pkg:npm/aws-sign2@0.7.0",
-      "version": "0.7.0"
+      "version": "0.7.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5220,7 +5365,8 @@
       ],
       "name": "aws4",
       "purl": "pkg:npm/aws4@1.13.2",
-      "version": "1.13.2"
+      "version": "1.13.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5244,7 +5390,8 @@
       ],
       "name": "axios",
       "purl": "pkg:npm/axios@1.6.0",
-      "version": "1.6.0"
+      "version": "1.6.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5268,7 +5415,8 @@
       ],
       "name": "bcrypt-pbkdf",
       "purl": "pkg:npm/bcrypt-pbkdf@1.0.2",
-      "version": "1.0.2"
+      "version": "1.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5292,7 +5440,8 @@
       ],
       "name": "body-parser",
       "purl": "pkg:npm/body-parser@1.20.2",
-      "version": "1.20.2"
+      "version": "1.20.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5316,7 +5465,8 @@
       ],
       "name": "buffer-equal-constant-time",
       "purl": "pkg:npm/buffer-equal-constant-time@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5340,7 +5490,8 @@
       ],
       "name": "bytes",
       "purl": "pkg:npm/bytes@3.1.2",
-      "version": "3.1.2"
+      "version": "3.1.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5364,7 +5515,8 @@
       ],
       "name": "call-bind-apply-helpers",
       "purl": "pkg:npm/call-bind-apply-helpers@1.0.2",
-      "version": "1.0.2"
+      "version": "1.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5388,7 +5540,8 @@
       ],
       "name": "call-bound",
       "purl": "pkg:npm/call-bound@1.0.4",
-      "version": "1.0.4"
+      "version": "1.0.4",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5412,7 +5565,8 @@
       ],
       "name": "caseless",
       "purl": "pkg:npm/caseless@0.12.0",
-      "version": "0.12.0"
+      "version": "0.12.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5436,7 +5590,8 @@
       ],
       "name": "combined-stream",
       "purl": "pkg:npm/combined-stream@1.0.8",
-      "version": "1.0.8"
+      "version": "1.0.8",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5460,7 +5615,8 @@
       ],
       "name": "content-disposition",
       "purl": "pkg:npm/content-disposition@0.5.4",
-      "version": "0.5.4"
+      "version": "0.5.4",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5484,7 +5640,8 @@
       ],
       "name": "content-type",
       "purl": "pkg:npm/content-type@1.0.5",
-      "version": "1.0.5"
+      "version": "1.0.5",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5508,7 +5665,8 @@
       ],
       "name": "cookie-signature",
       "purl": "pkg:npm/cookie-signature@1.0.6",
-      "version": "1.0.6"
+      "version": "1.0.6",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5532,7 +5690,8 @@
       ],
       "name": "cookie",
       "purl": "pkg:npm/cookie@0.6.0",
-      "version": "0.6.0"
+      "version": "0.6.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5556,7 +5715,8 @@
       ],
       "name": "core-util-is",
       "purl": "pkg:npm/core-util-is@1.0.2",
-      "version": "1.0.2"
+      "version": "1.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5580,7 +5740,8 @@
       ],
       "name": "dashdash",
       "purl": "pkg:npm/dashdash@1.14.1",
-      "version": "1.14.1"
+      "version": "1.14.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5604,7 +5765,8 @@
       ],
       "name": "debug",
       "purl": "pkg:npm/debug@2.6.9",
-      "version": "2.6.9"
+      "version": "2.6.9",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5628,7 +5790,8 @@
       ],
       "name": "delayed-stream",
       "purl": "pkg:npm/delayed-stream@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5652,7 +5815,8 @@
       ],
       "name": "depd",
       "purl": "pkg:npm/depd@2.0.0",
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5676,7 +5840,8 @@
       ],
       "name": "destroy",
       "purl": "pkg:npm/destroy@1.2.0",
-      "version": "1.2.0"
+      "version": "1.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5700,7 +5865,8 @@
       ],
       "name": "dunder-proto",
       "purl": "pkg:npm/dunder-proto@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5724,7 +5890,8 @@
       ],
       "name": "ecc-jsbn",
       "purl": "pkg:npm/ecc-jsbn@0.1.2",
-      "version": "0.1.2"
+      "version": "0.1.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5748,7 +5915,8 @@
       ],
       "name": "ecdsa-sig-formatter",
       "purl": "pkg:npm/ecdsa-sig-formatter@1.0.11",
-      "version": "1.0.11"
+      "version": "1.0.11",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5772,7 +5940,8 @@
       ],
       "name": "ee-first",
       "purl": "pkg:npm/ee-first@1.1.1",
-      "version": "1.1.1"
+      "version": "1.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5796,7 +5965,8 @@
       ],
       "name": "encodeurl",
       "purl": "pkg:npm/encodeurl@1.0.2",
-      "version": "1.0.2"
+      "version": "1.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5820,7 +5990,8 @@
       ],
       "name": "es-define-property",
       "purl": "pkg:npm/es-define-property@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5844,7 +6015,8 @@
       ],
       "name": "es-errors",
       "purl": "pkg:npm/es-errors@1.3.0",
-      "version": "1.3.0"
+      "version": "1.3.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5868,7 +6040,8 @@
       ],
       "name": "es-object-atoms",
       "purl": "pkg:npm/es-object-atoms@1.1.2",
-      "version": "1.1.2"
+      "version": "1.1.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5892,7 +6065,8 @@
       ],
       "name": "es-set-tostringtag",
       "purl": "pkg:npm/es-set-tostringtag@2.1.0",
-      "version": "2.1.0"
+      "version": "2.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5916,7 +6090,8 @@
       ],
       "name": "escape-html",
       "purl": "pkg:npm/escape-html@1.0.3",
-      "version": "1.0.3"
+      "version": "1.0.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5940,7 +6115,8 @@
       ],
       "name": "etag",
       "purl": "pkg:npm/etag@1.8.1",
-      "version": "1.8.1"
+      "version": "1.8.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5964,7 +6140,8 @@
       ],
       "name": "express",
       "purl": "pkg:npm/express@4.19.2",
-      "version": "4.19.2"
+      "version": "4.19.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5988,7 +6165,8 @@
       ],
       "name": "extend",
       "purl": "pkg:npm/extend@3.0.2",
-      "version": "3.0.2"
+      "version": "3.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6012,7 +6190,8 @@
       ],
       "name": "extsprintf",
       "purl": "pkg:npm/extsprintf@1.3.0",
-      "version": "1.3.0"
+      "version": "1.3.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6036,7 +6215,8 @@
       ],
       "name": "fast-deep-equal",
       "purl": "pkg:npm/fast-deep-equal@3.1.3",
-      "version": "3.1.3"
+      "version": "3.1.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6060,7 +6240,8 @@
       ],
       "name": "fast-json-stable-stringify",
       "purl": "pkg:npm/fast-json-stable-stringify@2.1.0",
-      "version": "2.1.0"
+      "version": "2.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6084,7 +6265,8 @@
       ],
       "name": "finalhandler",
       "purl": "pkg:npm/finalhandler@1.2.0",
-      "version": "1.2.0"
+      "version": "1.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6108,7 +6290,8 @@
       ],
       "name": "follow-redirects",
       "purl": "pkg:npm/follow-redirects@1.16.0",
-      "version": "1.16.0"
+      "version": "1.16.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6132,7 +6315,8 @@
       ],
       "name": "forever-agent",
       "purl": "pkg:npm/forever-agent@0.6.1",
-      "version": "0.6.1"
+      "version": "0.6.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6156,7 +6340,8 @@
       ],
       "name": "form-data",
       "purl": "pkg:npm/form-data@2.3.3",
-      "version": "2.3.3"
+      "version": "2.3.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6180,7 +6365,8 @@
       ],
       "name": "form-data",
       "purl": "pkg:npm/form-data@4.0.6",
-      "version": "4.0.6"
+      "version": "4.0.6",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6204,7 +6390,8 @@
       ],
       "name": "forwarded",
       "purl": "pkg:npm/forwarded@0.2.0",
-      "version": "0.2.0"
+      "version": "0.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6228,7 +6415,8 @@
       ],
       "name": "fresh",
       "purl": "pkg:npm/fresh@0.5.2",
-      "version": "0.5.2"
+      "version": "0.5.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6252,7 +6440,8 @@
       ],
       "name": "function-bind",
       "purl": "pkg:npm/function-bind@1.1.2",
-      "version": "1.1.2"
+      "version": "1.1.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6276,7 +6465,8 @@
       ],
       "name": "get-intrinsic",
       "purl": "pkg:npm/get-intrinsic@1.3.0",
-      "version": "1.3.0"
+      "version": "1.3.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6300,7 +6490,8 @@
       ],
       "name": "get-proto",
       "purl": "pkg:npm/get-proto@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6324,7 +6515,8 @@
       ],
       "name": "getpass",
       "purl": "pkg:npm/getpass@0.1.7",
-      "version": "0.1.7"
+      "version": "0.1.7",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6348,7 +6540,8 @@
       ],
       "name": "gopd",
       "purl": "pkg:npm/gopd@1.2.0",
-      "version": "1.2.0"
+      "version": "1.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6372,7 +6565,8 @@
       ],
       "name": "har-schema",
       "purl": "pkg:npm/har-schema@2.0.0",
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6396,7 +6590,8 @@
       ],
       "name": "har-validator",
       "purl": "pkg:npm/har-validator@5.1.5",
-      "version": "5.1.5"
+      "version": "5.1.5",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6420,7 +6615,8 @@
       ],
       "name": "has-symbols",
       "purl": "pkg:npm/has-symbols@1.1.0",
-      "version": "1.1.0"
+      "version": "1.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6444,7 +6640,8 @@
       ],
       "name": "has-tostringtag",
       "purl": "pkg:npm/has-tostringtag@1.0.2",
-      "version": "1.0.2"
+      "version": "1.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6468,7 +6665,8 @@
       ],
       "name": "hasown",
       "purl": "pkg:npm/hasown@2.0.4",
-      "version": "2.0.4"
+      "version": "2.0.4",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6492,7 +6690,8 @@
       ],
       "name": "http-errors",
       "purl": "pkg:npm/http-errors@2.0.0",
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6516,7 +6715,8 @@
       ],
       "name": "http-signature",
       "purl": "pkg:npm/http-signature@1.2.0",
-      "version": "1.2.0"
+      "version": "1.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6540,7 +6740,8 @@
       ],
       "name": "iconv-lite",
       "purl": "pkg:npm/iconv-lite@0.4.24",
-      "version": "0.4.24"
+      "version": "0.4.24",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6564,7 +6765,8 @@
       ],
       "name": "inherits",
       "purl": "pkg:npm/inherits@2.0.4",
-      "version": "2.0.4"
+      "version": "2.0.4",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6588,7 +6790,8 @@
       ],
       "name": "ipaddr.js",
       "purl": "pkg:npm/ipaddr.js@1.9.1",
-      "version": "1.9.1"
+      "version": "1.9.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6612,7 +6815,8 @@
       ],
       "name": "is-typedarray",
       "purl": "pkg:npm/is-typedarray@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6636,7 +6840,8 @@
       ],
       "name": "isstream",
       "purl": "pkg:npm/isstream@0.1.2",
-      "version": "0.1.2"
+      "version": "0.1.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6660,7 +6865,8 @@
       ],
       "name": "jsbn",
       "purl": "pkg:npm/jsbn@0.1.1",
-      "version": "0.1.1"
+      "version": "0.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6684,7 +6890,8 @@
       ],
       "name": "json-schema-traverse",
       "purl": "pkg:npm/json-schema-traverse@0.4.1",
-      "version": "0.4.1"
+      "version": "0.4.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6708,7 +6915,8 @@
       ],
       "name": "json-schema",
       "purl": "pkg:npm/json-schema@0.4.0",
-      "version": "0.4.0"
+      "version": "0.4.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6732,7 +6940,8 @@
       ],
       "name": "json-stringify-safe",
       "purl": "pkg:npm/json-stringify-safe@5.0.1",
-      "version": "5.0.1"
+      "version": "5.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6756,7 +6965,8 @@
       ],
       "name": "jsonwebtoken",
       "purl": "pkg:npm/jsonwebtoken@8.5.1",
-      "version": "8.5.1"
+      "version": "8.5.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6780,7 +6990,8 @@
       ],
       "name": "jsprim",
       "purl": "pkg:npm/jsprim@1.4.2",
-      "version": "1.4.2"
+      "version": "1.4.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6804,7 +7015,8 @@
       ],
       "name": "jwa",
       "purl": "pkg:npm/jwa@1.4.2",
-      "version": "1.4.2"
+      "version": "1.4.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6828,7 +7040,8 @@
       ],
       "name": "jws",
       "purl": "pkg:npm/jws@3.2.3",
-      "version": "3.2.3"
+      "version": "3.2.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6852,7 +7065,8 @@
       ],
       "name": "lodash.includes",
       "purl": "pkg:npm/lodash.includes@4.3.0",
-      "version": "4.3.0"
+      "version": "4.3.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6876,7 +7090,8 @@
       ],
       "name": "lodash.isboolean",
       "purl": "pkg:npm/lodash.isboolean@3.0.3",
-      "version": "3.0.3"
+      "version": "3.0.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6900,7 +7115,8 @@
       ],
       "name": "lodash.isinteger",
       "purl": "pkg:npm/lodash.isinteger@4.0.4",
-      "version": "4.0.4"
+      "version": "4.0.4",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6924,7 +7140,8 @@
       ],
       "name": "lodash.isnumber",
       "purl": "pkg:npm/lodash.isnumber@3.0.3",
-      "version": "3.0.3"
+      "version": "3.0.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6948,7 +7165,8 @@
       ],
       "name": "lodash.isplainobject",
       "purl": "pkg:npm/lodash.isplainobject@4.0.6",
-      "version": "4.0.6"
+      "version": "4.0.6",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6972,7 +7190,8 @@
       ],
       "name": "lodash.isstring",
       "purl": "pkg:npm/lodash.isstring@4.0.1",
-      "version": "4.0.1"
+      "version": "4.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6996,7 +7215,8 @@
       ],
       "name": "lodash.once",
       "purl": "pkg:npm/lodash.once@4.1.1",
-      "version": "4.1.1"
+      "version": "4.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7020,7 +7240,8 @@
       ],
       "name": "lodash",
       "purl": "pkg:npm/lodash@4.17.20",
-      "version": "4.17.20"
+      "version": "4.17.20",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7044,7 +7265,8 @@
       ],
       "name": "math-intrinsics",
       "purl": "pkg:npm/math-intrinsics@1.1.0",
-      "version": "1.1.0"
+      "version": "1.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7068,7 +7290,8 @@
       ],
       "name": "media-typer",
       "purl": "pkg:npm/media-typer@0.3.0",
-      "version": "0.3.0"
+      "version": "0.3.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7092,7 +7315,8 @@
       ],
       "name": "merge-descriptors",
       "purl": "pkg:npm/merge-descriptors@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7116,7 +7340,8 @@
       ],
       "name": "methods",
       "purl": "pkg:npm/methods@1.1.2",
-      "version": "1.1.2"
+      "version": "1.1.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7140,7 +7365,8 @@
       ],
       "name": "mime-db",
       "purl": "pkg:npm/mime-db@1.52.0",
-      "version": "1.52.0"
+      "version": "1.52.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7164,7 +7390,8 @@
       ],
       "name": "mime-types",
       "purl": "pkg:npm/mime-types@2.1.35",
-      "version": "2.1.35"
+      "version": "2.1.35",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7188,7 +7415,8 @@
       ],
       "name": "mime",
       "purl": "pkg:npm/mime@1.6.0",
-      "version": "1.6.0"
+      "version": "1.6.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7212,7 +7440,8 @@
       ],
       "name": "ms",
       "purl": "pkg:npm/ms@2.0.0",
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7236,7 +7465,8 @@
       ],
       "name": "ms",
       "purl": "pkg:npm/ms@2.1.3",
-      "version": "2.1.3"
+      "version": "2.1.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7260,7 +7490,8 @@
       ],
       "name": "negotiator",
       "purl": "pkg:npm/negotiator@0.6.3",
-      "version": "0.6.3"
+      "version": "0.6.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7284,7 +7515,8 @@
       ],
       "name": "oauth-sign",
       "purl": "pkg:npm/oauth-sign@0.9.0",
-      "version": "0.9.0"
+      "version": "0.9.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7308,7 +7540,8 @@
       ],
       "name": "object-inspect",
       "purl": "pkg:npm/object-inspect@1.13.4",
-      "version": "1.13.4"
+      "version": "1.13.4",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7332,7 +7565,8 @@
       ],
       "name": "on-finished",
       "purl": "pkg:npm/on-finished@2.4.1",
-      "version": "2.4.1"
+      "version": "2.4.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7356,7 +7590,8 @@
       ],
       "name": "parseurl",
       "purl": "pkg:npm/parseurl@1.3.3",
-      "version": "1.3.3"
+      "version": "1.3.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7380,7 +7615,8 @@
       ],
       "name": "path-to-regexp",
       "purl": "pkg:npm/path-to-regexp@0.1.7",
-      "version": "0.1.7"
+      "version": "0.1.7",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7404,7 +7640,8 @@
       ],
       "name": "performance-now",
       "purl": "pkg:npm/performance-now@2.1.0",
-      "version": "2.1.0"
+      "version": "2.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7428,7 +7665,8 @@
       ],
       "name": "proxy-addr",
       "purl": "pkg:npm/proxy-addr@2.0.7",
-      "version": "2.0.7"
+      "version": "2.0.7",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7452,7 +7690,8 @@
       ],
       "name": "proxy-from-env",
       "purl": "pkg:npm/proxy-from-env@1.1.0",
-      "version": "1.1.0"
+      "version": "1.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7476,7 +7715,8 @@
       ],
       "name": "psl",
       "purl": "pkg:npm/psl@1.15.0",
-      "version": "1.15.0"
+      "version": "1.15.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7500,7 +7740,8 @@
       ],
       "name": "punycode",
       "purl": "pkg:npm/punycode@2.3.1",
-      "version": "2.3.1"
+      "version": "2.3.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7524,7 +7765,8 @@
       ],
       "name": "qs",
       "purl": "pkg:npm/qs@6.11.0",
-      "version": "6.11.0"
+      "version": "6.11.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7548,7 +7790,8 @@
       ],
       "name": "qs",
       "purl": "pkg:npm/qs@6.5.5",
-      "version": "6.5.5"
+      "version": "6.5.5",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7572,7 +7815,8 @@
       ],
       "name": "range-parser",
       "purl": "pkg:npm/range-parser@1.2.1",
-      "version": "1.2.1"
+      "version": "1.2.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7596,7 +7840,8 @@
       ],
       "name": "raw-body",
       "purl": "pkg:npm/raw-body@2.5.2",
-      "version": "2.5.2"
+      "version": "2.5.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7620,7 +7865,8 @@
       ],
       "name": "request",
       "purl": "pkg:npm/request@2.88.2",
-      "version": "2.88.2"
+      "version": "2.88.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7644,7 +7890,8 @@
       ],
       "name": "safe-buffer",
       "purl": "pkg:npm/safe-buffer@5.2.1",
-      "version": "5.2.1"
+      "version": "5.2.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7668,7 +7915,8 @@
       ],
       "name": "safer-buffer",
       "purl": "pkg:npm/safer-buffer@2.1.2",
-      "version": "2.1.2"
+      "version": "2.1.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7692,7 +7940,8 @@
       ],
       "name": "sax",
       "purl": "pkg:npm/sax@1.6.0",
-      "version": "1.6.0"
+      "version": "1.6.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7716,7 +7965,8 @@
       ],
       "name": "semver",
       "purl": "pkg:npm/semver@5.7.2",
-      "version": "5.7.2"
+      "version": "5.7.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7740,7 +7990,8 @@
       ],
       "name": "send",
       "purl": "pkg:npm/send@0.18.0",
-      "version": "0.18.0"
+      "version": "0.18.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7764,7 +8015,8 @@
       ],
       "name": "serve-static",
       "purl": "pkg:npm/serve-static@1.15.0",
-      "version": "1.15.0"
+      "version": "1.15.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7788,7 +8040,8 @@
       ],
       "name": "setprototypeof",
       "purl": "pkg:npm/setprototypeof@1.2.0",
-      "version": "1.2.0"
+      "version": "1.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7812,7 +8065,8 @@
       ],
       "name": "side-channel-list",
       "purl": "pkg:npm/side-channel-list@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7836,7 +8090,8 @@
       ],
       "name": "side-channel-map",
       "purl": "pkg:npm/side-channel-map@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7860,7 +8115,8 @@
       ],
       "name": "side-channel-weakmap",
       "purl": "pkg:npm/side-channel-weakmap@1.0.2",
-      "version": "1.0.2"
+      "version": "1.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7884,7 +8140,8 @@
       ],
       "name": "side-channel",
       "purl": "pkg:npm/side-channel@1.1.1",
-      "version": "1.1.1"
+      "version": "1.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7908,7 +8165,8 @@
       ],
       "name": "sshpk",
       "purl": "pkg:npm/sshpk@1.18.0",
-      "version": "1.18.0"
+      "version": "1.18.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7932,7 +8190,8 @@
       ],
       "name": "statuses",
       "purl": "pkg:npm/statuses@2.0.1",
-      "version": "2.0.1"
+      "version": "2.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7956,7 +8215,8 @@
       ],
       "name": "toidentifier",
       "purl": "pkg:npm/toidentifier@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7980,7 +8240,8 @@
       ],
       "name": "tough-cookie",
       "purl": "pkg:npm/tough-cookie@2.5.0",
-      "version": "2.5.0"
+      "version": "2.5.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8004,7 +8265,8 @@
       ],
       "name": "tunnel-agent",
       "purl": "pkg:npm/tunnel-agent@0.6.0",
-      "version": "0.6.0"
+      "version": "0.6.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8028,7 +8290,8 @@
       ],
       "name": "tweetnacl",
       "purl": "pkg:npm/tweetnacl@0.14.5",
-      "version": "0.14.5"
+      "version": "0.14.5",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8052,7 +8315,8 @@
       ],
       "name": "type-is",
       "purl": "pkg:npm/type-is@1.6.18",
-      "version": "1.6.18"
+      "version": "1.6.18",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8076,7 +8340,8 @@
       ],
       "name": "unpipe",
       "purl": "pkg:npm/unpipe@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8100,7 +8365,8 @@
       ],
       "name": "uri-js",
       "purl": "pkg:npm/uri-js@4.4.1",
-      "version": "4.4.1"
+      "version": "4.4.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8124,7 +8390,8 @@
       ],
       "name": "utils-merge",
       "purl": "pkg:npm/utils-merge@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8148,7 +8415,8 @@
       ],
       "name": "uuid",
       "purl": "pkg:npm/uuid@3.4.0",
-      "version": "3.4.0"
+      "version": "3.4.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8172,7 +8440,8 @@
       ],
       "name": "vary",
       "purl": "pkg:npm/vary@1.1.2",
-      "version": "1.1.2"
+      "version": "1.1.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8196,7 +8465,8 @@
       ],
       "name": "verror",
       "purl": "pkg:npm/verror@1.10.0",
-      "version": "1.10.0"
+      "version": "1.10.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8220,7 +8490,8 @@
       ],
       "name": "xml2js",
       "purl": "pkg:npm/xml2js@0.6.2",
-      "version": "0.6.2"
+      "version": "0.6.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8244,7 +8515,8 @@
       ],
       "name": "xmlbuilder",
       "purl": "pkg:npm/xmlbuilder@11.0.1",
-      "version": "11.0.1"
+      "version": "11.0.1",
+      "vulnerabilities": []
     }
   ],
   "run": {
@@ -8262,5 +8534,7 @@
     "kind": "git-repository",
     "ref": "fc32147b3be526ea6c5d563a505c867f4bae93f3",
     "repository_url": "https://github.com/bomly-dev/bomly-agent-study"
-  }
+  },
+  "waivers": [],
+  "warnings": []
 }

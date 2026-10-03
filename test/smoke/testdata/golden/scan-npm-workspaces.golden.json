@@ -5,6 +5,7 @@
     "manifests": "\u003cnormalized\u003e",
     "packages": "\u003cnormalized\u003e"
   },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -15,6 +16,7 @@
             "pkg:npm/minimist@1.2.5"
           ],
           "id": "module:apps/web/package.json#pkg:npm/web@1.0.0",
+          "licenses": [],
           "name": "web",
           "purl": "pkg:npm/web@1.0.0",
           "version": "1.0.0"
@@ -25,11 +27,13 @@
             "pkg:npm/minimist@1.2.5"
           ],
           "id": "module:packages/lib/package.json#pkg:npm/lib@1.0.0",
+          "licenses": [],
           "name": "lib",
           "purl": "pkg:npm/lib@1.0.0",
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/left-pad@1.3.0",
           "licenses": [
             {
@@ -62,6 +66,7 @@
           "version": "1.3.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/lodash@4.17.20",
           "licenses": [
             {
@@ -104,6 +109,7 @@
           "version": "4.17.20"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/minimist@1.2.5",
           "licenses": [
             {
@@ -163,11 +169,13 @@
             "pkg:npm/ms@2.1.3"
           ],
           "id": "module:package.json#pkg:npm/example-javascript-npm-workspaces@1.0.0",
+          "licenses": [],
           "name": "example-javascript-npm-workspaces",
           "purl": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/ms@2.1.3",
           "licenses": [
             {
@@ -215,11 +223,13 @@
             "pkg:npm/minimist@1.2.5"
           ],
           "id": "module:packages/lib/package.json#pkg:npm/lib@1.0.0",
+          "licenses": [],
           "name": "lib",
           "purl": "pkg:npm/lib@1.0.0",
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/lodash@4.17.20",
           "licenses": [
             {
@@ -262,6 +272,7 @@
           "version": "4.17.20"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/minimist@1.2.5",
           "licenses": [
             {
@@ -338,7 +349,8 @@
       ],
       "name": "left-pad",
       "purl": "pkg:npm/left-pad@1.3.0",
-      "version": "1.3.0"
+      "version": "1.3.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -362,7 +374,8 @@
       ],
       "name": "lodash",
       "purl": "pkg:npm/lodash@4.17.20",
-      "version": "4.17.20"
+      "version": "4.17.20",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -386,7 +399,8 @@
       ],
       "name": "minimist",
       "purl": "pkg:npm/minimist@1.2.5",
-      "version": "1.2.5"
+      "version": "1.2.5",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -410,7 +424,8 @@
       ],
       "name": "ms",
       "purl": "pkg:npm/ms@2.1.3",
-      "version": "2.1.3"
+      "version": "2.1.3",
+      "vulnerabilities": []
     }
   ],
   "run": {
@@ -428,5 +443,7 @@
     "kind": "git-repository",
     "ref": "v1.0.0",
     "repository_url": "https://github.com/bomly-dev/example-javascript-npm-workspaces"
-  }
+  },
+  "waivers": [],
+  "warnings": []
 }

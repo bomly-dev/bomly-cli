@@ -228,6 +228,10 @@
                   "type": "string"
                 }
               },
+              "required": [
+                "depends_on",
+                "licenses"
+              ],
               "type": "object"
             },
             "type": "array"
@@ -390,6 +394,9 @@
             "type": "string"
           }
         },
+        "required": [
+          "dependencies"
+        ],
         "type": "object"
       },
       "type": "array"
@@ -1635,7 +1642,12 @@
     }
   },
   "required": [
-    "schema_version"
+    "schema_version",
+    "manifests",
+    "packages",
+    "findings",
+    "warnings",
+    "waivers"
   ],
   "title": "Bomly scan output",
   "type": "object"

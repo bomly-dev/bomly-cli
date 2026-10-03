@@ -5,6 +5,7 @@
     "manifests": "\u003cnormalized\u003e",
     "packages": "\u003cnormalized\u003e"
   },
+  "findings": [],
   "manifests": [
     {
       "dependencies": [
@@ -26,12 +27,15 @@
             "pkg:npm/url@0.11.0"
           ],
           "id": "module:package.json#pkg:npm/example-javascript-vulnerable-methods@0.0.1",
+          "licenses": [],
           "name": "example-javascript-vulnerable-methods",
           "purl": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
           "version": "0.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/algo-httpserv@1.1.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -58,7 +62,9 @@
           "version": "1.1.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/ansi-colors@3.2.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -85,7 +91,9 @@
           "version": "3.2.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/ansi-regex@3.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -112,7 +120,9 @@
           "version": "3.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/ansi-regex@4.1.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -169,6 +179,7 @@
             "pkg:npm/color-convert@1.9.3"
           ],
           "id": "pkg:npm/ansi-styles@3.2.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -200,6 +211,7 @@
             "pkg:npm/picomatch@2.2.2"
           ],
           "id": "pkg:npm/anymatch@3.1.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -230,6 +242,7 @@
             "pkg:npm/sprintf-js@1.0.3"
           ],
           "id": "pkg:npm/argparse@1.0.10",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -260,6 +273,7 @@
             "pkg:npm/lodash@4.17.15"
           ],
           "id": "pkg:npm/async@2.6.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -286,7 +300,9 @@
           "version": "2.6.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/balanced-match@1.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -313,7 +329,9 @@
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/binary-extensions@2.1.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -345,6 +363,7 @@
             "pkg:npm/concat-map@0.0.1"
           ],
           "id": "pkg:npm/brace-expansion@1.1.11",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -375,6 +394,7 @@
             "pkg:npm/fill-range@7.0.1"
           ],
           "id": "pkg:npm/braces@3.0.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -401,7 +421,9 @@
           "version": "3.0.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/browser-stdout@1.3.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -433,6 +455,7 @@
             "pkg:npm/readable-stream@1.1.14"
           ],
           "id": "pkg:npm/busboy@0.2.14",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -458,7 +481,9 @@
           "version": "0.2.14"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/camelcase@5.3.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -491,6 +516,7 @@
             "pkg:npm/supports-color@5.5.0"
           ],
           "id": "pkg:npm/chalk@2.4.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -528,6 +554,7 @@
             "pkg:npm/readdirp@3.2.0"
           ],
           "id": "pkg:npm/chokidar@3.3.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -560,6 +587,7 @@
             "pkg:npm/wrap-ansi@5.1.0"
           ],
           "id": "pkg:npm/cliui@5.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -590,6 +618,7 @@
             "pkg:npm/color-name@1.1.3"
           ],
           "id": "pkg:npm/color-convert@1.9.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -616,7 +645,9 @@
           "version": "1.9.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/color-name@1.1.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -643,7 +674,9 @@
           "version": "1.1.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/concat-map@0.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -670,7 +703,9 @@
           "version": "0.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/core-util-is@1.0.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -701,6 +736,7 @@
             "pkg:npm/ms@2.1.1"
           ],
           "id": "pkg:npm/debug@3.2.6",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -727,7 +763,9 @@
           "version": "3.2.6"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/decamelize@1.2.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -758,6 +796,7 @@
             "pkg:npm/object-keys@1.1.1"
           ],
           "id": "pkg:npm/define-properties@1.1.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -789,6 +828,7 @@
             "pkg:npm/streamsearch@0.1.2"
           ],
           "id": "pkg:npm/dicer@0.2.5",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -815,7 +855,9 @@
           "version": "0.2.5"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/diff@3.5.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -842,7 +884,9 @@
           "version": "3.5.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/emoji-regex@7.0.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -883,6 +927,7 @@
             "pkg:npm/string.prototype.trimstart@1.0.1"
           ],
           "id": "pkg:npm/es-abstract@1.17.6",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -915,6 +960,7 @@
             "pkg:npm/is-symbol@1.0.3"
           ],
           "id": "pkg:npm/es-to-primitive@1.2.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -941,7 +987,9 @@
           "version": "1.2.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/escape-string-regexp@1.0.5",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -968,7 +1016,9 @@
           "version": "1.0.5"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/esprima@4.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -999,6 +1049,7 @@
             "pkg:npm/to-regex-range@5.0.1"
           ],
           "id": "pkg:npm/fill-range@7.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1029,6 +1080,7 @@
             "pkg:npm/locate-path@3.0.0"
           ],
           "id": "pkg:npm/find-up@3.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1059,6 +1111,7 @@
             "pkg:npm/is-buffer@2.0.4"
           ],
           "id": "pkg:npm/flat@4.1.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1091,6 +1144,7 @@
             "pkg:npm/universalify@0.1.2"
           ],
           "id": "pkg:npm/fs-extra@7.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1117,7 +1171,9 @@
           "version": "7.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/fs.realpath@1.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1144,7 +1200,9 @@
           "version": "1.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/fsevents@2.1.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1171,7 +1229,9 @@
           "version": "2.1.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/function-bind@1.1.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1199,7 +1259,9 @@
           "version": "1.1.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/get-caller-file@2.0.5",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1230,6 +1292,7 @@
             "pkg:npm/is-glob@4.0.1"
           ],
           "id": "pkg:npm/glob-parent@5.1.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1265,6 +1328,7 @@
             "pkg:npm/path-is-absolute@1.0.1"
           ],
           "id": "pkg:npm/glob@7.1.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1291,7 +1355,9 @@
           "version": "7.1.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/graceful-fs@4.2.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1318,7 +1384,9 @@
           "version": "4.2.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/growl@1.10.5",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1345,7 +1413,9 @@
           "version": "1.10.5"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/handy@0.0.13",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1371,7 +1441,9 @@
           "version": "0.0.13"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/has-flag@3.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1398,7 +1470,9 @@
           "version": "3.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/has-symbols@1.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1429,6 +1503,7 @@
             "pkg:npm/function-bind@1.1.1"
           ],
           "id": "pkg:npm/has@1.0.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1455,7 +1530,9 @@
           "version": "1.0.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/he@1.2.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1482,7 +1559,9 @@
           "version": "1.2.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/htmlparser@1.7.7",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1513,6 +1592,7 @@
             "pkg:npm/wrappy@1.0.2"
           ],
           "id": "pkg:npm/inflight@1.0.6",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1539,7 +1619,9 @@
           "version": "1.0.6"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/inherits@2.0.4",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1571,6 +1653,7 @@
             "pkg:npm/binary-extensions@2.1.0"
           ],
           "id": "pkg:npm/is-binary-path@2.1.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1597,7 +1680,9 @@
           "version": "2.1.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/is-buffer@2.0.4",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1624,7 +1709,9 @@
           "version": "2.0.4"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/is-callable@1.2.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1651,7 +1738,9 @@
           "version": "1.2.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/is-date-object@1.0.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1678,7 +1767,9 @@
           "version": "1.0.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/is-extglob@2.1.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1705,7 +1796,9 @@
           "version": "2.1.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/is-fullwidth-code-point@2.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1736,6 +1829,7 @@
             "pkg:npm/is-extglob@2.1.1"
           ],
           "id": "pkg:npm/is-glob@4.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1762,7 +1856,9 @@
           "version": "4.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/is-number@7.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1793,6 +1889,7 @@
             "pkg:npm/has-symbols@1.0.1"
           ],
           "id": "pkg:npm/is-regex@1.1.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1823,6 +1920,7 @@
             "pkg:npm/has-symbols@1.0.1"
           ],
           "id": "pkg:npm/is-symbol@1.0.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1849,7 +1947,9 @@
           "version": "1.0.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/is@3.3.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1876,7 +1976,9 @@
           "version": "3.3.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/isarray@0.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1903,7 +2005,9 @@
           "version": "0.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/isexe@2.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1935,6 +2039,7 @@
             "pkg:npm/esprima@4.0.1"
           ],
           "id": "pkg:npm/js-yaml@3.13.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1966,6 +2071,7 @@
             "pkg:npm/esprima@4.0.1"
           ],
           "id": "pkg:npm/js-yaml@3.13.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -1996,6 +2102,7 @@
             "pkg:npm/graceful-fs@4.2.3"
           ],
           "id": "pkg:npm/jsonfile@4.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2027,6 +2134,7 @@
             "pkg:npm/uuid@3.4.0"
           ],
           "id": "pkg:npm/larvitbase@3.1.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2057,6 +2165,7 @@
             "pkg:npm/larvitutils@2.3.0"
           ],
           "id": "pkg:npm/larvitfs@2.3.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2092,6 +2201,7 @@
             "pkg:npm/uuid@3.4.0"
           ],
           "id": "pkg:npm/larvitreqparser@0.2.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2123,6 +2233,7 @@
             "pkg:npm/larvitutils@2.3.0"
           ],
           "id": "pkg:npm/larvitrouter@3.0.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2149,7 +2260,9 @@
           "version": "3.0.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/larvitutils@2.3.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2181,6 +2294,7 @@
             "pkg:npm/path-exists@3.0.0"
           ],
           "id": "pkg:npm/locate-path@3.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2207,7 +2321,9 @@
           "version": "3.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/lodash@4.17.15",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2238,6 +2354,7 @@
             "pkg:npm/chalk@2.4.2"
           ],
           "id": "pkg:npm/log-symbols@3.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2264,7 +2381,9 @@
           "version": "3.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/marked@0.3.19",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2295,6 +2414,7 @@
             "pkg:npm/brace-expansion@1.1.11"
           ],
           "id": "pkg:npm/minimatch@3.0.4",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2321,7 +2441,9 @@
           "version": "3.0.4"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/minimist@0.0.10",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2348,7 +2470,9 @@
           "version": "0.0.10"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/minimist@1.2.5",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2379,6 +2503,7 @@
             "pkg:npm/minimist@1.2.5"
           ],
           "id": "pkg:npm/mkdirp@0.5.5",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2432,6 +2557,7 @@
             "pkg:npm/yargs@13.3.2"
           ],
           "id": "pkg:npm/mocha@7.2.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2458,7 +2584,9 @@
           "version": "7.2.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/ms@2.1.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2490,6 +2618,7 @@
             "pkg:npm/semver@5.7.1"
           ],
           "id": "pkg:npm/node-environment-flags@1.0.6",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2521,6 +2650,7 @@
             "pkg:npm/node.extend@2.0.2"
           ],
           "id": "pkg:npm/node-yaml-config@0.0.5",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2552,6 +2682,7 @@
             "pkg:npm/is@3.3.0"
           ],
           "id": "pkg:npm/node.extend@2.0.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2578,7 +2709,9 @@
           "version": "2.0.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/normalize-path@3.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2605,7 +2738,9 @@
           "version": "3.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/object-inspect@1.8.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2632,7 +2767,9 @@
           "version": "1.8.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/object-keys@1.1.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2666,6 +2803,7 @@
             "pkg:npm/object-keys@1.1.1"
           ],
           "id": "pkg:npm/object.assign@4.1.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2697,6 +2835,7 @@
             "pkg:npm/es-abstract@1.17.6"
           ],
           "id": "pkg:npm/object.getownpropertydescriptors@2.1.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2727,6 +2866,7 @@
             "pkg:npm/wrappy@1.0.2"
           ],
           "id": "pkg:npm/once@1.4.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2758,6 +2898,7 @@
             "pkg:npm/wordwrap@0.0.3"
           ],
           "id": "pkg:npm/optimist@0.6.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2788,6 +2929,7 @@
             "pkg:npm/p-try@2.2.0"
           ],
           "id": "pkg:npm/p-limit@2.3.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2818,6 +2960,7 @@
             "pkg:npm/p-limit@2.3.0"
           ],
           "id": "pkg:npm/p-locate@3.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2844,7 +2987,9 @@
           "version": "3.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/p-try@2.2.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2871,7 +3016,9 @@
           "version": "2.2.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/path-exists@3.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2898,7 +3045,9 @@
           "version": "3.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/path-is-absolute@1.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2925,7 +3074,9 @@
           "version": "1.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/picomatch@2.2.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2952,7 +3103,9 @@
           "version": "2.2.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/punycode@1.3.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -2979,7 +3132,9 @@
           "version": "1.3.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/qs@6.9.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3006,7 +3161,9 @@
           "version": "6.9.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/querystring@0.2.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3040,6 +3197,7 @@
             "pkg:npm/string_decoder@0.10.31"
           ],
           "id": "pkg:npm/readable-stream@1.1.14",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3070,6 +3228,7 @@
             "pkg:npm/picomatch@2.2.2"
           ],
           "id": "pkg:npm/readdirp@3.2.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3096,7 +3255,9 @@
           "version": "3.2.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/require-directory@2.1.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3123,7 +3284,9 @@
           "version": "2.1.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/require-main-filename@2.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3150,7 +3313,9 @@
           "version": "2.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/semver@5.7.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3177,7 +3342,9 @@
           "version": "5.7.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/set-blocking@2.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3204,7 +3371,9 @@
           "version": "2.0.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/sprintf-js@1.0.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3231,7 +3400,9 @@
           "version": "1.0.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/streamsearch@0.1.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3262,6 +3433,7 @@
             "pkg:npm/strip-ansi@4.0.0"
           ],
           "id": "pkg:npm/string-width@2.1.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3294,6 +3466,7 @@
             "pkg:npm/strip-ansi@5.2.0"
           ],
           "id": "pkg:npm/string-width@3.1.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3351,6 +3524,7 @@
             "pkg:npm/es-abstract@1.17.6"
           ],
           "id": "pkg:npm/string.prototype.trimend@1.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3382,6 +3556,7 @@
             "pkg:npm/es-abstract@1.17.6"
           ],
           "id": "pkg:npm/string.prototype.trimstart@1.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3408,7 +3583,9 @@
           "version": "1.0.1"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/string_decoder@0.10.31",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3439,6 +3616,7 @@
             "pkg:npm/ansi-regex@3.0.0"
           ],
           "id": "pkg:npm/strip-ansi@4.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3469,6 +3647,7 @@
             "pkg:npm/ansi-regex@4.1.0"
           ],
           "id": "pkg:npm/strip-ansi@5.2.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3521,7 +3700,9 @@
           "version": "5.2.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/strip-json-comments@2.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3552,6 +3733,7 @@
             "pkg:npm/has-flag@3.0.0"
           ],
           "id": "pkg:npm/supports-color@5.5.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3582,6 +3764,7 @@
             "pkg:npm/has-flag@3.0.0"
           ],
           "id": "pkg:npm/supports-color@6.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3612,6 +3795,7 @@
             "pkg:npm/is-number@7.0.0"
           ],
           "id": "pkg:npm/to-regex-range@5.0.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3646,6 +3830,7 @@
             "pkg:npm/underscore@1.9.2"
           ],
           "id": "pkg:npm/to@0.2.9",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3671,7 +3856,9 @@
           "version": "0.2.9"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/underscore@1.9.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3698,7 +3885,9 @@
           "version": "1.9.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/universalify@0.1.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3730,6 +3919,7 @@
             "pkg:npm/querystring@0.2.0"
           ],
           "id": "pkg:npm/url@0.11.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3756,7 +3946,9 @@
           "version": "0.11.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/uuid@3.4.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3783,7 +3975,9 @@
           "version": "3.4.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/which-module@2.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3814,6 +4008,7 @@
             "pkg:npm/isexe@2.0.0"
           ],
           "id": "pkg:npm/which@1.3.1",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3844,6 +4039,7 @@
             "pkg:npm/string-width@2.1.1"
           ],
           "id": "pkg:npm/wide-align@1.1.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3870,7 +4066,9 @@
           "version": "1.1.3"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/wordwrap@0.0.3",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3903,6 +4101,7 @@
             "pkg:npm/strip-ansi@5.2.0"
           ],
           "id": "pkg:npm/wrap-ansi@5.1.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3929,7 +4128,9 @@
           "version": "5.1.0"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/wrappy@1.0.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3956,7 +4157,9 @@
           "version": "1.0.2"
         },
         {
+          "depends_on": [],
           "id": "pkg:npm/y18n@4.0.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -3988,6 +4191,7 @@
             "pkg:npm/decamelize@1.2.0"
           ],
           "id": "pkg:npm/yargs-parser@13.1.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -4020,6 +4224,7 @@
             "pkg:npm/yargs@13.3.2"
           ],
           "id": "pkg:npm/yargs-unparser@1.6.0",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -4059,6 +4264,7 @@
             "pkg:npm/yargs-parser@13.1.2"
           ],
           "id": "pkg:npm/yargs@13.3.2",
+          "licenses": [],
           "locations": [
             {
               "access_path": "package-lock.json",
@@ -4234,7 +4440,8 @@
       "matched": true,
       "name": "ansi-colors",
       "purl": "pkg:npm/ansi-colors@3.2.3",
-      "version": "3.2.3"
+      "version": "3.2.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -4503,7 +4710,8 @@
       "matched": true,
       "name": "ansi-styles",
       "purl": "pkg:npm/ansi-styles@3.2.1",
-      "version": "3.2.1"
+      "version": "3.2.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -4530,7 +4738,8 @@
       "matched": true,
       "name": "anymatch",
       "purl": "pkg:npm/anymatch@3.1.1",
-      "version": "3.1.1"
+      "version": "3.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -4557,7 +4766,8 @@
       "matched": true,
       "name": "argparse",
       "purl": "pkg:npm/argparse@1.0.10",
-      "version": "1.0.10"
+      "version": "1.0.10",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -4705,7 +4915,8 @@
       "matched": true,
       "name": "balanced-match",
       "purl": "pkg:npm/balanced-match@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -4732,7 +4943,8 @@
       "matched": true,
       "name": "binary-extensions",
       "purl": "pkg:npm/binary-extensions@2.1.0",
-      "version": "2.1.0"
+      "version": "2.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5604,7 +5816,8 @@
       "matched": true,
       "name": "browser-stdout",
       "purl": "pkg:npm/browser-stdout@1.3.1",
-      "version": "1.3.1"
+      "version": "1.3.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5620,9 +5833,11 @@
       ],
       "ecosystem": "npm",
       "id": "pkg:npm/busboy@0.2.14",
+      "licenses": [],
       "name": "busboy",
       "purl": "pkg:npm/busboy@0.2.14",
-      "version": "0.2.14"
+      "version": "0.2.14",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5649,7 +5864,8 @@
       "matched": true,
       "name": "camelcase",
       "purl": "pkg:npm/camelcase@5.3.1",
-      "version": "5.3.1"
+      "version": "5.3.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5676,7 +5892,8 @@
       "matched": true,
       "name": "chalk",
       "purl": "pkg:npm/chalk@2.4.2",
-      "version": "2.4.2"
+      "version": "2.4.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5703,7 +5920,8 @@
       "matched": true,
       "name": "chokidar",
       "purl": "pkg:npm/chokidar@3.3.0",
-      "version": "3.3.0"
+      "version": "3.3.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5730,7 +5948,8 @@
       "matched": true,
       "name": "cliui",
       "purl": "pkg:npm/cliui@5.0.0",
-      "version": "5.0.0"
+      "version": "5.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5757,7 +5976,8 @@
       "matched": true,
       "name": "color-convert",
       "purl": "pkg:npm/color-convert@1.9.3",
-      "version": "1.9.3"
+      "version": "1.9.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5784,7 +6004,8 @@
       "matched": true,
       "name": "color-name",
       "purl": "pkg:npm/color-name@1.1.3",
-      "version": "1.1.3"
+      "version": "1.1.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5811,7 +6032,8 @@
       "matched": true,
       "name": "concat-map",
       "purl": "pkg:npm/concat-map@0.0.1",
-      "version": "0.0.1"
+      "version": "0.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5838,7 +6060,8 @@
       "matched": true,
       "name": "core-util-is",
       "purl": "pkg:npm/core-util-is@1.0.2",
-      "version": "1.0.2"
+      "version": "1.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -5986,7 +6209,8 @@
       "matched": true,
       "name": "decamelize",
       "purl": "pkg:npm/decamelize@1.2.0",
-      "version": "1.2.0"
+      "version": "1.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6013,7 +6237,8 @@
       "matched": true,
       "name": "define-properties",
       "purl": "pkg:npm/define-properties@1.1.3",
-      "version": "1.1.3"
+      "version": "1.1.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6029,6 +6254,7 @@
       ],
       "ecosystem": "npm",
       "id": "pkg:npm/dicer@0.2.5",
+      "licenses": [],
       "matched": true,
       "name": "dicer",
       "purl": "pkg:npm/dicer@0.2.5",
@@ -6253,7 +6479,8 @@
       "matched": true,
       "name": "emoji-regex",
       "purl": "pkg:npm/emoji-regex@7.0.3",
-      "version": "7.0.3"
+      "version": "7.0.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6280,7 +6507,8 @@
       "matched": true,
       "name": "es-abstract",
       "purl": "pkg:npm/es-abstract@1.17.6",
-      "version": "1.17.6"
+      "version": "1.17.6",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6307,7 +6535,8 @@
       "matched": true,
       "name": "es-to-primitive",
       "purl": "pkg:npm/es-to-primitive@1.2.1",
-      "version": "1.2.1"
+      "version": "1.2.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6334,7 +6563,8 @@
       "matched": true,
       "name": "escape-string-regexp",
       "purl": "pkg:npm/escape-string-regexp@1.0.5",
-      "version": "1.0.5"
+      "version": "1.0.5",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6361,7 +6591,8 @@
       "matched": true,
       "name": "esprima",
       "purl": "pkg:npm/esprima@4.0.1",
-      "version": "4.0.1"
+      "version": "4.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6388,7 +6619,8 @@
       "matched": true,
       "name": "fill-range",
       "purl": "pkg:npm/fill-range@7.0.1",
-      "version": "7.0.1"
+      "version": "7.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6415,7 +6647,8 @@
       "matched": true,
       "name": "find-up",
       "purl": "pkg:npm/find-up@3.0.0",
-      "version": "3.0.0"
+      "version": "3.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6442,7 +6675,8 @@
       "matched": true,
       "name": "flat",
       "purl": "pkg:npm/flat@4.1.0",
-      "version": "4.1.0"
+      "version": "4.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6469,7 +6703,8 @@
       "matched": true,
       "name": "fs-extra",
       "purl": "pkg:npm/fs-extra@7.0.1",
-      "version": "7.0.1"
+      "version": "7.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6496,7 +6731,8 @@
       "matched": true,
       "name": "fs.realpath",
       "purl": "pkg:npm/fs.realpath@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6523,7 +6759,8 @@
       "matched": true,
       "name": "fsevents",
       "purl": "pkg:npm/fsevents@2.1.3",
-      "version": "2.1.3"
+      "version": "2.1.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6550,7 +6787,8 @@
       "matched": true,
       "name": "function-bind",
       "purl": "pkg:npm/function-bind@1.1.1",
-      "version": "1.1.1"
+      "version": "1.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6577,7 +6815,8 @@
       "matched": true,
       "name": "get-caller-file",
       "purl": "pkg:npm/get-caller-file@2.0.5",
-      "version": "2.0.5"
+      "version": "2.0.5",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6725,7 +6964,8 @@
       "matched": true,
       "name": "glob",
       "purl": "pkg:npm/glob@7.1.3",
-      "version": "7.1.3"
+      "version": "7.1.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6752,7 +6992,8 @@
       "matched": true,
       "name": "graceful-fs",
       "purl": "pkg:npm/graceful-fs@4.2.3",
-      "version": "4.2.3"
+      "version": "4.2.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6779,7 +7020,8 @@
       "matched": true,
       "name": "growl",
       "purl": "pkg:npm/growl@1.10.5",
-      "version": "1.10.5"
+      "version": "1.10.5",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6795,9 +7037,11 @@
       ],
       "ecosystem": "npm",
       "id": "pkg:npm/handy@0.0.13",
+      "licenses": [],
       "name": "handy",
       "purl": "pkg:npm/handy@0.0.13",
-      "version": "0.0.13"
+      "version": "0.0.13",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6824,7 +7068,8 @@
       "matched": true,
       "name": "has-flag",
       "purl": "pkg:npm/has-flag@3.0.0",
-      "version": "3.0.0"
+      "version": "3.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6851,7 +7096,8 @@
       "matched": true,
       "name": "has-symbols",
       "purl": "pkg:npm/has-symbols@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6878,7 +7124,8 @@
       "matched": true,
       "name": "has",
       "purl": "pkg:npm/has@1.0.3",
-      "version": "1.0.3"
+      "version": "1.0.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6905,7 +7152,8 @@
       "matched": true,
       "name": "he",
       "purl": "pkg:npm/he@1.2.0",
-      "version": "1.2.0"
+      "version": "1.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6921,9 +7169,11 @@
       ],
       "ecosystem": "npm",
       "id": "pkg:npm/htmlparser@1.7.7",
+      "licenses": [],
       "name": "htmlparser",
       "purl": "pkg:npm/htmlparser@1.7.7",
-      "version": "1.7.7"
+      "version": "1.7.7",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6950,7 +7200,8 @@
       "matched": true,
       "name": "inflight",
       "purl": "pkg:npm/inflight@1.0.6",
-      "version": "1.0.6"
+      "version": "1.0.6",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -6977,7 +7228,8 @@
       "matched": true,
       "name": "inherits",
       "purl": "pkg:npm/inherits@2.0.4",
-      "version": "2.0.4"
+      "version": "2.0.4",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7004,7 +7256,8 @@
       "matched": true,
       "name": "is-binary-path",
       "purl": "pkg:npm/is-binary-path@2.1.0",
-      "version": "2.1.0"
+      "version": "2.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7031,7 +7284,8 @@
       "matched": true,
       "name": "is-buffer",
       "purl": "pkg:npm/is-buffer@2.0.4",
-      "version": "2.0.4"
+      "version": "2.0.4",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7058,7 +7312,8 @@
       "matched": true,
       "name": "is-callable",
       "purl": "pkg:npm/is-callable@1.2.2",
-      "version": "1.2.2"
+      "version": "1.2.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7085,7 +7340,8 @@
       "matched": true,
       "name": "is-date-object",
       "purl": "pkg:npm/is-date-object@1.0.2",
-      "version": "1.0.2"
+      "version": "1.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7112,7 +7368,8 @@
       "matched": true,
       "name": "is-extglob",
       "purl": "pkg:npm/is-extglob@2.1.1",
-      "version": "2.1.1"
+      "version": "2.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7139,7 +7396,8 @@
       "matched": true,
       "name": "is-fullwidth-code-point",
       "purl": "pkg:npm/is-fullwidth-code-point@2.0.0",
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7166,7 +7424,8 @@
       "matched": true,
       "name": "is-glob",
       "purl": "pkg:npm/is-glob@4.0.1",
-      "version": "4.0.1"
+      "version": "4.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7193,7 +7452,8 @@
       "matched": true,
       "name": "is-number",
       "purl": "pkg:npm/is-number@7.0.0",
-      "version": "7.0.0"
+      "version": "7.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7220,7 +7480,8 @@
       "matched": true,
       "name": "is-regex",
       "purl": "pkg:npm/is-regex@1.1.1",
-      "version": "1.1.1"
+      "version": "1.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7247,7 +7508,8 @@
       "matched": true,
       "name": "is-symbol",
       "purl": "pkg:npm/is-symbol@1.0.3",
-      "version": "1.0.3"
+      "version": "1.0.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7274,7 +7536,8 @@
       "matched": true,
       "name": "is",
       "purl": "pkg:npm/is@3.3.0",
-      "version": "3.3.0"
+      "version": "3.3.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7301,7 +7564,8 @@
       "matched": true,
       "name": "isarray",
       "purl": "pkg:npm/isarray@0.0.1",
-      "version": "0.0.1"
+      "version": "0.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -7328,7 +7592,8 @@
       "matched": true,
       "name": "isexe",
       "purl": "pkg:npm/isexe@2.0.0",
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8255,7 +8520,8 @@
       "matched": true,
       "name": "jsonfile",
       "purl": "pkg:npm/jsonfile@4.0.0",
-      "version": "4.0.0"
+      "version": "4.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8282,7 +8548,8 @@
       "matched": true,
       "name": "larvitbase",
       "purl": "pkg:npm/larvitbase@3.1.3",
-      "version": "3.1.3"
+      "version": "3.1.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8309,7 +8576,8 @@
       "matched": true,
       "name": "larvitfs",
       "purl": "pkg:npm/larvitfs@2.3.1",
-      "version": "2.3.1"
+      "version": "2.3.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8336,7 +8604,8 @@
       "matched": true,
       "name": "larvitreqparser",
       "purl": "pkg:npm/larvitreqparser@0.2.1",
-      "version": "0.2.1"
+      "version": "0.2.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8363,7 +8632,8 @@
       "matched": true,
       "name": "larvitrouter",
       "purl": "pkg:npm/larvitrouter@3.0.2",
-      "version": "3.0.2"
+      "version": "3.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8390,7 +8660,8 @@
       "matched": true,
       "name": "larvitutils",
       "purl": "pkg:npm/larvitutils@2.3.0",
-      "version": "2.3.0"
+      "version": "2.3.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8417,7 +8688,8 @@
       "matched": true,
       "name": "locate-path",
       "purl": "pkg:npm/locate-path@3.0.0",
-      "version": "3.0.0"
+      "version": "3.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -8967,7 +9239,8 @@
       "matched": true,
       "name": "log-symbols",
       "purl": "pkg:npm/log-symbols@3.0.0",
-      "version": "3.0.0"
+      "version": "3.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -9934,7 +10207,8 @@
       "matched": true,
       "name": "mkdirp",
       "purl": "pkg:npm/mkdirp@0.5.5",
-      "version": "0.5.5"
+      "version": "0.5.5",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -9961,7 +10235,8 @@
       "matched": true,
       "name": "mocha",
       "purl": "pkg:npm/mocha@7.2.0",
-      "version": "7.2.0"
+      "version": "7.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -9988,7 +10263,8 @@
       "matched": true,
       "name": "ms",
       "purl": "pkg:npm/ms@2.1.1",
-      "version": "2.1.1"
+      "version": "2.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10015,7 +10291,8 @@
       "matched": true,
       "name": "node-environment-flags",
       "purl": "pkg:npm/node-environment-flags@1.0.6",
-      "version": "1.0.6"
+      "version": "1.0.6",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10042,7 +10319,8 @@
       "matched": true,
       "name": "node-yaml-config",
       "purl": "pkg:npm/node-yaml-config@0.0.5",
-      "version": "0.0.5"
+      "version": "0.0.5",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10069,7 +10347,8 @@
       "matched": true,
       "name": "node.extend",
       "purl": "pkg:npm/node.extend@2.0.2",
-      "version": "2.0.2"
+      "version": "2.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10096,7 +10375,8 @@
       "matched": true,
       "name": "normalize-path",
       "purl": "pkg:npm/normalize-path@3.0.0",
-      "version": "3.0.0"
+      "version": "3.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10123,7 +10403,8 @@
       "matched": true,
       "name": "object-inspect",
       "purl": "pkg:npm/object-inspect@1.8.0",
-      "version": "1.8.0"
+      "version": "1.8.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10150,7 +10431,8 @@
       "matched": true,
       "name": "object-keys",
       "purl": "pkg:npm/object-keys@1.1.1",
-      "version": "1.1.1"
+      "version": "1.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10177,7 +10459,8 @@
       "matched": true,
       "name": "object.assign",
       "purl": "pkg:npm/object.assign@4.1.0",
-      "version": "4.1.0"
+      "version": "4.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10204,7 +10487,8 @@
       "matched": true,
       "name": "object.getownpropertydescriptors",
       "purl": "pkg:npm/object.getownpropertydescriptors@2.1.0",
-      "version": "2.1.0"
+      "version": "2.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10231,7 +10515,8 @@
       "matched": true,
       "name": "once",
       "purl": "pkg:npm/once@1.4.0",
-      "version": "1.4.0"
+      "version": "1.4.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10258,7 +10543,8 @@
       "matched": true,
       "name": "optimist",
       "purl": "pkg:npm/optimist@0.6.1",
-      "version": "0.6.1"
+      "version": "0.6.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10285,7 +10571,8 @@
       "matched": true,
       "name": "p-limit",
       "purl": "pkg:npm/p-limit@2.3.0",
-      "version": "2.3.0"
+      "version": "2.3.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10312,7 +10599,8 @@
       "matched": true,
       "name": "p-locate",
       "purl": "pkg:npm/p-locate@3.0.0",
-      "version": "3.0.0"
+      "version": "3.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10339,7 +10627,8 @@
       "matched": true,
       "name": "p-try",
       "purl": "pkg:npm/p-try@2.2.0",
-      "version": "2.2.0"
+      "version": "2.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10366,7 +10655,8 @@
       "matched": true,
       "name": "path-exists",
       "purl": "pkg:npm/path-exists@3.0.0",
-      "version": "3.0.0"
+      "version": "3.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10393,7 +10683,8 @@
       "matched": true,
       "name": "path-is-absolute",
       "purl": "pkg:npm/path-is-absolute@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10618,7 +10909,8 @@
       "matched": true,
       "name": "punycode",
       "purl": "pkg:npm/punycode@1.3.2",
-      "version": "1.3.2"
+      "version": "1.3.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -10997,7 +11289,8 @@
       "matched": true,
       "name": "querystring",
       "purl": "pkg:npm/querystring@0.2.0",
-      "version": "0.2.0"
+      "version": "0.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11024,7 +11317,8 @@
       "matched": true,
       "name": "readable-stream",
       "purl": "pkg:npm/readable-stream@1.1.14",
-      "version": "1.1.14"
+      "version": "1.1.14",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11051,7 +11345,8 @@
       "matched": true,
       "name": "readdirp",
       "purl": "pkg:npm/readdirp@3.2.0",
-      "version": "3.2.0"
+      "version": "3.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11078,7 +11373,8 @@
       "matched": true,
       "name": "require-directory",
       "purl": "pkg:npm/require-directory@2.1.1",
-      "version": "2.1.1"
+      "version": "2.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11105,7 +11401,8 @@
       "matched": true,
       "name": "require-main-filename",
       "purl": "pkg:npm/require-main-filename@2.0.0",
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11252,7 +11549,8 @@
       "matched": true,
       "name": "set-blocking",
       "purl": "pkg:npm/set-blocking@2.0.0",
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11279,7 +11577,8 @@
       "matched": true,
       "name": "sprintf-js",
       "purl": "pkg:npm/sprintf-js@1.0.3",
-      "version": "1.0.3"
+      "version": "1.0.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11295,9 +11594,11 @@
       ],
       "ecosystem": "npm",
       "id": "pkg:npm/streamsearch@0.1.2",
+      "licenses": [],
       "name": "streamsearch",
       "purl": "pkg:npm/streamsearch@0.1.2",
-      "version": "0.1.2"
+      "version": "0.1.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11324,7 +11625,8 @@
       "matched": true,
       "name": "string-width",
       "purl": "pkg:npm/string-width@2.1.1",
-      "version": "2.1.1"
+      "version": "2.1.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11351,7 +11653,8 @@
       "matched": true,
       "name": "string-width",
       "purl": "pkg:npm/string-width@3.1.0",
-      "version": "3.1.0"
+      "version": "3.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11378,7 +11681,8 @@
       "matched": true,
       "name": "string.prototype.trimend",
       "purl": "pkg:npm/string.prototype.trimend@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11405,7 +11709,8 @@
       "matched": true,
       "name": "string.prototype.trimstart",
       "purl": "pkg:npm/string.prototype.trimstart@1.0.1",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11432,7 +11737,8 @@
       "matched": true,
       "name": "string_decoder",
       "purl": "pkg:npm/string_decoder@0.10.31",
-      "version": "0.10.31"
+      "version": "0.10.31",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11459,7 +11765,8 @@
       "matched": true,
       "name": "strip-ansi",
       "purl": "pkg:npm/strip-ansi@4.0.0",
-      "version": "4.0.0"
+      "version": "4.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11486,7 +11793,8 @@
       "matched": true,
       "name": "strip-ansi",
       "purl": "pkg:npm/strip-ansi@5.2.0",
-      "version": "5.2.0"
+      "version": "5.2.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11513,7 +11821,8 @@
       "matched": true,
       "name": "strip-json-comments",
       "purl": "pkg:npm/strip-json-comments@2.0.1",
-      "version": "2.0.1"
+      "version": "2.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11540,7 +11849,8 @@
       "matched": true,
       "name": "supports-color",
       "purl": "pkg:npm/supports-color@5.5.0",
-      "version": "5.5.0"
+      "version": "5.5.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11567,7 +11877,8 @@
       "matched": true,
       "name": "supports-color",
       "purl": "pkg:npm/supports-color@6.0.0",
-      "version": "6.0.0"
+      "version": "6.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11594,7 +11905,8 @@
       "matched": true,
       "name": "to-regex-range",
       "purl": "pkg:npm/to-regex-range@5.0.1",
-      "version": "5.0.1"
+      "version": "5.0.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11610,9 +11922,11 @@
       ],
       "ecosystem": "npm",
       "id": "pkg:npm/to@0.2.9",
+      "licenses": [],
       "name": "to",
       "purl": "pkg:npm/to@0.2.9",
-      "version": "0.2.9"
+      "version": "0.2.9",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11843,7 +12157,8 @@
       "matched": true,
       "name": "universalify",
       "purl": "pkg:npm/universalify@0.1.2",
-      "version": "0.1.2"
+      "version": "0.1.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -11870,7 +12185,8 @@
       "matched": true,
       "name": "url",
       "purl": "pkg:npm/url@0.11.0",
-      "version": "0.11.0"
+      "version": "0.11.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -12018,7 +12334,8 @@
       "matched": true,
       "name": "which-module",
       "purl": "pkg:npm/which-module@2.0.0",
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -12045,7 +12362,8 @@
       "matched": true,
       "name": "which",
       "purl": "pkg:npm/which@1.3.1",
-      "version": "1.3.1"
+      "version": "1.3.1",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -12072,7 +12390,8 @@
       "matched": true,
       "name": "wide-align",
       "purl": "pkg:npm/wide-align@1.1.3",
-      "version": "1.1.3"
+      "version": "1.1.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -12099,7 +12418,8 @@
       "matched": true,
       "name": "wordwrap",
       "purl": "pkg:npm/wordwrap@0.0.3",
-      "version": "0.0.3"
+      "version": "0.0.3",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -12126,7 +12446,8 @@
       "matched": true,
       "name": "wrap-ansi",
       "purl": "pkg:npm/wrap-ansi@5.1.0",
-      "version": "5.1.0"
+      "version": "5.1.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -12153,7 +12474,8 @@
       "matched": true,
       "name": "wrappy",
       "purl": "pkg:npm/wrappy@1.0.2",
-      "version": "1.0.2"
+      "version": "1.0.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -12301,7 +12623,8 @@
       "matched": true,
       "name": "yargs-parser",
       "purl": "pkg:npm/yargs-parser@13.1.2",
-      "version": "13.1.2"
+      "version": "13.1.2",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -12328,7 +12651,8 @@
       "matched": true,
       "name": "yargs-unparser",
       "purl": "pkg:npm/yargs-unparser@1.6.0",
-      "version": "1.6.0"
+      "version": "1.6.0",
+      "vulnerabilities": []
     },
     {
       "detected_origins": [
@@ -12355,7 +12679,8 @@
       "matched": true,
       "name": "yargs",
       "purl": "pkg:npm/yargs@13.3.2",
-      "version": "13.3.2"
+      "version": "13.3.2",
+      "vulnerabilities": []
     }
   ],
   "run": {
@@ -12377,5 +12702,7 @@
     "kind": "git-repository",
     "ref": "v1.0.0",
     "repository_url": "https://github.com/bomly-dev/example-javascript-npm"
-  }
+  },
+  "waivers": [],
+  "warnings": []
 }

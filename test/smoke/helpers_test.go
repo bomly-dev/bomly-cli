@@ -449,19 +449,34 @@ func isVulnerabilityMap(m map[string]any) bool {
 }
 
 func scrubAdvisoryFeedMap(m map[string]any) {
+	// The SDK's vulnerability shape: feed-controlled text is details and
+	// summary, the scalar band is parsed_severity, and severity is an array
+	// of source ratings that is scrubbed element-wise below rather than
+	// replaced with a string. description and the string-valued severity are
+	// the shape an older golden carried.
 	for _, key := range []string{
 		"affected_version_range",
 		"data_source",
 		"description",
+		"details",
+		"summary",
 		"fixed_in",
 		"fix_state",
 		"namespace",
-		"severity",
+		"parsed_severity",
 		"severity_source",
 		"title",
 	} {
 		if _, ok := m[key]; ok {
 			m[key] = "<normalized>"
+		}
+	}
+	switch severity := m["severity"].(type) {
+	case string:
+		m["severity"] = "<normalized>"
+	case []any:
+		if len(severity) > 0 {
+			m["severity"] = []any{"<normalized>"}
 		}
 	}
 	if _, ok := m["risk_score"]; ok {

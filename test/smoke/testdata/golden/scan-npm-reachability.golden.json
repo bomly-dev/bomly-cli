@@ -4157,7 +4157,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Path Traversal in algo-httpserv",
+          "details": "\u003cnormalized\u003e",
           "fix_available": [
             {
               "date": "\u003cnormalized\u003e",
@@ -4172,7 +4172,7 @@
           ],
           "id": "GHSA-cgjv-rghq-qhgp",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -4299,7 +4299,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Inefficient Regular Expression Complexity in chalk/ansi-regex",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-3807",
@@ -4322,7 +4322,7 @@
           ],
           "id": "GHSA-93q8-gq69-wqmw",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -4420,7 +4420,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Inefficient Regular Expression Complexity in chalk/ansi-regex",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-3807",
@@ -4443,7 +4443,7 @@
           ],
           "id": "GHSA-93q8-gq69-wqmw",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -4622,7 +4622,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Prototype Pollution in async",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-43138",
@@ -4645,7 +4645,7 @@
           ],
           "id": "GHSA-fwr7-v2mv-hh25",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -4797,7 +4797,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-13149",
@@ -4820,7 +4820,7 @@
           ],
           "id": "GHSA-3jxr-9vmj-r5cp",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -4874,7 +4874,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-102276",
@@ -4897,7 +4897,7 @@
           ],
           "id": "GHSA-6j4f-fj2g-mc7p",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -4951,7 +4951,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-33750",
@@ -4974,7 +4974,7 @@
           ],
           "id": "GHSA-f886-m6hf-6m8v",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5028,7 +5028,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-14257",
@@ -5051,7 +5051,7 @@
           ],
           "id": "GHSA-mh99-v99m-4gvg",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5105,7 +5105,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-102277",
@@ -5128,7 +5128,7 @@
           ],
           "id": "GHSA-q2hr-2g5m-vwhr",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5182,7 +5182,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-102278",
@@ -5205,7 +5205,7 @@
           ],
           "id": "GHSA-qhr7-859c-m2p7",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5259,7 +5259,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-69152",
@@ -5282,7 +5282,7 @@
           ],
           "id": "GHSA-rgw5-rvv9-x895",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5336,7 +5336,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "brace-expansion Regular Expression Denial of Service vulnerability",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-5889",
@@ -5359,7 +5359,7 @@
           ],
           "id": "GHSA-v6h2-p8h4-qcjw",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "low",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5455,7 +5455,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Uncontrolled resource consumption in braces",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-4068",
@@ -5478,7 +5478,7 @@
           ],
           "id": "GHSA-grv7-fg5c-xmjg",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5532,7 +5532,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-93687",
@@ -5544,7 +5544,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-vfj7-8cjw-p6xm",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5903,7 +5903,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Regular Expression Denial of Service in debug",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2017-16137",
@@ -5926,7 +5926,7 @@
           ],
           "id": "GHSA-gxpj-cx7g-858c",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "low",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -6060,7 +6060,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Crash in HeaderParser in dicer",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-24434",
@@ -6072,7 +6072,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-wm7h-9275-46v2",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -6170,7 +6170,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-24001",
@@ -6193,7 +6193,7 @@
           ],
           "id": "GHSA-73rr-hh4g-fpgx",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "low",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -6642,7 +6642,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "glob-parent vulnerable to Regular Expression Denial of Service in enclosure regex",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-28469",
@@ -6665,7 +6665,7 @@
           ],
           "id": "GHSA-ww39-953v-wcq6",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7392,7 +7392,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-84375",
@@ -7415,7 +7415,7 @@
           ],
           "id": "GHSA-2883-xcg3-v3hh",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7472,7 +7472,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-59869",
@@ -7495,7 +7495,7 @@
           ],
           "id": "GHSA-52cp-r559-cp3m",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7541,7 +7541,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+          "details": "\u003cnormalized\u003e",
           "fix_available": [
             {
               "date": "\u003cnormalized\u003e",
@@ -7556,7 +7556,7 @@
           ],
           "id": "GHSA-5p4m-2wfm-xmqj",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7594,7 +7594,7 @@
         {
           "affected_version_range": "\u003cnormalized\u003e",
           "data_source": "\u003cnormalized\u003e",
-          "details": "Code Injection in js-yaml",
+          "details": "\u003cnormalized\u003e",
           "fix_available": [
             {
               "date": "\u003cnormalized\u003e",
@@ -7609,7 +7609,7 @@
           ],
           "id": "GHSA-8j8c-7jfh-h6hx",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7665,7 +7665,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-53550",
@@ -7688,7 +7688,7 @@
           ],
           "id": "GHSA-h67p-54hq-rp68",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7745,7 +7745,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "js-yaml has prototype pollution in merge (\u003c\u003c)",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-64718",
@@ -7768,7 +7768,7 @@
           ],
           "id": "GHSA-mh29-5h37-fv8m",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7869,7 +7869,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-84375",
@@ -7892,7 +7892,7 @@
           ],
           "id": "GHSA-2883-xcg3-v3hh",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7949,7 +7949,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-59869",
@@ -7972,7 +7972,7 @@
           ],
           "id": "GHSA-52cp-r559-cp3m",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8018,7 +8018,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+          "details": "\u003cnormalized\u003e",
           "fix_available": [
             {
               "date": "\u003cnormalized\u003e",
@@ -8033,7 +8033,7 @@
           ],
           "id": "GHSA-5p4m-2wfm-xmqj",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8089,7 +8089,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-53550",
@@ -8112,7 +8112,7 @@
           ],
           "id": "GHSA-h67p-54hq-rp68",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8169,7 +8169,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "js-yaml has prototype pollution in merge (\u003c\u003c)",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-64718",
@@ -8192,7 +8192,7 @@
           ],
           "id": "GHSA-mh29-5h37-fv8m",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8481,7 +8481,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Regular Expression Denial of Service (ReDoS) in lodash",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-28500",
@@ -8504,7 +8504,7 @@
           ],
           "id": "GHSA-29mw-wpgm-hmr9",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8561,7 +8561,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Command Injection in lodash",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-23337",
@@ -8584,7 +8584,7 @@
           ],
           "id": "GHSA-35jh-r3h4-6jhm",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8641,7 +8641,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-2950",
@@ -8664,7 +8664,7 @@
           ],
           "id": "GHSA-f23m-r3pf-42rh",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8721,7 +8721,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Prototype Pollution in lodash",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-8203",
@@ -8744,7 +8744,7 @@
           ],
           "id": "GHSA-p6mc-m468-83gw",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8801,7 +8801,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "lodash vulnerable to Code Injection via `_.template` imports key names",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-4800",
@@ -8824,7 +8824,7 @@
           ],
           "id": "GHSA-r5fr-rjxr-66jc",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8881,7 +8881,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-13465",
@@ -8904,7 +8904,7 @@
           ],
           "id": "GHSA-xxjr-mmjv-4gpg",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9031,7 +9031,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Inefficient Regular Expression Complexity in marked",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-21681",
@@ -9054,7 +9054,7 @@
           ],
           "id": "GHSA-5v2h-r2cx-5xgj",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9111,7 +9111,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Inefficient Regular Expression Complexity in marked",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-21680",
@@ -9134,7 +9134,7 @@
           ],
           "id": "GHSA-rrrm-qjm4-v8hf",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9180,7 +9180,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Marked ReDoS due to email addresses being evaluated in quadratic time",
+          "details": "\u003cnormalized\u003e",
           "fix_available": [
             {
               "date": "\u003cnormalized\u003e",
@@ -9195,7 +9195,7 @@
           ],
           "id": "GHSA-xf5p-87ch-gxw2",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9295,7 +9295,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-27904",
@@ -9318,7 +9318,7 @@
           ],
           "id": "GHSA-23c5-xmqv-rm74",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9372,7 +9372,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-26996",
@@ -9395,7 +9395,7 @@
           ],
           "id": "GHSA-3ppc-4f35-3m26",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9449,7 +9449,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-27903",
@@ -9472,7 +9472,7 @@
           ],
           "id": "GHSA-7r86-cg39-jmmj",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9526,7 +9526,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "minimatch ReDoS vulnerability",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-3517",
@@ -9549,7 +9549,7 @@
           ],
           "id": "GHSA-f8q6-p94x-37v3",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9647,7 +9647,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Prototype Pollution in minimist",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-7598",
@@ -9670,7 +9670,7 @@
           ],
           "id": "GHSA-vh95-rmgr-6w4m",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9727,7 +9727,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Prototype Pollution in minimist",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-44906",
@@ -9750,7 +9750,7 @@
           ],
           "id": "GHSA-xvch-5gv4-984h",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9851,7 +9851,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Prototype Pollution in minimist",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-44906",
@@ -9874,7 +9874,7 @@
           ],
           "id": "GHSA-xvch-5gv4-984h",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -10458,7 +10458,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-33672",
@@ -10481,7 +10481,7 @@
           ],
           "id": "GHSA-3v7f-55p6-f55p",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -10535,7 +10535,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-33671",
@@ -10558,7 +10558,7 @@
           ],
           "id": "GHSA-c2c7-rcm5-vvqj",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -10683,7 +10683,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "qs: Denial of Service via Attacker Controlled isBuffer",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-82417",
@@ -10706,7 +10706,7 @@
           ],
           "id": "GHSA-4mjr-xmp4-gh2g",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -10760,7 +10760,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "qs's arrayLimit bypass in its bracket notation allows DoS via memory exhaustion",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-15284",
@@ -10783,7 +10783,7 @@
           ],
           "id": "GHSA-6rw7-vpxm-498p",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -10837,7 +10837,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "qs vulnerable to Prototype Pollution",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-24999",
@@ -10860,7 +10860,7 @@
           ],
           "id": "GHSA-hrpp-h998-j3pp",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -10914,7 +10914,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "qs's arrayLimit bypass in comma parsing allows denial of service",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-2391",
@@ -10937,7 +10937,7 @@
           ],
           "id": "GHSA-w7fw-mjwx-w883",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "low",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -11169,7 +11169,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "semver vulnerable to Regular Expression Denial of Service",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-25883",
@@ -11192,7 +11192,7 @@
           ],
           "id": "GHSA-c2qf-rxjj-qqgw",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -11677,7 +11677,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Arbitrary Code Execution in underscore",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-23358",
@@ -11700,7 +11700,7 @@
           ],
           "id": "GHSA-cf4h-3jhx-xvhq",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -11757,7 +11757,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Underscore has unlimited recursion in _.flatten and _.isEqual, potential for DoS attack",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-27601",
@@ -11780,7 +11780,7 @@
           ],
           "id": "GHSA-qpx9-hpmf-5gmw",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -11935,7 +11935,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-41907",
@@ -11958,7 +11958,7 @@
           ],
           "id": "GHSA-w5hq-g745-h8pq",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -12218,7 +12218,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Prototype Pollution in y18n",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-7774",
@@ -12241,7 +12241,7 @@
           ],
           "id": "GHSA-c4w7-xm78-47vh",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",

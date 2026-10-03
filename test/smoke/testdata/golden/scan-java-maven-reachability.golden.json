@@ -1108,7 +1108,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Arbitrary code execution in H2 Console",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-23221",
@@ -1131,7 +1131,7 @@
           ],
           "id": "GHSA-45hx-wfhj-473x",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1185,7 +1185,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "RCE in H2 Console",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-42392",
@@ -1208,7 +1208,7 @@
           ],
           "id": "GHSA-h376-j262-vhq6",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1315,7 +1315,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "OrientDB vulnerable to Improper Privilage Management leading to arbitrary command injection",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2017-11467",
@@ -1338,7 +1338,7 @@
           ],
           "id": "GHSA-xm6r-4466-mr74",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1474,7 +1474,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Insecure Deserialization in Apache Commons Collection",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2015-6420",
@@ -1497,7 +1497,7 @@
           ],
           "id": "GHSA-6hgm-866r-3cjv",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1551,7 +1551,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Deserialization of Untrusted Data in Apache commons collections",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2015-7501",
@@ -1574,7 +1574,7 @@
           ],
           "id": "GHSA-fjq5-5j5f-mvxh",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1663,7 +1663,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Commons FileUpload denial of service vulnerability",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-24998",
@@ -1686,7 +1686,7 @@
           ],
           "id": "GHSA-hfrx-6qgj-fp6c",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1743,7 +1743,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Commons FileUpload, Apache Commons FileUpload: FileUpload DoS via part headers",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-48976",
@@ -1766,7 +1766,7 @@
           ],
           "id": "GHSA-vv7r-c36w-3prj",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1858,7 +1858,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Commons IO: Possible denial of service attack on untrusted input to XmlStreamReader",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-47554",
@@ -1881,7 +1881,7 @@
           ],
           "id": "GHSA-78wr-2p64-hpwj",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -1935,7 +1935,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Path Traversal and Improper Input Validation in Apache Commons IO",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-29425",
@@ -1958,7 +1958,7 @@
           ],
           "id": "GHSA-gwrp-pvrq-jmwv",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2063,7 +2063,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Local Information Disclosure Vulnerability in Netty on Unix-Like systems",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-21290",
@@ -2075,7 +2075,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-5mcr-gq6c-3hq2",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2122,7 +2122,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Netty denial of service vulnerability",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2014-0193",
@@ -2145,7 +2145,7 @@
           ],
           "id": "GHSA-7vpq-g998-qpv7",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2199,7 +2199,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "SnappyFrameDecoder doesn't restrict chunk length any may buffer skippable chunks in an unnecessary way",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-37137",
@@ -2211,7 +2211,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-9vjp-v76f-g363",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2265,7 +2265,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "HTTP Request Smuggling in Netty",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2019-20444",
@@ -2277,7 +2277,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-cqqj-4p63-rrmm",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2331,7 +2331,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Possible request smuggling in HTTP/2 due missing validation of content-length",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-21409",
@@ -2343,7 +2343,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-f256-j965-7f32",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2397,7 +2397,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Bzip2Decoder doesn't allow setting size restrictions for decompressed data",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-37136",
@@ -2409,7 +2409,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-grg4-wf29-r9vv",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2456,7 +2456,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "HTTP Request Smuggling in Netty",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2019-20445",
@@ -2468,7 +2468,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-p2v9-g2qv-p635",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2522,7 +2522,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "HTTP Request Smuggling in Netty",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2019-16869",
@@ -2534,7 +2534,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-p979-4mfw-53vg",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2588,7 +2588,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Possible request smuggling in HTTP/2 due missing validation",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-21295",
@@ -2600,7 +2600,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-wm47-8v5p-wjpj",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2654,7 +2654,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "HTTP request smuggling in netty",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-43797",
@@ -2666,7 +2666,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-wx5j-54mm-rqqq",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2720,7 +2720,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Information Exposure in Netty",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2015-2156",
@@ -2743,7 +2743,7 @@
           ],
           "id": "GHSA-xfv3-rrfm-f2rv",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -2898,7 +2898,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "TemporaryFolder on unix-like systems does not limit access to created files",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-15250",
@@ -2921,7 +2921,7 @@
           ],
           "id": "GHSA-269g-pwp5-87pp",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3011,7 +3011,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Deserialization of Untrusted Data in Log4j",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2019-17571",
@@ -3023,7 +3023,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-2qrg-x229-3v8q",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3077,7 +3077,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "SQL Injection in Log4j 1.2.x",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-23305",
@@ -3089,7 +3089,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-65fg-84f6-3jq3",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3143,7 +3143,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Deserialization of Untrusted Data in Apache Log4j",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-23307",
@@ -3155,7 +3155,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-f7vh-qwp3-x37m",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3209,7 +3209,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "JMSAppender in Log4j 1.2 is vulnerable to deserialization of untrusted data",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-4104",
@@ -3221,7 +3221,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-fp5r-v3w9-4333",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3275,7 +3275,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Log4j 1.x (EOL) allows Denial of Service (DoS)",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-26464",
@@ -3298,7 +3298,7 @@
           ],
           "id": "GHSA-vp98-w2p3-mv35",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3352,7 +3352,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Deserialization of Untrusted Data in Log4j 1.x",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-23302",
@@ -3364,7 +3364,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-w9p3-5cr8-m3jj",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3451,7 +3451,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "JavaMelody has XXE via parseSoapMethodName in bull/javamelody/PayloadNameRequestWrapper.java.",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2018-15531",
@@ -3474,7 +3474,7 @@
           ],
           "id": "GHSA-6fvx-r7hx-3vh6",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3520,7 +3520,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Java Melody vulnerable to cross-site scripting",
+          "details": "\u003cnormalized\u003e",
           "fix_available": [
             {
               "date": "\u003cnormalized\u003e",
@@ -3535,7 +3535,7 @@
           ],
           "id": "GHSA-cqhr-jqvc-qw9p",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3588,7 +3588,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Cross-site Scripting in JavaMelody",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2018-12432",
@@ -3611,7 +3611,7 @@
           ],
           "id": "GHSA-g66q-grxc-64j3",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3744,7 +3744,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "yawkat LZ4 Java has a possible information leak in Java safe decompressor",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-66566",
@@ -3756,7 +3756,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-cmp6-m4wj-q63q",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3810,7 +3810,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "LZ4 Java Compression has Out-of-bounds memory operations which can cause DoS",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-12183",
@@ -3822,7 +3822,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-vqf4-7m7x-wgfc",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -3946,7 +3946,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Commons Lang is vulnerable to Uncontrolled Recursion when processing long inputs",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-48924",
@@ -3969,7 +3969,7 @@
           ],
           "id": "GHSA-j288-q9x7-2f5v",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4094,7 +4094,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Jackrabbit: Core and JCR Commons are vulnerable to Deserialization of Untrusted Data",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-58782",
@@ -4117,7 +4117,7 @@
           ],
           "id": "GHSA-cxvc-g8f2-4gmm",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4222,7 +4222,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Kafka Deserialization of Untrusted Data vulnerability",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-27819",
@@ -4234,7 +4234,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-mcwh-c9pg-xw43",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4334,7 +4334,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Improper Input Validation in Apache Santuario XML Security",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2013-4517",
@@ -4357,7 +4357,7 @@
           ],
           "id": "GHSA-4p4w-6h54-g885",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4399,7 +4399,7 @@
             "\u003cnormalized\u003e"
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache XML Security For Java vulnerable to Infinite Loop",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2013-5823",
@@ -4422,7 +4422,7 @@
           ],
           "id": "GHSA-8gwc-x7mg-7p7p",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4479,7 +4479,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Exposure of Sensitive Information to an Unauthorized Actor in Apache Santuario",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-40690",
@@ -4502,7 +4502,7 @@
           ],
           "id": "GHSA-j8wc-gxx9-82hx",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4552,7 +4552,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Inefficient Algorithmic Complexity in Apache Santuario XML Security",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2013-2172",
@@ -4575,7 +4575,7 @@
           ],
           "id": "GHSA-r237-w2w6-jq3p",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4632,7 +4632,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Santuario - XML Security for Java are vulnerable to private key disclosure",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-44483",
@@ -4655,7 +4655,7 @@
           ],
           "id": "GHSA-xfrj-6vvc-3xm2",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4756,7 +4756,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Improper Restriction of Operations within the Bounds of a Memory Buffer in Apache Sling",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2013-2254",
@@ -4779,7 +4779,7 @@
           ],
           "id": "GHSA-cxwh-vmhg-39r2",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4833,7 +4833,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Log Injection in Apache Sling Commons Log and Apache Sling API",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-32549",
@@ -4845,7 +4845,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-qmx3-m648-hr74",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -4892,7 +4892,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Improper Neutralization of Input During Web Page Generation in Apache Sling",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2015-2944",
@@ -4915,7 +4915,7 @@
           ],
           "id": "GHSA-rxvx-44w5-44r7",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5039,7 +5039,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Sling Engine vulnerable to cross-site scripting (XSS) that can lead to privilege escalation",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-45064",
@@ -5062,7 +5062,7 @@
           ],
           "id": "GHSA-mg46-f9h5-g27x",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5185,7 +5185,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Struts vulnerable to path traversal",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-50164",
@@ -5208,7 +5208,7 @@
           ],
           "id": "GHSA-2j39-qcjm-428w",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5262,7 +5262,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Struts file upload logic is flawed",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-53677",
@@ -5285,7 +5285,7 @@
           ],
           "id": "GHSA-43mq-6xmg-29vm",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5339,7 +5339,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Struts vulnerable to memory exhaustion",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-34396",
@@ -5362,7 +5362,7 @@
           ],
           "id": "GHSA-4g42-gqrg-4633",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5416,7 +5416,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Struts Improper Control of Dynamically-Managed Code Resources vulnerability",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-41835",
@@ -5439,7 +5439,7 @@
           ],
           "id": "GHSA-729q-fcgp-r5xh",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5493,7 +5493,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Struts vulnerable to memory exhaustion",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-34149",
@@ -5516,7 +5516,7 @@
           ],
           "id": "GHSA-8f6x-v685-g2xc",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5570,7 +5570,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Unrestricted Upload of File with Dangerous Type in Apache Struts2",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2012-1592",
@@ -5593,7 +5593,7 @@
           ],
           "id": "GHSA-8m5q-crqq-6pmf",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5647,7 +5647,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Improper Preservation of Permissions in Apache Struts",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2019-0233",
@@ -5670,7 +5670,7 @@
           ],
           "id": "GHSA-ccp5-gg58-pxfm",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5716,7 +5716,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Struts vulnerable to remote command execution (RCE) due to improper input validation",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2018-11776",
@@ -5757,7 +5757,7 @@
             }
           ],
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5811,7 +5811,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Remote code execution in Apache Struts",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-17530",
@@ -5852,7 +5852,7 @@
             }
           ],
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5906,7 +5906,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Struts 2 is Missing XML Validation",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-68493",
@@ -5918,7 +5918,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-qcfc-hmrc-59x7",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -5972,7 +5972,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Struts has a Denial of Service vulnerability",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-66675",
@@ -5995,7 +5995,7 @@
           ],
           "id": "GHSA-rg58-xhh7-mqjw",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6049,7 +6049,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Expression Language Injection in Apache Struts",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-31805",
@@ -6072,7 +6072,7 @@
           ],
           "id": "GHSA-v8j6-6c2r-r27c",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6126,7 +6126,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Improperly Controlled Modification of Dynamically-Determined Object Attributes in Apache Struts",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2019-0230",
@@ -6149,7 +6149,7 @@
           ],
           "id": "GHSA-wp4h-pvgw-5727",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6203,7 +6203,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache Struts is Vulnerable to DoS via File Leak",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-64775",
@@ -6215,7 +6215,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-xx7v-hqxh-cjr9",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6296,7 +6296,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Access control bypass in Apache ZooKeeper",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2019-0201",
@@ -6319,7 +6319,7 @@
           ],
           "id": "GHSA-2hw2-62cp-p9p7",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6373,7 +6373,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Authorization Bypass Through User-Controlled Key vulnerability in Apache ZooKeeper",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-44981",
@@ -6396,7 +6396,7 @@
           ],
           "id": "GHSA-7286-pgfv-vxvh",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6450,7 +6450,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Uncontrolled Resource Consumption in Apache ZooKeeper",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2017-5637",
@@ -6473,7 +6473,7 @@
           ],
           "id": "GHSA-7cwj-j333-x7f7",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6527,7 +6527,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Missing Authorization in Apache ZooKeeper",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2018-8012",
@@ -6550,7 +6550,7 @@
           ],
           "id": "GHSA-ccqf-c5hq-77mp",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6639,7 +6639,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Apache FreeMarker template loading mechanism vulnerable to path traversal",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-84939",
@@ -6662,7 +6662,7 @@
           ],
           "id": "GHSA-27j2-h3m2-8237",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6812,7 +6812,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "ECP SAML binding bypasses authentication flows",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-3827",
@@ -6835,7 +6835,7 @@
           ],
           "id": "GHSA-4pc7-vqv5-5r3v",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6889,7 +6889,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Keycloak: Denial of Service via specially crafted SAML input",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-7307",
@@ -6912,7 +6912,7 @@
           ],
           "id": "GHSA-p5mv-gj8j-xqgf",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -6966,7 +6966,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Improper Verification of SAML Responses Leading to Privilege Escalation in Keycloak",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-8698",
@@ -6989,7 +6989,7 @@
           ],
           "id": "GHSA-xgfv-xpx8-qhcr",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7043,7 +7043,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Keycloak: Denial of Service due to excessive SAMLRequest decompression",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-2575",
@@ -7066,7 +7066,7 @@
           ],
           "id": "GHSA-xv6h-r36f-3gp5",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7315,7 +7315,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Remote Code Execution in Spring Framework",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-22965",
@@ -7356,7 +7356,7 @@
             }
           ],
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7413,7 +7413,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Denial of service in Spring Framework",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-22970",
@@ -7436,7 +7436,7 @@
           ],
           "id": "GHSA-hh26-6xwr-ggv7",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7526,7 +7526,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework DataBinder Case Sensitive Match Exception",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-38820",
@@ -7538,7 +7538,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-4gc7-5j7h-4qph",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7595,7 +7595,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework DataBinder Case Sensitive Match Exception",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-22233",
@@ -7607,7 +7607,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-4wp7-92pw-q264",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "low",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7664,7 +7664,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Improper handling of case sensitivity in Spring Framework",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-22968",
@@ -7687,7 +7687,7 @@
           ],
           "id": "GHSA-g5mm-vmx4-3rg7",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7769,7 +7769,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Possible privilege escalation in org.springframework:spring-core",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2018-1272",
@@ -7792,7 +7792,7 @@
           ],
           "id": "GHSA-4487-x383-qpph",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7849,7 +7849,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework Denial of Service via AntPathMatcher",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-41848",
@@ -7861,7 +7861,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-659m-px2c-25wj",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "low",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7918,7 +7918,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Security and Spring Framework may not recognize certain paths that should be protected",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2016-5007",
@@ -7941,7 +7941,7 @@
           ],
           "id": "GHSA-8crv-49fr-2h6j",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -7998,7 +7998,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Path Traversal in org.springframework:spring-core",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2018-1271",
@@ -8021,7 +8021,7 @@
           ],
           "id": "GHSA-g8hw-794c-4j9g",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8078,7 +8078,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Files or Directories Accessible to External Parties in org.springframework:spring-core",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2015-5211",
@@ -8101,7 +8101,7 @@
           ],
           "id": "GHSA-pgf9-h69p-pcgf",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8150,7 +8150,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Denial of Service in org.springframework:spring-core",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2018-1257",
@@ -8173,7 +8173,7 @@
           ],
           "id": "GHSA-rcpf-vj53-7h2m",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8223,7 +8223,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Improper Limitation of a Pathname to a Restricted Directory in Spring Framework",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2014-3578",
@@ -8246,7 +8246,7 @@
           ],
           "id": "GHSA-rhcg-rwhx-qj3j",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8336,7 +8336,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Allocation of Resources Without Limits or Throttling in Spring Framework",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-22950",
@@ -8359,7 +8359,7 @@
           ],
           "id": "GHSA-558x-2xjg-6232",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8416,7 +8416,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework vulnerable to denial of service via specially crafted SpEL expression",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-20861",
@@ -8439,7 +8439,7 @@
           ],
           "id": "GHSA-564r-hj7v-mcr5",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8496,7 +8496,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework Denial of Service via Integer Overflow in SpEL Expressions",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-41849",
@@ -8508,7 +8508,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-775g-4xr8-78h8",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8565,7 +8565,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework vulnerable to Denial of Service",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-38808",
@@ -8588,7 +8588,7 @@
           ],
           "id": "GHSA-9cmq-m9j5-mvww",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8645,7 +8645,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework Arbitrary Method Invocation in SpEL Expressions",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-41852",
@@ -8657,7 +8657,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-9f52-rjqv-25qv",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "low",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8714,7 +8714,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework Algorithmic Denial of Service via SpEL Expressions",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-41850",
@@ -8726,7 +8726,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-r5w3-xv2f-j59q",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8783,7 +8783,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework Denial of Service via Unbounded Cache in SpEL",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-41851",
@@ -8795,7 +8795,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-wxpp-56q6-5pcg",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8852,7 +8852,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework vulnerable to denial of service",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-20863",
@@ -8875,7 +8875,7 @@
           ],
           "id": "GHSA-wxqc-pxw9-g2p8",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -8965,7 +8965,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework DoS via conditional HTTP request",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-38809",
@@ -8988,7 +8988,7 @@
           ],
           "id": "GHSA-2rmj-mq67-h97g",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9045,7 +9045,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework URL Parsing with Host Validation",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-22262",
@@ -9068,7 +9068,7 @@
           ],
           "id": "GHSA-2wrp-6fg6-hmc5",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9125,7 +9125,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework DataBinder Case Sensitive Match Exception",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-38820",
@@ -9137,7 +9137,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-4gc7-5j7h-4qph",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9194,7 +9194,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Pivotal Spring Framework contains unsafe Java deserialization methods",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2016-1000027",
@@ -9217,7 +9217,7 @@
           ],
           "id": "GHSA-4wrc-f8pq-fpqp",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "critical",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9274,7 +9274,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Pivotal Spring Framework DoS Attack with XML Input",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2015-3192",
@@ -9297,7 +9297,7 @@
           ],
           "id": "GHSA-6v7w-535j-rq5m",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9354,7 +9354,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Web vulnerable to Open Redirect or Server Side Request Forgery",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-22243",
@@ -9366,7 +9366,7 @@
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-ccgv-vj62-xf9h",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9416,7 +9416,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Cross-Site Request Forgery in Spring Framework",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2013-6429",
@@ -9439,7 +9439,7 @@
           ],
           "id": "GHSA-g6hf-f9cq-q7w7",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9496,7 +9496,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Spring Framework URL Parsing with Host Validation Vulnerability",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-22259",
@@ -9519,7 +9519,7 @@
           ],
           "id": "GHSA-hgjh-9rj2-g67j",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9576,7 +9576,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "Improper Neutralization of Input During Web Page Generation in Spring Framework",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2013-6430",
@@ -9599,7 +9599,7 @@
           ],
           "id": "GHSA-xjrf-8x4f-43h4",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9689,7 +9689,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "snappy-java's missing upper bound check on chunk length can lead to Denial of Service (DoS) impact",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-43642",
@@ -9712,7 +9712,7 @@
           ],
           "id": "GHSA-55g7-9cwv-5qfv",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9766,7 +9766,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "snappy-java's Integer Overflow vulnerability in compress leads to DoS",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-34454",
@@ -9789,7 +9789,7 @@
           ],
           "id": "GHSA-fjpj-2g6w-x25r",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9843,7 +9843,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "snappy-java's Integer Overflow vulnerability in shuffle leads to DoS",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-34453",
@@ -9866,7 +9866,7 @@
           ],
           "id": "GHSA-pqr6-cmr2-h8hf",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "medium",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
@@ -9920,7 +9920,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "snappy-java's unchecked chunk length leads to DoS",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-34455",
@@ -9943,7 +9943,7 @@
           ],
           "id": "GHSA-qcwq-55hx-v3vh",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",

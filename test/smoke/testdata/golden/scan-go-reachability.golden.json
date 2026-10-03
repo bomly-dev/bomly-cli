@@ -319,7 +319,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "golang.org/x/text/language Denial of service via crafted Accept-Language header",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-32149",
@@ -342,7 +342,7 @@
           ],
           "id": "GHSA-69ch-w2m2-3vjp",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",
@@ -395,7 +395,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "golang.org/x/text/language Out-of-bounds Read vulnerability",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-38561",
@@ -418,7 +418,7 @@
           ],
           "id": "GHSA-ppp9-7jff-5vj2",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",
@@ -471,7 +471,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "details": "A norm.Iter can enter an infinite loop when handling input containing invalid UTF-8 bytes.",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-56852",
@@ -494,7 +494,7 @@
           ],
           "id": "GO-2026-5970",
           "namespace": "\u003cnormalized\u003e",
-          "parsed_severity": "high",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",

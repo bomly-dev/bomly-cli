@@ -94,7 +94,7 @@ Pipe into `jq` for common queries:
 # Every package with a high-or-critical vulnerability
 bomly scan --enrich --json | jq '
   .packages[]
-  | select(.vulnerabilities[]? | .severity == "high" or .severity == "critical")
+  | select(.vulnerabilities[]? | .parsed_severity == "high" or .parsed_severity == "critical")
   | {name, version, ecosystem}
 '
 

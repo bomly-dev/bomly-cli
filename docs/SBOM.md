@@ -494,15 +494,15 @@ Some information necessarily becomes less specific during conversion:
   written" above). Every license is kept either way: a value SPDX cannot hold
   verbatim becomes a `LicenseRef-*`, which is a valid expression element, so a
   mixed set composes rather than losing its members. Reading an SPDX document
-  back gives one license per package — the composed expression, taken from the
-  concluded field when the document states both a concluded and a declared
-  license. A CycloneDX list that went out as `A AND B` therefore returns as
-  the single expression `A AND B` rather than as two entries.
-- End-of-life data is written but never read back. Both formats carry it —
-  `bomly:eol` properties in CycloneDX, `eol=` and `eol_date=` in the SPDX
-  package comment — and neither importer looks for it, so a Bomly document
-  converted through Bomly loses its EOL fields. Re-run with `--enrich` to
-  restore them.
+  back gives the composed expression per field — one declared claim, one
+  concluded claim when the document states both — so a CycloneDX list that
+  went out as `A AND B` returns as the single expression `A AND B` rather
+  than as two entries.
+- End-of-life data survives a round trip through either format (the
+  `bomly:eol*` properties, the SPDX package comment) but not its source: the
+  matcher that asserted the record is not named in a document, so a
+  re-imported record carries no `source`. Re-run with `--enrich` to attribute
+  it again.
 - A component's own identifier does not survive. Ingest re-mints each node's
   identity from its package URL, so the source document's `bom-ref` or
   `SPDXID` is not carried into the graph and not re-emitted. Anything that

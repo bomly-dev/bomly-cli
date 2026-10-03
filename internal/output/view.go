@@ -251,6 +251,10 @@ func newRunID() string {
 func SubjectFromExecutionTarget(target plugin.ExecutionTarget) scan.Subject {
 	subject := scan.Subject{Kind: target.Kind, RepositoryURL: git.PublicURL(target.RepositoryURL), Ref: target.Ref, CommitSHA: target.CommitSHA}
 	if target.Kind == plugin.ExecutionTargetContainerImage {
+		// An image reference is a public identity, not a local path: it is
+		// what tells two tagged images' records apart, and the digest is
+		// the immutable part when the reference was pinned by one.
+		subject.ImageReference = strings.TrimSpace(target.Location)
 		subject.ImageDigest = imageDigestOf(target.Location)
 	}
 	return subject

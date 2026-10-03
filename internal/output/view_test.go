@@ -1299,4 +1299,14 @@ func TestSubjectFromExecutionTargetNeverCarriesCredentialsOrALocation(t *testing
 	if strings.Contains(fmt.Sprint(subject), "/tmp/clone") || strings.Contains(fmt.Sprint(subject), "token") {
 		t.Fatalf("subject leaks the location or a credential: %+v", subject)
 	}
+	// An image reference is the subject's identity; the digest is recorded
+	// only when the reference pins one.
+	tagged := output.SubjectFromExecutionTarget(plugin.ExecutionTarget{Kind: plugin.ExecutionTargetContainerImage, Location: "alpine:3.20"})
+	if tagged.ImageReference != "alpine:3.20" || tagged.ImageDigest != "" {
+		t.Fatalf("tagged image subject = %+v", tagged)
+	}
+	pinned := output.SubjectFromExecutionTarget(plugin.ExecutionTarget{Kind: plugin.ExecutionTargetContainerImage, Location: "alpine@sha256:abc"})
+	if pinned.ImageReference != "alpine@sha256:abc" || pinned.ImageDigest != "sha256:abc" {
+		t.Fatalf("pinned image subject = %+v", pinned)
+	}
 }

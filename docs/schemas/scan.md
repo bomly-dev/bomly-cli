@@ -140,6 +140,7 @@ Complete reference for the `bomly scan` JSON output.
 | `version` | `string` | |
 | `purl` | `string` | |
 | `source` | `string` | |
+| `relationship` | `string` | |
 | `scopes` | Array<`string`> | |
 | `depends_on` | Array<`string`> | |
 | `matched` | `boolean` | |

@@ -503,18 +503,24 @@ func normalizeDiffPath(path string) string {
 	return filepath.ToSlash(path)
 }
 
-// PublicURL returns a repository URL without the credentials it may carry:
-// a token or password in the userinfo of an https clone URL is what git
-// needs to fetch and is never what a scan record, a plugin request or a
-// log should repeat. A value that does not parse as a URL with a scheme --
-// the scp-like git@host:org/repo form, a bare path -- is returned as it
-// was; net/url owns what a URL is and how it re-serializes.
+// PublicURL returns a repository URL as a public identity: without the
+// userinfo, the query and the fragment it may carry. A token or password in
+// the userinfo, or in a query parameter, is what git needs to fetch and is
+// never what a scan record, a plugin request or a log should repeat, and
+// neither a query nor a fragment names a repository. A value that does not
+// parse as a URL with a scheme -- the scp-like git@host:org/repo form, a
+// bare path -- is returned as it was; net/url owns what a URL is and how it
+// re-serializes.
 func PublicURL(raw string) string {
 	trimmed := strings.TrimSpace(raw)
 	parsed, err := url.Parse(trimmed)
-	if err != nil || parsed.Scheme == "" || parsed.User == nil {
+	if err != nil || parsed.Scheme == "" {
 		return trimmed
 	}
 	parsed.User = nil
+	parsed.RawQuery = ""
+	parsed.ForceQuery = false
+	parsed.Fragment = ""
+	parsed.RawFragment = ""
 	return parsed.String()
 }

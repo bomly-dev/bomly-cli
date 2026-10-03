@@ -1,5 +1,10 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
   "manifests": [
     {
       "dependencies": [
@@ -16,14 +21,11 @@
             "pkg:pypi/urllib3@1.24.1"
           ],
           "id": "module:requirements.txt#pkg:pypi/example-python-pip",
-          "licenses": [],
           "name": "example-python-pip",
           "purl": "pkg:pypi/example-python-pip"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/certifi@2026.6.17",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -46,12 +48,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2026.6.17"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/chardet@3.0.4",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -74,6 +75,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.0.4"
         },
         {
@@ -81,7 +83,6 @@
             "pkg:pypi/pytz@2026.2"
           ],
           "id": "pkg:pypi/django@1.11.29",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -104,6 +105,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.11.29"
         },
         {
@@ -111,7 +113,6 @@
             "pkg:pypi/sgmllib3k@1.0.0"
           ],
           "id": "pkg:pypi/feedparser@6.0.8",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -134,12 +135,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "6.0.8"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/idna@2.8",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -162,6 +162,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.8"
         },
         {
@@ -169,7 +170,6 @@
             "pkg:pypi/markupsafe@3.0.3"
           ],
           "id": "pkg:pypi/jinja2@2.10.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -192,12 +192,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.10.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/markupsafe@3.0.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -220,12 +219,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.0.3"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pyasn1@0.6.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -248,12 +246,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.6.3"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pyjwt@0.4.2",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -276,12 +273,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.4.2"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pytz@2026.2",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -304,12 +300,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2026.2"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pyyaml@5.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -332,6 +327,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "5.3"
         },
         {
@@ -342,7 +338,6 @@
             "pkg:pypi/urllib3@1.24.1"
           ],
           "id": "pkg:pypi/requests@2.21.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -365,6 +360,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.21.0"
         },
         {
@@ -372,7 +368,6 @@
             "pkg:pypi/pyasn1@0.6.3"
           ],
           "id": "pkg:pypi/rsa@3.4",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -395,12 +390,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.4"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/sgmllib3k@1.0.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -423,12 +417,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/sqlalchemy@1.4.46",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -451,12 +444,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.4.46"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/urllib3@1.24.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -479,6 +471,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.24.1"
         }
       ],
@@ -500,53 +493,64 @@
     ],
     "analyzer_stats": {
       "pyreach": {
-        "reachable": 39,
+        "reachable": 47,
         "unreachable": 7
       }
     },
-    "duration_ms": 0,
     "reachability_enabled": true
   },
   "packages": [
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/certifi@2026.6.17",
+      "language": "python",
       "licenses": [
         {
-          "spdxExpression": "MPL-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "MPL-2.0",
           "type": "declared",
           "value": "MPL-2.0"
         }
       ],
       "matched": true,
       "name": "certifi",
+      "package_manager": "pip",
       "purl": "pkg:pypi/certifi@2026.6.17",
-      "version": "2026.6.17",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2026.6.17"
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/chardet@3.0.4",
+      "language": "python",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
       "name": "chardet",
+      "package_manager": "pip",
       "purl": "pkg:pypi/chardet@3.0.4",
-      "version": "3.0.4",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.0.4"
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/django@1.11.29",
+      "language": "python",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
       "name": "django",
+      "package_manager": "pip",
       "purl": "pkg:pypi/django@1.11.29",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -562,6 +566,7 @@
           }
         ]
       },
+      "type": "package",
       "version": "1.11.29",
       "vulnerabilities": [
         {
@@ -585,7 +590,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-48588",
@@ -608,6 +613,7 @@
           ],
           "id": "GHSA-3h9f-r86x-qvjx",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -637,7 +643,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -663,7 +668,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2021-33203",
@@ -686,6 +691,7 @@
           ],
           "id": "GHSA-68w8-qjq3-2gfm",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -715,7 +721,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -741,7 +746,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-57833",
@@ -764,6 +769,7 @@
           ],
           "id": "GHSA-6w2r-r2m5-xq5w",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -793,7 +799,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -819,7 +824,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-48432",
@@ -842,6 +847,7 @@
           ],
           "id": "GHSA-7xr5-9hcq-chf9",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -871,7 +877,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -897,7 +902,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-8404",
@@ -920,6 +925,7 @@
           ],
           "id": "GHSA-8cjm-8mp7-r2xf",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -949,7 +955,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -975,7 +980,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-53878",
@@ -998,6 +1003,7 @@
           ],
           "id": "GHSA-8qcx-xf44-272x",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1027,7 +1033,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1053,7 +1058,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2022-36359",
@@ -1076,6 +1081,7 @@
           ],
           "id": "GHSA-8x94-hmjh-97hq",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1105,7 +1111,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1131,7 +1136,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-48587",
@@ -1154,6 +1159,7 @@
           ],
           "id": "GHSA-923m-gv2p-w5qp",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1183,7 +1189,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1209,7 +1214,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-53877",
@@ -1232,6 +1237,7 @@
           ],
           "id": "GHSA-crhf-3pfg-w68w",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1261,7 +1267,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1287,7 +1292,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-64459",
@@ -1310,6 +1315,7 @@
           ],
           "id": "GHSA-frmv-pr5f-9mcr",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1339,7 +1345,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1365,7 +1370,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-6873",
@@ -1388,6 +1393,7 @@
           ],
           "id": "GHSA-h7pc-vwp9-298g",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1417,7 +1423,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1443,7 +1448,85 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-15830",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-q238-5cxm-5c9h",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-64458",
@@ -1466,6 +1549,7 @@
           ],
           "id": "GHSA-qw25-v68c-qjf3",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1495,7 +1579,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1521,7 +1604,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-45231",
@@ -1544,6 +1627,7 @@
           ],
           "id": "GHSA-rrqc-c2jx-6jgv",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1573,7 +1657,84 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-15307",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-wvqv-fj8w-qmhm",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1582,29 +1743,37 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/feedparser@6.0.8",
+      "language": "python",
       "licenses": [
         {
-          "spdxExpression": "BSD-2-Clause",
+          "source": "external-depsdev",
+          "spdx_expression": "BSD-2-Clause",
           "type": "declared",
           "value": "BSD-2-Clause"
         }
       ],
       "matched": true,
       "name": "feedparser",
+      "package_manager": "pip",
       "purl": "pkg:pypi/feedparser@6.0.8",
-      "version": "6.0.8",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "6.0.8"
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/idna@2.8",
+      "language": "python",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
       "name": "idna",
+      "package_manager": "pip",
       "purl": "pkg:pypi/idna@2.8",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -1621,6 +1790,7 @@
           }
         ]
       },
+      "type": "package",
       "version": "2.8",
       "vulnerabilities": [
         {
@@ -1644,7 +1814,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-45409",
@@ -1667,6 +1837,7 @@
           ],
           "id": "GHSA-65pc-fj4g-8rjx",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1696,7 +1867,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1722,7 +1892,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-3651",
@@ -1745,6 +1915,7 @@
           ],
           "id": "GHSA-jjg7-2v4v-x38h",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1774,7 +1945,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1783,14 +1953,18 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/jinja2@2.10.1",
+      "language": "python",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
       "name": "jinja2",
+      "package_manager": "pip",
       "purl": "pkg:pypi/jinja2@2.10.1",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -1806,6 +1980,7 @@
           }
         ]
       },
+      "type": "package",
       "version": "2.10.1",
       "vulnerabilities": [
         {
@@ -1829,7 +2004,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-27516",
@@ -1852,6 +2027,7 @@
           ],
           "id": "GHSA-cpwx-vrp4-4pq7",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1879,7 +2055,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1905,7 +2080,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-28493",
@@ -1928,6 +2103,7 @@
           ],
           "id": "GHSA-g3rq-g295-4j3m",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -1955,7 +2131,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -1981,7 +2156,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-22195",
@@ -2004,6 +2179,7 @@
           ],
           "id": "GHSA-h5c8-rqwp-cp95",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -2031,7 +2207,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2057,7 +2232,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-34064",
@@ -2080,6 +2255,7 @@
           ],
           "id": "GHSA-h75v-3vvj-5mfj",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -2107,7 +2283,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2133,7 +2308,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-56326",
@@ -2156,6 +2331,7 @@
           ],
           "id": "GHSA-q2x7-8rv6-6q7h",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -2183,7 +2359,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2192,30 +2367,38 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/markupsafe@3.0.3",
+      "language": "python",
       "licenses": [
         {
-          "spdxExpression": "BSD-3-Clause",
+          "source": "external-depsdev",
+          "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
       "name": "markupsafe",
+      "package_manager": "pip",
       "purl": "pkg:pypi/markupsafe@3.0.3",
-      "version": "3.0.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.0.3"
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/pyasn1@0.6.3",
+      "language": "python",
       "licenses": [
         {
-          "spdxExpression": "BSD-2-Clause",
+          "source": "external-depsdev",
+          "spdx_expression": "BSD-2-Clause",
           "type": "declared",
           "value": "BSD-2-Clause"
         }
       ],
       "matched": true,
       "name": "pyasn1",
+      "package_manager": "pip",
       "purl": "pkg:pypi/pyasn1@0.6.3",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -2232,6 +2415,7 @@
           }
         ]
       },
+      "type": "package",
       "version": "0.6.3",
       "vulnerabilities": [
         {
@@ -2255,7 +2439,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-59885",
@@ -2278,6 +2462,7 @@
           ],
           "id": "GHSA-8ppf-4f7h-5ppj",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -2307,7 +2492,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2333,7 +2517,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-59886",
@@ -2356,6 +2540,7 @@
           ],
           "id": "GHSA-hm4w-wwcw-mr6r",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -2385,7 +2570,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2411,7 +2595,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-59884",
@@ -2434,6 +2618,7 @@
           ],
           "id": "GHSA-m4p7-r5rc-7g4j",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -2463,7 +2648,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2472,15 +2656,19 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/pyjwt@0.4.2",
+      "language": "python",
       "licenses": [
         {
-          "spdxExpression": "MIT",
+          "source": "external-depsdev",
+          "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
         }
       ],
       "matched": true,
       "name": "pyjwt",
+      "package_manager": "pip",
       "purl": "pkg:pypi/pyjwt@0.4.2",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -2496,6 +2684,7 @@
           }
         ]
       },
+      "type": "package",
       "version": "0.4.2",
       "vulnerabilities": [
         {
@@ -2519,10 +2708,10 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
-              "cve": "CVE-2026-32597",
+              "cve": "CVE-2026-101917",
               "date": "\u003cnormalized\u003e",
               "epss": 0,
               "percentile": 0
@@ -2540,8 +2729,9 @@
           "fixed_versions": [
             "\u003cnormalized\u003e"
           ],
-          "id": "GHSA-752w-5fwx-jx9f",
+          "id": "GHSA-2gx3-rcp4-g85q",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -2571,77 +2761,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
-          "severity_source": "\u003cnormalized\u003e",
-          "source": "grype",
-          "title": "\u003cnormalized\u003e"
-        },
-        {
-          "affected_version_range": "\u003cnormalized\u003e",
-          "aliases": [
-            "\u003cnormalized\u003e"
-          ],
-          "cvss": [
-            {
-              "score": 0,
-              "vector": "\u003cnormalized\u003e",
-              "version": "\u003cnormalized\u003e"
-            }
-          ],
-          "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
-          "epss": [
-            {
-              "cve": "CVE-2017-11424",
-              "date": "\u003cnormalized\u003e",
-              "epss": 0,
-              "percentile": 0
-            }
-          ],
-          "fix_available": [
-            {
-              "date": "\u003cnormalized\u003e",
-              "kind": "\u003cnormalized\u003e",
-              "version": "\u003cnormalized\u003e"
-            }
-          ],
-          "fix_state": "\u003cnormalized\u003e",
-          "fixed_in": "\u003cnormalized\u003e",
-          "fixed_versions": [
-            "\u003cnormalized\u003e"
-          ],
-          "id": "GHSA-r9jw-mwhq-wp62",
-          "namespace": "\u003cnormalized\u003e",
-          "reachability": {
-            "analyzed_at": "\u003ctimestamp\u003e",
-            "analyzer": "pyreach",
-            "confidence": "high",
-            "evidence": [
-              {
-                "analyzed_at": "\u003ctimestamp\u003e",
-                "analyzer": "pyreach",
-                "confidence": "high",
-                "hops": 0,
-                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
-                "status": "reachable",
-                "tier": "package"
-              }
-            ],
-            "hops": 0,
-            "status": "reachable",
-            "tier": "package"
-          },
-          "reasons": [
-            "\u003cnormalized\u003e"
-          ],
-          "references": [
-            {
-              "type": "\u003cnormalized\u003e",
-              "url": "\u003cnormalized\u003e"
-            }
-          ],
-          "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2667,10 +2786,10 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
-              "cve": "CVE-2026-48526",
+              "cve": "CVE-2026-32597",
               "date": "\u003cnormalized\u003e",
               "epss": 0,
               "percentile": 0
@@ -2688,8 +2807,9 @@
           "fixed_versions": [
             "\u003cnormalized\u003e"
           ],
-          "id": "GHSA-xgmm-8j9v-c9wx",
+          "id": "GHSA-752w-5fwx-jx9f",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -2719,7 +2839,466 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-102267",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-9v7f-9g4p-ffgj",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-102268",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-ffc3-869f-jxw9",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-102269",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-hxm8-2xgr-2p9m",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-102270",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-jwrc-g2q2-pq5p",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2017-11424",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-r9jw-mwhq-wp62",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-48526",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-xgmm-8j9v-c9wx",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2728,30 +3307,38 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/pytz@2026.2",
+      "language": "python",
       "licenses": [
         {
-          "spdxExpression": "MIT",
+          "source": "external-depsdev",
+          "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
         }
       ],
       "matched": true,
       "name": "pytz",
+      "package_manager": "pip",
       "purl": "pkg:pypi/pytz@2026.2",
-      "version": "2026.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2026.2"
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/pyyaml@5.3",
+      "language": "python",
       "licenses": [
         {
-          "spdxExpression": "MIT",
+          "source": "external-depsdev",
+          "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
         }
       ],
       "matched": true,
       "name": "pyyaml",
+      "package_manager": "pip",
       "purl": "pkg:pypi/pyyaml@5.3",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -2767,6 +3354,7 @@
           }
         ]
       },
+      "type": "package",
       "version": "5.3",
       "vulnerabilities": [
         {
@@ -2790,7 +3378,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-1747",
@@ -2813,6 +3401,7 @@
           ],
           "id": "GHSA-6757-jp84-gxfx",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -2840,7 +3429,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2866,7 +3454,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-14343",
@@ -2889,6 +3477,7 @@
           ],
           "id": "GHSA-8q59-q68h-6hv4",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -2916,7 +3505,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -2925,15 +3513,19 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/requests@2.21.0",
+      "language": "python",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "source": "external-depsdev",
+          "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
         }
       ],
       "matched": true,
       "name": "requests",
+      "package_manager": "pip",
       "purl": "pkg:pypi/requests@2.21.0",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -2949,6 +3541,7 @@
           }
         ]
       },
+      "type": "package",
       "version": "2.21.0",
       "vulnerabilities": [
         {
@@ -2972,7 +3565,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-47081",
@@ -2995,6 +3588,7 @@
           ],
           "id": "GHSA-9hjg-9r4m-mvj7",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3024,7 +3618,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3050,7 +3643,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-35195",
@@ -3073,6 +3666,7 @@
           ],
           "id": "GHSA-9wx4-h78v-vm56",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3102,7 +3696,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3128,7 +3721,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-25645",
@@ -3151,6 +3744,7 @@
           ],
           "id": "GHSA-gc5v-m9x4-r6x2",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3180,7 +3774,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3206,7 +3799,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-32681",
@@ -3229,6 +3822,7 @@
           ],
           "id": "GHSA-j8r2-6x86-q33q",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3258,7 +3852,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3267,14 +3860,18 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/rsa@3.4",
+      "language": "python",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
       "name": "rsa",
+      "package_manager": "pip",
       "purl": "pkg:pypi/rsa@3.4",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -3290,6 +3887,7 @@
           }
         ]
       },
+      "type": "package",
       "version": "3.4",
       "vulnerabilities": [
         {
@@ -3313,7 +3911,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-13757",
@@ -3336,6 +3934,7 @@
           ],
           "id": "GHSA-537h-rv9q-vvph",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3365,7 +3964,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3391,7 +3989,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2020-25658",
@@ -3414,6 +4012,7 @@
           ],
           "id": "GHSA-xrx6-fmxq-rjj2",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3443,7 +4042,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3452,44 +4050,56 @@
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/sgmllib3k@1.0.0",
+      "language": "python",
       "licenses": [
         {
+          "source": "external-depsdev",
           "type": "declared",
           "value": "non-standard"
         }
       ],
       "matched": true,
       "name": "sgmllib3k",
+      "package_manager": "pip",
       "purl": "pkg:pypi/sgmllib3k@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.0.0"
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/sqlalchemy@1.4.46",
+      "language": "python",
       "licenses": [
         {
-          "spdxExpression": "MIT",
+          "source": "external-depsdev",
+          "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
         }
       ],
       "matched": true,
       "name": "sqlalchemy",
+      "package_manager": "pip",
       "purl": "pkg:pypi/sqlalchemy@1.4.46",
-      "version": "1.4.46",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.4.46"
     },
     {
       "ecosystem": "python",
+      "id": "pkg:pypi/urllib3@1.24.1",
+      "language": "python",
       "licenses": [
         {
-          "spdxExpression": "MIT",
+          "source": "external-depsdev",
+          "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
         }
       ],
       "matched": true,
       "name": "urllib3",
+      "package_manager": "pip",
       "purl": "pkg:pypi/urllib3@1.24.1",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
@@ -3505,6 +4115,7 @@
           }
         ]
       },
+      "type": "package",
       "version": "1.24.1",
       "vulnerabilities": [
         {
@@ -3528,7 +4139,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-66471",
@@ -3551,6 +4162,7 @@
           ],
           "id": "GHSA-2xpw-w6gg-jr37",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3580,7 +4192,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3606,7 +4217,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2024-37891",
@@ -3629,6 +4240,7 @@
           ],
           "id": "GHSA-34jh-p97f-mpxf",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3658,7 +4270,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3684,7 +4295,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-21441",
@@ -3707,6 +4318,7 @@
           ],
           "id": "GHSA-38jv-5279-wg99",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3736,7 +4348,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3762,7 +4373,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-45803",
@@ -3785,6 +4396,7 @@
           ],
           "id": "GHSA-g4mx-q9vg-27p4",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3814,7 +4426,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3840,7 +4451,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-66418",
@@ -3863,6 +4474,7 @@
           ],
           "id": "GHSA-gm62-xv2j-4w53",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3892,7 +4504,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3918,7 +4529,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2018-25091",
@@ -3941,6 +4552,7 @@
           ],
           "id": "GHSA-gwvm-45gx-3cf8",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -3970,7 +4582,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -3996,7 +4607,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2019-11324",
@@ -4019,6 +4630,7 @@
           ],
           "id": "GHSA-mh33-7rrq-662w",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -4048,7 +4660,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4074,7 +4685,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2025-50181",
@@ -4097,6 +4708,7 @@
           ],
           "id": "GHSA-pq67-6m6q-mj2v",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -4126,7 +4738,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4152,7 +4763,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2026-44431",
@@ -4175,6 +4786,7 @@
           ],
           "id": "GHSA-qccp-gfcp-xxvc",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -4204,7 +4816,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4230,7 +4841,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2019-11236",
@@ -4253,6 +4864,7 @@
           ],
           "id": "GHSA-r64q-w8jr-g9qp",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -4282,7 +4894,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4308,7 +4919,7 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
               "cve": "CVE-2023-43804",
@@ -4331,6 +4942,7 @@
           ],
           "id": "GHSA-v845-jxx5-vc9f",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -4360,7 +4972,6 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4386,10 +4997,10 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
           "epss": [
             {
-              "cve": "CVE-2020-26137",
+              "cve": "CVE-2026-97689",
               "date": "\u003cnormalized\u003e",
               "epss": 0,
               "percentile": 0
@@ -4407,8 +5018,9 @@
           "fixed_versions": [
             "\u003cnormalized\u003e"
           ],
-          "id": "GHSA-wqvq-5m8c-6g24",
+          "id": "GHSA-vxq7-64xx-v4gw",
           "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
@@ -4438,7 +5050,84 @@
             }
           ],
           "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2020-26137",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-wqvq-5m8c-6g24",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
@@ -4446,13 +5135,24 @@
       ]
     }
   ],
-  "project": {
-    "ecosystem": "python",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "pip",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "fe04c758134b95dab102e1fce10275f7d18c0cf2",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "options": {
+      "analyze": true,
+      "enrich": true
+    },
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "fe04c758134b95dab102e1fce10275f7d18c0cf2",
+    "kind": "git-repository",
+    "ref": "fe04c758134b95dab102e1fce10275f7d18c0cf2",
+    "repository_url": "https://github.com/bomly-dev/example-python-pip"
+  }
 }

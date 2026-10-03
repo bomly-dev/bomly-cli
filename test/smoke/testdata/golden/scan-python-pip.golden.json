@@ -1,5 +1,10 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
   "manifests": [
     {
       "dependencies": [
@@ -16,14 +21,11 @@
             "pkg:pypi/urllib3@1.24.1"
           ],
           "id": "module:requirements.txt#pkg:pypi/example-python-pip",
-          "licenses": [],
           "name": "example-python-pip",
           "purl": "pkg:pypi/example-python-pip"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/certifi@2026.6.17",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -45,12 +47,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2026.6.17"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/chardet@3.0.4",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -72,6 +73,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.0.4"
         },
         {
@@ -79,7 +81,6 @@
             "pkg:pypi/pytz@2026.2"
           ],
           "id": "pkg:pypi/django@1.11.29",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -101,6 +102,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.11.29"
         },
         {
@@ -108,7 +110,6 @@
             "pkg:pypi/sgmllib3k@1.0.0"
           ],
           "id": "pkg:pypi/feedparser@6.0.8",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -130,12 +131,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "6.0.8"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/idna@2.8",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -157,6 +157,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.8"
         },
         {
@@ -164,7 +165,6 @@
             "pkg:pypi/markupsafe@3.0.3"
           ],
           "id": "pkg:pypi/jinja2@2.10.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -186,12 +186,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.10.1"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/markupsafe@3.0.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -213,12 +212,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.0.3"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pyasn1@0.6.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -240,12 +238,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.6.3"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pyjwt@0.4.2",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -267,12 +264,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.4.2"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pytz@2026.2",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -294,12 +290,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2026.2"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pyyaml@5.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -321,6 +316,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "5.3"
         },
         {
@@ -331,7 +327,6 @@
             "pkg:pypi/urllib3@1.24.1"
           ],
           "id": "pkg:pypi/requests@2.21.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -353,6 +348,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.21.0"
         },
         {
@@ -360,7 +356,6 @@
             "pkg:pypi/pyasn1@0.6.3"
           ],
           "id": "pkg:pypi/rsa@3.4",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -382,12 +377,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.4"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/sgmllib3k@1.0.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
@@ -409,12 +403,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/sqlalchemy@1.4.46",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -436,12 +429,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.4.46"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/urllib3@1.24.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "requirements.txt",
@@ -463,6 +455,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.24.1"
         }
       ],
@@ -478,146 +471,182 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/certifi@2026.6.17",
+      "language": "python",
       "name": "certifi",
+      "package_manager": "pip",
       "purl": "pkg:pypi/certifi@2026.6.17",
-      "version": "2026.6.17",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2026.6.17"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/chardet@3.0.4",
+      "language": "python",
       "name": "chardet",
+      "package_manager": "pip",
       "purl": "pkg:pypi/chardet@3.0.4",
-      "version": "3.0.4",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.0.4"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/django@1.11.29",
+      "language": "python",
       "name": "django",
+      "package_manager": "pip",
       "purl": "pkg:pypi/django@1.11.29",
-      "version": "1.11.29",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.11.29"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/feedparser@6.0.8",
+      "language": "python",
       "name": "feedparser",
+      "package_manager": "pip",
       "purl": "pkg:pypi/feedparser@6.0.8",
-      "version": "6.0.8",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "6.0.8"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/idna@2.8",
+      "language": "python",
       "name": "idna",
+      "package_manager": "pip",
       "purl": "pkg:pypi/idna@2.8",
-      "version": "2.8",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.8"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/jinja2@2.10.1",
+      "language": "python",
       "name": "jinja2",
+      "package_manager": "pip",
       "purl": "pkg:pypi/jinja2@2.10.1",
-      "version": "2.10.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.10.1"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/markupsafe@3.0.3",
+      "language": "python",
       "name": "markupsafe",
+      "package_manager": "pip",
       "purl": "pkg:pypi/markupsafe@3.0.3",
-      "version": "3.0.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.0.3"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/pyasn1@0.6.3",
+      "language": "python",
       "name": "pyasn1",
+      "package_manager": "pip",
       "purl": "pkg:pypi/pyasn1@0.6.3",
-      "version": "0.6.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.6.3"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/pyjwt@0.4.2",
+      "language": "python",
       "name": "pyjwt",
+      "package_manager": "pip",
       "purl": "pkg:pypi/pyjwt@0.4.2",
-      "version": "0.4.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.4.2"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/pytz@2026.2",
+      "language": "python",
       "name": "pytz",
+      "package_manager": "pip",
       "purl": "pkg:pypi/pytz@2026.2",
-      "version": "2026.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2026.2"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/pyyaml@5.3",
+      "language": "python",
       "name": "pyyaml",
+      "package_manager": "pip",
       "purl": "pkg:pypi/pyyaml@5.3",
-      "version": "5.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "5.3"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/requests@2.21.0",
+      "language": "python",
       "name": "requests",
+      "package_manager": "pip",
       "purl": "pkg:pypi/requests@2.21.0",
-      "version": "2.21.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.21.0"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/rsa@3.4",
+      "language": "python",
       "name": "rsa",
+      "package_manager": "pip",
       "purl": "pkg:pypi/rsa@3.4",
-      "version": "3.4",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.4"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/sgmllib3k@1.0.0",
+      "language": "python",
       "name": "sgmllib3k",
+      "package_manager": "pip",
       "purl": "pkg:pypi/sgmllib3k@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.0.0"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/sqlalchemy@1.4.46",
+      "language": "python",
       "name": "sqlalchemy",
+      "package_manager": "pip",
       "purl": "pkg:pypi/sqlalchemy@1.4.46",
-      "version": "1.4.46",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.4.46"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/urllib3@1.24.1",
+      "language": "python",
       "name": "urllib3",
+      "package_manager": "pip",
       "purl": "pkg:pypi/urllib3@1.24.1",
-      "version": "1.24.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.24.1"
     }
   ],
-  "project": {
-    "ecosystem": "python",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "pip",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "fe04c758134b95dab102e1fce10275f7d18c0cf2",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "fe04c758134b95dab102e1fce10275f7d18c0cf2",
+    "kind": "git-repository",
+    "ref": "fe04c758134b95dab102e1fce10275f7d18c0cf2",
+    "repository_url": "https://github.com/bomly-dev/example-python-pip"
+  }
 }

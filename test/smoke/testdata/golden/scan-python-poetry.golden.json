@@ -1,5 +1,10 @@
 {
   "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
   "manifests": [
     {
       "dependencies": [
@@ -13,15 +18,12 @@
             "pkg:pypi/rsa@3.4"
           ],
           "id": "module:pyproject.toml#pkg:pypi/example-python3-poetry@0.1.0",
-          "licenses": [],
           "name": "example-python3-poetry",
           "purl": "pkg:pypi/example-python3-poetry@0.1.0",
           "version": "0.1.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/certifi@2024.8.30",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -43,12 +45,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2024.8.30"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/chardet@3.0.4",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -70,12 +71,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.0.4"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/colorama@0.4.6",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -97,6 +97,7 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "0.4.6"
         },
         {
@@ -104,7 +105,6 @@
             "pkg:pypi/pytz@2024.1"
           ],
           "id": "pkg:pypi/django@1.11.29",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -126,6 +126,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.11.29"
         },
         {
@@ -133,7 +134,6 @@
             "pkg:pypi/sgmllib3k@1.0.0"
           ],
           "id": "pkg:pypi/feedparser@6.0.8",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -155,12 +155,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "6.0.8"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/idna@2.8",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -182,12 +181,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.8"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/iniconfig@2.3.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -209,12 +207,11 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "2.3.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/packaging@26.2",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -236,12 +233,11 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "26.2"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pluggy@1.6.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -263,12 +259,11 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "1.6.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pyasn1@0.6.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -290,12 +285,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.6.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pygments@2.20.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -317,12 +311,11 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "2.20.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pyjwt@0.4.2",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -344,6 +337,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "0.4.2"
         },
         {
@@ -355,7 +349,6 @@
             "pkg:pypi/pygments@2.20.0"
           ],
           "id": "pkg:pypi/pytest@9.0.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -377,12 +370,11 @@
           "scopes": [
             "development"
           ],
+          "source": "registry",
           "version": "9.0.3"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/pytz@2024.1",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -404,6 +396,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2024.1"
         },
         {
@@ -414,7 +407,6 @@
             "pkg:pypi/urllib3@1.24.3"
           ],
           "id": "pkg:pypi/requests@2.21.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -436,6 +428,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "2.21.0"
         },
         {
@@ -443,7 +436,6 @@
             "pkg:pypi/pyasn1@0.6.0"
           ],
           "id": "pkg:pypi/rsa@3.4",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -465,12 +457,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "3.4"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/sgmllib3k@1.0.0",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -492,12 +483,11 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.0.0"
         },
         {
-          "depends_on": [],
           "id": "pkg:pypi/urllib3@1.24.3",
-          "licenses": [],
           "locations": [
             {
               "access_path": "poetry.lock",
@@ -519,6 +509,7 @@
           "scopes": [
             "runtime"
           ],
+          "source": "registry",
           "version": "1.24.3"
         }
       ],
@@ -534,162 +525,202 @@
       "subproject": "."
     }
   ],
-  "metadata": {
-    "duration_ms": 0
-  },
   "packages": [
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/certifi@2024.8.30",
+      "language": "python",
       "name": "certifi",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/certifi@2024.8.30",
-      "version": "2024.8.30",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2024.8.30"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/chardet@3.0.4",
+      "language": "python",
       "name": "chardet",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/chardet@3.0.4",
-      "version": "3.0.4",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.0.4"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/colorama@0.4.6",
+      "language": "python",
       "name": "colorama",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/colorama@0.4.6",
-      "version": "0.4.6",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.4.6"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/django@1.11.29",
+      "language": "python",
       "name": "django",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/django@1.11.29",
-      "version": "1.11.29",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.11.29"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/feedparser@6.0.8",
+      "language": "python",
       "name": "feedparser",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/feedparser@6.0.8",
-      "version": "6.0.8",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "6.0.8"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/idna@2.8",
+      "language": "python",
       "name": "idna",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/idna@2.8",
-      "version": "2.8",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.8"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/iniconfig@2.3.0",
+      "language": "python",
       "name": "iniconfig",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/iniconfig@2.3.0",
-      "version": "2.3.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.3.0"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/packaging@26.2",
+      "language": "python",
       "name": "packaging",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/packaging@26.2",
-      "version": "26.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "26.2"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/pluggy@1.6.0",
+      "language": "python",
       "name": "pluggy",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/pluggy@1.6.0",
-      "version": "1.6.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.6.0"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/pyasn1@0.6.0",
+      "language": "python",
       "name": "pyasn1",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/pyasn1@0.6.0",
-      "version": "0.6.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.6.0"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/pygments@2.20.0",
+      "language": "python",
       "name": "pygments",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/pygments@2.20.0",
-      "version": "2.20.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.20.0"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/pyjwt@0.4.2",
+      "language": "python",
       "name": "pyjwt",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/pyjwt@0.4.2",
-      "version": "0.4.2",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "0.4.2"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/pytest@9.0.3",
+      "language": "python",
       "name": "pytest",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/pytest@9.0.3",
-      "version": "9.0.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "9.0.3"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/pytz@2024.1",
+      "language": "python",
       "name": "pytz",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/pytz@2024.1",
-      "version": "2024.1",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2024.1"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/requests@2.21.0",
+      "language": "python",
       "name": "requests",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/requests@2.21.0",
-      "version": "2.21.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "2.21.0"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/rsa@3.4",
+      "language": "python",
       "name": "rsa",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/rsa@3.4",
-      "version": "3.4",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "3.4"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/sgmllib3k@1.0.0",
+      "language": "python",
       "name": "sgmllib3k",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/sgmllib3k@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.0.0"
     },
     {
       "ecosystem": "python",
-      "licenses": [],
+      "id": "pkg:pypi/urllib3@1.24.3",
+      "language": "python",
       "name": "urllib3",
+      "package_manager": "poetry",
       "purl": "pkg:pypi/urllib3@1.24.3",
-      "version": "1.24.3",
-      "vulnerabilities": []
+      "type": "package",
+      "version": "1.24.3"
     }
   ],
-  "project": {
-    "ecosystem": "python",
-    "name": "\u003cnormalized\u003e",
-    "package_manager": "poetry",
-    "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
-    "target_type": "git repository"
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "0.26.0"
+    }
   },
-  "schema_version": "1.0"
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "commit_sha": "33596d7ee8c90c3bbce94246a340a8e640ed3f83",
+    "kind": "git-repository",
+    "ref": "v1.0.0",
+    "repository_url": "https://github.com/bomly-dev/example-python-poetry"
+  }
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/bomly-dev/bomly-sdk/purlkit"
 
+	"github.com/bomly-dev/bomly-cli/internal/git"
 	"github.com/bomly-dev/bomly-sdk/model"
 	"github.com/bomly-dev/bomly-sdk/plugin"
 	"github.com/bomly-dev/bomly-sdk/scan"
@@ -243,9 +244,12 @@ func newRunID() string {
 // SubjectFromExecutionTarget identifies what was scanned without its local
 // location: a repository by URL, ref and the commit it resolved to; a
 // filesystem target by its commit when it had one; an image by its
-// reference. The path a target was read from stays out of the record.
+// reference. The path a target was read from stays out of the record, and
+// so do any credentials the repository URL carried: the target is built
+// without them, and a target built by another caller is held to the same
+// rule here.
 func SubjectFromExecutionTarget(target plugin.ExecutionTarget) scan.Subject {
-	subject := scan.Subject{Kind: target.Kind, RepositoryURL: target.RepositoryURL, Ref: target.Ref, CommitSHA: target.CommitSHA}
+	subject := scan.Subject{Kind: target.Kind, RepositoryURL: git.PublicURL(target.RepositoryURL), Ref: target.Ref, CommitSHA: target.CommitSHA}
 	if target.Kind == plugin.ExecutionTargetContainerImage {
 		subject.ImageDigest = imageDigestOf(target.Location)
 	}

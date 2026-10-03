@@ -382,3 +382,18 @@ func writePlatformTestFile(t *testing.T, path, contents string) {
 		t.Fatalf("write %s: %v", path, err)
 	}
 }
+
+func TestPublicURLStripsCredentialsOnly(t *testing.T) {
+	for raw, want := range map[string]string{
+		"https://user:token@example.test/org/repo.git": "https://example.test/org/repo.git",
+		"https://token@example.test/org/repo.git":      "https://example.test/org/repo.git",
+		" https://example.test/org/repo.git ":          "https://example.test/org/repo.git",
+		"git@example.test:org/repo.git":                "git@example.test:org/repo.git",
+		"ssh://git@example.test/org/repo.git":          "ssh://example.test/org/repo.git",
+		"":                                             "",
+	} {
+		if got := PublicURL(raw); got != want {
+			t.Errorf("PublicURL(%q) = %q, want %q", raw, got, want)
+		}
+	}
+}

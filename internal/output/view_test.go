@@ -2,6 +2,7 @@ package output_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -1281,5 +1282,21 @@ func TestBuildScanResponseOmitsWarningsWhenClean(t *testing.T) {
 	}
 	if strings.Contains(string(encoded), `"warnings"`) {
 		t.Fatalf("a clean scan must not emit a warnings key: %s", encoded)
+	}
+}
+
+func TestSubjectFromExecutionTargetNeverCarriesCredentialsOrALocation(t *testing.T) {
+	subject := output.SubjectFromExecutionTarget(plugin.ExecutionTarget{
+		Kind:          plugin.ExecutionTargetGitRepository,
+		Location:      "/tmp/clone",
+		RepositoryURL: "https://user:token@example.test/org/repo.git",
+		Ref:           "main",
+		CommitSHA:     "0123abcdef0123abcdef0123abcdef0123abcdef",
+	})
+	if subject.RepositoryURL != "https://example.test/org/repo.git" || subject.Ref != "main" || subject.CommitSHA == "" {
+		t.Fatalf("subject = %+v, want the repository URL without its credentials", subject)
+	}
+	if strings.Contains(fmt.Sprint(subject), "/tmp/clone") || strings.Contains(fmt.Sprint(subject), "token") {
+		t.Fatalf("subject leaks the location or a credential: %+v", subject)
 	}
 }

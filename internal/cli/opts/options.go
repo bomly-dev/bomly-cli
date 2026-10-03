@@ -648,9 +648,11 @@ func (o *Options) resolveExecutionTarget(ctx context.Context, logger *zap.Logger
 			return os.RemoveAll(projectPath)
 		}
 		return sdkplugin.ExecutionTarget{
-			Kind:          sdkplugin.ExecutionTargetGitRepository,
-			Location:      projectPath,
-			RepositoryURL: resolved.URL,
+			Kind:     sdkplugin.ExecutionTargetGitRepository,
+			Location: projectPath,
+			// The clone used the URL as given; what plugins and the scan
+			// record see is the URL without its credentials.
+			RepositoryURL: git.PublicURL(resolved.URL),
 			Ref:           resolved.Ref,
 			// Ref is what was asked for; the clone's HEAD is what was found.
 			CommitSHA: sdkplugin.NormalizeCommitSHA(git.HeadCommit(ctx, logger, projectPath)),

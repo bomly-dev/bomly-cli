@@ -5,22 +5,22 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-sdk/scan"
 
 	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestCompactScanInventoryCapIsDeterministicAndCounted(t *testing.T) {
-	dependencies := make([]output.ScanDependency, 0, maxInventoryEntries+17)
+	dependencies := make([]scan.Dependency, 0, maxInventoryEntries+17)
 	for i := maxInventoryEntries + 16; i >= 0; i-- {
-		dependencies = append(dependencies, output.ScanDependency{
+		dependencies = append(dependencies, scan.Dependency{
 			ID:      fmt.Sprintf("dep-%03d", i),
 			Name:    fmt.Sprintf("package-%03d", i),
 			Version: "1.0.0",
 		})
 	}
-	run := ScanRunResult{Response: output.ScanResponse{
-		Manifests: []output.ScanManifest{{Path: "package.json", Dependencies: dependencies}},
+	run := ScanRunResult{Response: scan.Record{
+		Manifests: []scan.Manifest{{Path: "package.json", Dependencies: dependencies}},
 	}}
 	first := BuildCompactScan(run)
 	second := BuildCompactScan(run)

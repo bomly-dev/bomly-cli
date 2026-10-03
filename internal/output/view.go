@@ -22,7 +22,7 @@ import (
 // DiffResponse is the structured payload for the diff command. Packages is
 // the PURL-deduplicated union of the base and head registries (head wins on
 // conflict) so audit findings can be joined against advisory data the same
-// way scan findings join against ScanResponse.Packages.
+// way scan findings join against scan.Record.Packages.
 type DiffResponse struct {
 	SchemaVersion string                   `json:"schema_version"`
 	Command       string                   `json:"command"`
@@ -33,15 +33,15 @@ type DiffResponse struct {
 	Packages      []*model.Package         `json:"packages"`
 	Audit         *DiffAudit               `json:"audit,omitempty"`
 	Warnings      []plugin.DetectorWarning `json:"warnings,omitempty"`
-	Metadata      Metadata                 `json:"metadata"`
+	Metadata      scan.Metadata            `json:"metadata"`
 }
 
 // DiffAudit groups audit deltas for diff output.
 type DiffAudit struct {
-	Introduced   []AuditFinding `json:"introduced,omitempty"`
-	Resolved     []AuditFinding `json:"resolved,omitempty"`
-	Persisted    []AuditFinding `json:"persisted,omitempty"`
-	AuditSummary *AuditSummary  `json:"audit_summary,omitempty"`
+	Introduced   []model.Finding    `json:"introduced,omitempty"`
+	Resolved     []model.Finding    `json:"resolved,omitempty"`
+	Persisted    []model.Finding    `json:"persisted,omitempty"`
+	AuditSummary *scan.AuditSummary `json:"audit_summary,omitempty"`
 }
 
 // DiffComparison identifies the compared dependency states.
@@ -75,15 +75,15 @@ type DiffLicenseResults struct {
 
 // DiffLicenseChange is a package whose license set was introduced or removed.
 type DiffLicenseChange struct {
-	Package  PackageRef   `json:"package"`
-	Licenses []LicenseRef `json:"licenses"`
+	Package  PackageRef             `json:"package"`
+	Licenses []model.PackageLicense `json:"licenses"`
 }
 
 // DiffLicenseDelta is a package whose license set changed.
 type DiffLicenseDelta struct {
-	Package PackageRef   `json:"package"`
-	Before  []LicenseRef `json:"before"`
-	After   []LicenseRef `json:"after"`
+	Package PackageRef             `json:"package"`
+	Before  []model.PackageLicense `json:"before"`
+	After   []model.PackageLicense `json:"after"`
 }
 
 // DiffVulnerabilityResults aggregates vulnerability changes across all manifests.
@@ -97,8 +97,8 @@ type DiffVulnerabilityResults struct {
 
 // DiffVulnerabilityChange is one vulnerability introduced or removed for a package.
 type DiffVulnerabilityChange struct {
-	Package       PackageRef       `json:"package"`
-	Vulnerability VulnerabilityRef `json:"vulnerability"`
+	Package       PackageRef          `json:"package"`
+	Vulnerability model.Vulnerability `json:"vulnerability"`
 }
 
 // DiffPackageChange is one added or removed package.
@@ -170,11 +170,11 @@ type ExplainResponse struct {
 	Query         ExplainQuery             `json:"query"`
 	Dependency    ExplainDependency        `json:"dependency,omitempty"`
 	Paths         []DependencyPath         `json:"paths,omitempty"`
-	Findings      []AuditFinding           `json:"findings,omitempty"`
-	AuditSummary  *AuditSummary            `json:"audit_summary,omitempty"`
+	Findings      []model.Finding          `json:"findings,omitempty"`
+	AuditSummary  *scan.AuditSummary       `json:"audit_summary,omitempty"`
 	Targets       []ExplainTargetResponse  `json:"targets,omitempty"`
 	Warnings      []plugin.DetectorWarning `json:"warnings,omitempty"`
-	Metadata      Metadata                 `json:"metadata"`
+	Metadata      scan.Metadata            `json:"metadata"`
 }
 
 // ExplainQuery records the user query issued to the explain command.
@@ -189,8 +189,8 @@ type ExplainTargetResponse struct {
 	PackageManager model.PackageManager `json:"package_manager,omitempty"`
 	Dependency     ExplainDependency    `json:"dependency"`
 	Paths          []DependencyPath     `json:"paths"`
-	Findings       []AuditFinding       `json:"findings,omitempty"`
-	AuditSummary   *AuditSummary        `json:"audit_summary,omitempty"`
+	Findings       []model.Finding      `json:"findings,omitempty"`
+	AuditSummary   *scan.AuditSummary   `json:"audit_summary,omitempty"`
 }
 
 // BuildScanRecord constructs the scan record from what the pipeline holds:
@@ -208,7 +208,7 @@ func BuildScanRecord(target plugin.ExecutionTarget, run scan.Run, auditEnabled b
 		Run:           run,
 		Manifests:     ScanManifestsFromConsolidated(consolidated, registry),
 		Packages:      PackagesFromRegistry(registry),
-		Metadata:      Metadata{DurationMS: time.Since(started).Milliseconds()},
+		Metadata:      scan.Metadata{DurationMS: time.Since(started).Milliseconds()},
 	}
 	if len(findings) > 0 {
 		record.Findings = FindingsWithSeverity(findings, registry)
@@ -382,7 +382,7 @@ func BuildExplainResponse(project ProjectDescriptor, query string, targets []Exp
 		Project:       project,
 		Query:         ExplainQuery{Name: query},
 		Targets:       targets,
-		Metadata:      Metadata{DurationMS: time.Since(started).Milliseconds()},
+		Metadata:      scan.Metadata{DurationMS: time.Since(started).Milliseconds()},
 	}
 	if len(targets) == 1 {
 		response.Dependency = targets[0].Dependency
@@ -412,7 +412,7 @@ func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, h
 		Summary:    summary,
 		Packages:   PackagesFromRegistries(reportOptions.BaseRegistry, reportOptions.HeadRegistry),
 		Audit:      audit,
-		Metadata:   Metadata{DurationMS: time.Since(started).Milliseconds()},
+		Metadata:   scan.Metadata{DurationMS: time.Since(started).Milliseconds()},
 	}
 	return response.WithReportOptions(reportOptions)
 }
@@ -492,7 +492,7 @@ func firstReportOptions(options []ReportOptions) ReportOptions {
 	return options[0]
 }
 
-func metadataWithReportOptions(metadata Metadata, options ReportOptions) Metadata {
+func metadataWithReportOptions(metadata scan.Metadata, options ReportOptions) scan.Metadata {
 	metadata.ScorecardEnabled = options.ScorecardEnabled
 	metadata.ReachabilityEnabled = false
 	metadata.AnalyzerRuns = nil
@@ -594,7 +594,7 @@ func copyExplainTargets(targets []ExplainTargetResponse) []ExplainTargetResponse
 	out := append([]ExplainTargetResponse(nil), targets...)
 	for idx := range out {
 		out[idx].Paths = copyDependencyPaths(out[idx].Paths)
-		out[idx].Findings = append([]AuditFinding(nil), out[idx].Findings...)
+		out[idx].Findings = append([]model.Finding(nil), out[idx].Findings...)
 	}
 	return out
 }
@@ -858,7 +858,7 @@ func sortVulnerabilityChanges(changes []DiffVulnerabilityChange) {
 	})
 }
 
-func licenseRefsEqual(left, right []LicenseRef) bool {
+func licenseRefsEqual(left, right []model.PackageLicense) bool {
 	if len(left) != len(right) {
 		return false
 	}
@@ -880,8 +880,8 @@ func licenseRefsEqual(left, right []LicenseRef) bool {
 	return true
 }
 
-func indexVulnerabilities(values []VulnerabilityRef) map[string]VulnerabilityRef {
-	indexed := make(map[string]VulnerabilityRef, len(values))
+func indexVulnerabilities(values []model.Vulnerability) map[string]model.Vulnerability {
+	indexed := make(map[string]model.Vulnerability, len(values))
 	for _, value := range values {
 		indexed[value.ID] = value
 	}

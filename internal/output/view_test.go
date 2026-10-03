@@ -339,7 +339,7 @@ func TestBuildExplainResponseGatesReachability(t *testing.T) {
 		Dependency: output.ExplainDependency{PackageRef: output.PackageRef{
 			Name: "react",
 			ID:   "react@18.2.0",
-			Vulnerabilities: []output.VulnerabilityRef{{
+			Vulnerabilities: []model.Vulnerability{{
 				ID:           "OSV-REACH",
 				Source:       "osv",
 				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
@@ -348,13 +348,13 @@ func TestBuildExplainResponseGatesReachability(t *testing.T) {
 		Paths: []output.DependencyPath{{Packages: []output.PackageRef{{
 			Name: "react",
 			ID:   "react@18.2.0",
-			Vulnerabilities: []output.VulnerabilityRef{{
+			Vulnerabilities: []model.Vulnerability{{
 				ID:           "OSV-REACH",
 				Source:       "osv",
 				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
 			}},
 		}}}},
-		Findings: []output.AuditFinding{{
+		Findings: []model.Finding{{
 			ID:         "OSV-REACH",
 			Kind:       model.FindingKindVulnerability,
 			PackageRef: "pkg:npm/react",
@@ -643,7 +643,7 @@ func TestBuildDiffResponseGatesReachability(t *testing.T) {
 		}},
 	})
 	audit := &output.DiffAudit{
-		Introduced: []output.AuditFinding{{
+		Introduced: []model.Finding{{
 			ID:              "OSV-REACH",
 			VulnerabilityID: "OSV-REACH",
 			Kind:            model.FindingKindVulnerability,

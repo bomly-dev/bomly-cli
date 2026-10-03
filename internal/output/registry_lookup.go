@@ -86,7 +86,7 @@ func FindingVulnerabilityID(f model.Finding) string {
 	return resolvedVulnerabilityID(f.VulnerabilityID, f.ID)
 }
 
-// resolvedVulnerabilityID is the rule itself, shared with the AuditFinding
+// resolvedVulnerabilityID is the rule itself, shared with the model.Finding
 // projection so the document and the joins against it cannot answer
 // differently.
 func resolvedVulnerabilityID(vulnerabilityID, findingID string) string {

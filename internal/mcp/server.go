@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
@@ -100,7 +102,7 @@ type DiffRequest struct {
 // diagnostics mapped by the adapter (internal/mcp never imports
 // internal/engine).
 type ScanRunResult struct {
-	Response    output.ScanResponse
+	Response    scan.Record
 	Project     output.ProjectDescriptor
 	Findings    []model.Finding
 	Graph       *model.Graph
@@ -118,7 +120,7 @@ type ExplainRunResult struct {
 	Findings    []model.Finding
 	Graph       *model.Graph
 	Registry    *model.PackageRegistry
-	Manifests   []output.ScanManifest
+	Manifests   []scan.Manifest
 	Diagnostics []Diagnostic
 	EnrichRan   bool
 	AuditRan    bool
@@ -136,7 +138,7 @@ type DiffRunResult struct {
 	HeadGraph     *model.Graph
 	HeadRegistry  *model.PackageRegistry
 	BaseRegistry  *model.PackageRegistry
-	HeadManifests []output.ScanManifest
+	HeadManifests []scan.Manifest
 	Diagnostics   []Diagnostic
 	EnrichRan     bool
 	AuditRan      bool

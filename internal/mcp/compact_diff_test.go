@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 
 	"github.com/bomly-dev/bomly-sdk/model"
@@ -51,7 +53,7 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 					},
 				}},
 			}},
-			Metadata: output.Metadata{},
+			Metadata: scan.Metadata{},
 		},
 		// lib-a's finding is introduced by head; deep's persists; the
 		// old-lib finding only existed on base (resolved by this ref).

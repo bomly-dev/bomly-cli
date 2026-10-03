@@ -367,7 +367,7 @@ func diffPolicySummary(audit *output.DiffAudit) string {
 	return "**Summary:** " + strings.Join(parts, ", ") + "."
 }
 
-func diffAuditFindingTable(title, status string, findings []output.AuditFinding, packages []*model.Package, includeReachability bool) []string {
+func diffAuditFindingTable(title, status string, findings []model.Finding, packages []*model.Package, includeReachability bool) []string {
 	if len(findings) == 0 {
 		return nil
 	}
@@ -414,7 +414,7 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding,
 // with no "<label>: <value>" shape (e.g. "Package license is unknown"), are
 // returned unchanged. Markdown-only: the underlying finding.Title (shared by
 // the text/JSON/SARIF outputs) is not modified.
-func emphasizeFindingTitle(finding output.AuditFinding) string {
+func emphasizeFindingTitle(finding model.Finding) string {
 	title := firstNonEmpty(finding.Title, strings.Join(finding.Reasons, "; "))
 	if finding.Kind != model.FindingKindLicense {
 		return title
@@ -447,7 +447,7 @@ func findingIcon(status, policyStatus string) string {
 	return "❌"
 }
 
-func outputAuditFailingCount(findings []output.AuditFinding) int {
+func outputAuditFailingCount(findings []model.Finding) int {
 	total := 0
 	for _, finding := range findings {
 		if finding.PolicyStatus == "" || finding.PolicyStatus == "fail" {

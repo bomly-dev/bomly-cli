@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 
@@ -100,10 +102,10 @@ func remediationFixture(t *testing.T) remediationInput {
 		}},
 	})
 
-	manifest := output.ScanManifest{
+	manifest := scan.Manifest{
 		Path:           "package.json",
 		PackageManager: model.PackageManagerNPM,
-		Dependencies: []output.ScanDependency{
+		Dependencies: []scan.Dependency{
 			{ID: nodes[0].NodeID(), Name: "app", Version: "1.0.0"},
 			{ID: nodes[1].NodeID(), Name: "lib-a", Version: "1.0.0"},
 			{ID: nodes[2].NodeID(), Name: "lib-b", Version: "1.0.0"},
@@ -141,7 +143,7 @@ func remediationFixture(t *testing.T) remediationInput {
 		Findings:  findings,
 		Graph:     g,
 		Registry:  registry,
-		Manifests: []output.ScanManifest{manifest},
+		Manifests: []scan.Manifest{manifest},
 	}
 }
 
@@ -336,7 +338,7 @@ func TestBuildRemediationsCountsDistinctOmissionsAcrossSuggestions(t *testing.T)
 	}
 
 	compact := BuildCompactScan(ScanRunResult{
-		Response:  output.ScanResponse{Packages: output.PackagesFromRegistry(registry)},
+		Response:  scan.Record{Packages: output.PackagesFromRegistry(registry)},
 		Graph:     nil,
 		Registry:  registry,
 		EnrichRan: true,
@@ -473,7 +475,7 @@ func TestCompactScanSizeStaysUnderBudget(t *testing.T) {
 		})
 	}
 	run := ScanRunResult{
-		Response: output.ScanResponse{
+		Response: scan.Record{
 			Manifests: in.Manifests,
 			Packages:  output.PackagesFromRegistry(in.Registry),
 		},
@@ -507,7 +509,7 @@ func TestCompactScanSizeStaysUnderBudget(t *testing.T) {
 func TestBuildCompactScanWithoutAuditReturnsInventory(t *testing.T) {
 	in := remediationFixture(t)
 	run := ScanRunResult{
-		Response: output.ScanResponse{Manifests: in.Manifests},
+		Response: scan.Record{Manifests: in.Manifests},
 	}
 	compact := BuildCompactScan(run)
 	if compact.Summary.AuditRan || compact.Summary.EnrichRan {
@@ -527,7 +529,7 @@ func TestBuildCompactScanWithoutAuditReturnsInventory(t *testing.T) {
 func TestBuildCompactScanEnrichedWithoutAuditReturnsRemediation(t *testing.T) {
 	in := remediationFixture(t)
 	run := ScanRunResult{
-		Response: output.ScanResponse{
+		Response: scan.Record{
 			Manifests: in.Manifests,
 			Packages:  output.PackagesFromRegistry(in.Registry),
 		},
@@ -552,7 +554,7 @@ func TestBuildCompactScanEnrichedWithoutAuditReturnsRemediation(t *testing.T) {
 func TestBuildCompactScanEnrichedCleanProjectReturnsInventory(t *testing.T) {
 	in := remediationFixture(t)
 	run := ScanRunResult{
-		Response:  output.ScanResponse{Manifests: in.Manifests},
+		Response:  scan.Record{Manifests: in.Manifests},
 		Registry:  model.NewPackageRegistry(),
 		EnrichRan: true,
 	}
@@ -655,7 +657,7 @@ func TestWarnWithFixAvailableStaysInformational(t *testing.T) {
 func TestBuildCompactScanTreatsAuditOmissionsAsSuppressed(t *testing.T) {
 	in := remediationFixture(t)
 	run := ScanRunResult{
-		Response: output.ScanResponse{
+		Response: scan.Record{
 			Manifests: in.Manifests,
 			Packages:  output.PackagesFromRegistry(in.Registry),
 		},

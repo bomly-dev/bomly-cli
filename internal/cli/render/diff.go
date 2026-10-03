@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 
 	"github.com/bomly-dev/bomly-sdk/model"
@@ -198,12 +200,12 @@ func findingsSummaryLine(audit *output.DiffAudit) []string {
 
 type compactAuditFinding struct {
 	status  string
-	finding output.AuditFinding
+	finding model.Finding
 }
 
 func compactAuditFindings(audit *output.DiffAudit) []compactAuditFinding {
 	var findings []compactAuditFinding
-	appendFindings := func(status string, src []output.AuditFinding) {
+	appendFindings := func(status string, src []model.Finding) {
 		for _, f := range src {
 			sev := strings.ToLower(strings.TrimSpace(string(f.Severity)))
 			if sev == "n/a" || sev == "" {
@@ -312,7 +314,7 @@ func displayScope(scope string) string {
 	return scope
 }
 
-func licenseList(values []output.LicenseRef) string {
+func licenseList(values []model.PackageLicense) string {
 	if len(values) == 0 {
 		return "-"
 	}
@@ -329,15 +331,15 @@ func licenseList(values []output.LicenseRef) string {
 	return strings.Join(licenses, ", ")
 }
 
-func diffAuditFindingsSummary(summary *output.AuditSummary) string {
+func diffAuditFindingsSummary(summary *scan.AuditSummary) string {
 	if summary == nil || summary.Total == 0 {
 		return "no active findings were reported"
 	}
 	return formatAuditSummary(summary, true)
 }
 
-func sortDiffAuditFindings(findings []output.AuditFinding) []output.AuditFinding {
-	sorted := append([]output.AuditFinding(nil), findings...)
+func sortDiffAuditFindings(findings []model.Finding) []model.Finding {
+	sorted := append([]model.Finding(nil), findings...)
 	sort.Slice(sorted, func(i, j int) bool {
 		si := severityRankTable(string(sorted[i].Severity))
 		sj := severityRankTable(string(sorted[j].Severity))
@@ -385,7 +387,7 @@ func DiffManifestDisplayLabel(manifest output.DiffManifestResult) string {
 
 // fixedVersionSummary and exploitabilitySummary are retained for markdown
 // renderers that still use them.
-func diffVulnerabilityDetails(vulnerability output.VulnerabilityRef, includeReachability bool) string {
+func diffVulnerabilityDetails(vulnerability model.Vulnerability, includeReachability bool) string {
 	if !includeReachability {
 		return ""
 	}

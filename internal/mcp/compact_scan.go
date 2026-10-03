@@ -3,6 +3,8 @@ package mcp
 import (
 	"sort"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 
 	"github.com/bomly-dev/bomly-sdk/model"
@@ -94,7 +96,7 @@ func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 	return response
 }
 
-func addPackageInventory(response *CompactScanResponse, manifests []output.ScanManifest) {
+func addPackageInventory(response *CompactScanResponse, manifests []scan.Manifest) {
 	if response == nil {
 		return
 	}
@@ -121,7 +123,7 @@ func severityBucket(severity string) string {
 	}
 }
 
-func countManifestDependencies(manifests []output.ScanManifest) int {
+func countManifestDependencies(manifests []scan.Manifest) int {
 	seen := map[string]struct{}{}
 	for _, manifest := range manifests {
 		for _, dep := range manifest.Dependencies {
@@ -137,7 +139,7 @@ func countManifestDependencies(manifests []output.ScanManifest) int {
 
 // packageInventory returns a deduplicated, sorted name@version list of every
 // detected dependency, capped at maxInventoryEntries.
-func packageInventory(manifests []output.ScanManifest) ([]string, int) {
+func packageInventory(manifests []scan.Manifest) ([]string, int) {
 	seen := map[string]struct{}{}
 	for _, manifest := range manifests {
 		for _, dep := range manifest.Dependencies {

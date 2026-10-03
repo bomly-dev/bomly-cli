@@ -6,6 +6,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-sdk/graphview"
 
@@ -48,7 +50,7 @@ func ScanGraphDisplayName(g *model.Graph, fallback string) string {
 // subprojects or modules a grouped manifest tree is rendered after the
 // scopes line. notices are pre-computed WarningNotices lines rendered above the
 // summary.
-func Scan(g *model.Graph, registry *model.PackageRegistry, findings []model.Finding, matcherStats []plugin.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, manifests []output.ScanManifest, notices []string) string {
+func Scan(g *model.Graph, registry *model.PackageRegistry, findings []model.Finding, matcherStats []plugin.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, manifests []scan.Manifest, notices []string) string {
 	var b strings.Builder
 
 	if g == nil {
@@ -221,7 +223,7 @@ func noticePathList(paths []string) string {
 //	└─ dev.bomly.example:multimodule-parent — 1 package, 2 modules [pom.xml]
 //	   ├─ dev.bomly.example:core (module, maven) — 2 packages [core/pom.xml]
 //	   └─ dev.bomly.example:web (module, maven) — 6 packages [web/pom.xml]
-func renderManifestHierarchy(g *model.Graph, hierarchy output.HierarchyNode, manifests []output.ScanManifest) string {
+func renderManifestHierarchy(g *model.Graph, hierarchy output.HierarchyNode, manifests []scan.Manifest) string {
 	var b strings.Builder
 	type line struct {
 		indent string
@@ -240,7 +242,7 @@ func renderManifestHierarchy(g *model.Graph, hierarchy output.HierarchyNode, man
 	// structure, not packages, so per-manifest counts stay consistent with
 	// the header total.
 	structural := topLevelParentIDs(g)
-	packageCount := func(manifest output.ScanManifest) int {
+	packageCount := func(manifest scan.Manifest) int {
 		count := 0
 		for _, dep := range manifest.Dependencies {
 			if _, isStructural := structural[dep.ID]; isStructural {
@@ -551,7 +553,7 @@ func severityRankTable(s string) int {
 	}
 }
 
-func formatAuditSummary(summary *output.AuditSummary, auditEnabled bool) string {
+func formatAuditSummary(summary *scan.AuditSummary, auditEnabled bool) string {
 	if summary == nil || summary.Total == 0 {
 		if auditEnabled {
 			return "none"

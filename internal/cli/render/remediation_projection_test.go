@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 
@@ -19,8 +21,8 @@ func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T)
 				Name:     "example",
 				Version:  "1.0.0",
 				Purl:     "pkg:npm/example@1.0.0",
-				Licenses: []output.LicenseRef{},
-				Vulnerabilities: []output.VulnerabilityRef{{
+				Licenses: []model.PackageLicense{},
+				Vulnerabilities: []model.Vulnerability{{
 					ID:             "GHSA-example",
 					ParsedSeverity: model.SeverityHigh,
 				}},
@@ -111,7 +113,7 @@ func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 		DisplayName: "Example Matcher",
 	}}, true, false, false, nil, nil, nil))
 	var markdown bytes.Buffer
-	if err := ScanMarkdown(&markdown, output.ScanResponse{
+	if err := ScanMarkdown(&markdown, scan.Record{
 		Packages: output.PackagesFromRegistry(registry),
 	}, output.ProjectDescriptor{}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
@@ -155,7 +157,7 @@ func TestDiffTextAndMarkdownShowHeadRemediationAfterFindings(t *testing.T) {
 			Vulnerabilities: output.DiffVulnerabilityResults{
 				Added: []output.DiffVulnerabilityChange{{
 					Package:       output.PackageRef{Purl: purl},
-					Vulnerability: output.VulnerabilityRef{ID: "GHSA-example"},
+					Vulnerability: model.Vulnerability{ID: "GHSA-example"},
 				}},
 			},
 		},
@@ -195,10 +197,10 @@ func TestDiffTextAndMarkdownShowHeadRemediationAfterFindings(t *testing.T) {
 
 func TestRemediationOutputIsOmittedWithoutSuggestions(t *testing.T) {
 	var markdown bytes.Buffer
-	if err := ScanMarkdown(&markdown, output.ScanResponse{
+	if err := ScanMarkdown(&markdown, scan.Record{
 		Packages: []*model.Package{{
 			PURL:            "pkg:npm/example@1.0.0",
-			Vulnerabilities: []output.VulnerabilityRef{{ID: "GHSA-example"}},
+			Vulnerabilities: []model.Vulnerability{{ID: "GHSA-example"}},
 			Remediation:     &model.PackageRemediation{Status: model.PackageRemediationUnknown},
 		}},
 	}, output.ProjectDescriptor{}); err != nil {
@@ -302,7 +304,7 @@ func remediationReportEntry(
 		PURL:            "pkg:npm/" + name + "@1.0.0",
 		Name:            name,
 		Version:         "1.0.0",
-		Vulnerabilities: []output.VulnerabilityRef{{ID: "GHSA-" + name}},
+		Vulnerabilities: []model.Vulnerability{{ID: "GHSA-" + name}},
 		Remediation: &model.PackageRemediation{
 			Status: status,
 			Suggestions: []model.PackageRemediationSuggestion{{

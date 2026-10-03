@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 
 	"github.com/bomly-dev/bomly-sdk/model"
@@ -15,7 +17,7 @@ func TestDiffOverviewMarkdownPersistedFailingCountsAsFailing(t *testing.T) {
 	// the Overview status must reflect it as a failure, not a softer warning.
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
-			Persisted: []output.AuditFinding{{ID: "CVE-PERSISTS", PolicyStatus: model.FindingPolicyStatusFail}},
+			Persisted: []model.Finding{{ID: "CVE-PERSISTS", PolicyStatus: model.FindingPolicyStatusFail}},
 		},
 	}
 	got := strings.Join(diffOverviewMarkdown(payload), "\n")
@@ -27,7 +29,7 @@ func TestDiffOverviewMarkdownPersistedFailingCountsAsFailing(t *testing.T) {
 func TestDiffOverviewMarkdownPersistedWarningsAreWarnings(t *testing.T) {
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
-			Persisted: []output.AuditFinding{{ID: "license:warn", PolicyStatus: model.FindingPolicyStatusWarn}},
+			Persisted: []model.Finding{{ID: "license:warn", PolicyStatus: model.FindingPolicyStatusWarn}},
 		},
 	}
 	got := strings.Join(diffOverviewMarkdown(payload), "\n")
@@ -182,7 +184,7 @@ func TestDiffVulnerabilityMarkdownPersistedMessage(t *testing.T) {
 			Vulnerabilities: output.DiffVulnerabilityResults{
 				Persisted: []output.DiffVulnerabilityChange{{
 					Package:       output.PackageRef{Name: "commons-lang3", Version: "3.18.0"},
-					Vulnerability: output.VulnerabilityRef{ID: "CVE-2025-48924", ParsedSeverity: model.SeverityMedium},
+					Vulnerability: model.Vulnerability{ID: "CVE-2025-48924", ParsedSeverity: model.SeverityMedium},
 				}},
 			},
 		},
@@ -201,11 +203,11 @@ func TestDiffVulnerabilityMarkdownPersistedMessage(t *testing.T) {
 }
 
 func TestDiffPostureMarkdownDistinguishesScorecardRun(t *testing.T) {
-	ran := output.DiffResponse{Metadata: output.Metadata{ScorecardEnabled: true}}
+	ran := output.DiffResponse{Metadata: scan.Metadata{ScorecardEnabled: true}}
 	if got := strings.Join(diffPostureMarkdown(ran), "\n"); !strings.Contains(got, "Scorecard ran") {
 		t.Errorf("expected scorecard-ran-no-data message, got %q", got)
 	}
-	notRun := output.DiffResponse{Metadata: output.Metadata{ScorecardEnabled: false}}
+	notRun := output.DiffResponse{Metadata: scan.Metadata{ScorecardEnabled: false}}
 	if got := strings.Join(diffPostureMarkdown(notRun), "\n"); !strings.Contains(got, "was not selected") {
 		t.Errorf("expected not-selected message, got %q", got)
 	}
@@ -218,7 +220,7 @@ func TestDiffPostureMarkdownDoesNotConflateNoDataWithNoChange(t *testing.T) {
 	// "scorecard found nothing" — the message must reflect that distinction.
 	card := &model.PackageScorecard{Repository: "github.com/example/repo", AggregateScore: 7.5}
 	payload := output.DiffResponse{
-		Metadata: output.Metadata{ScorecardEnabled: true},
+		Metadata: scan.Metadata{ScorecardEnabled: true},
 		Results: output.DiffResults{
 			Dependencies: output.DiffDependencyResults{
 				Changed: []output.DiffChangedPackage{{
@@ -243,7 +245,7 @@ func TestPersistedLicenseFindingCountDedupesByPackage(t *testing.T) {
 	// licensePersistedNote.
 	const pkg = "pkg:npm/lib@1.0.0"
 	audit := &output.DiffAudit{
-		Persisted: []output.AuditFinding{
+		Persisted: []model.Finding{
 			{Kind: model.FindingKindLicense, PackageRef: pkg},
 			{Kind: model.FindingKindLicense, PackageRef: pkg},
 			{Kind: model.FindingKindVulnerability, PackageRef: pkg},
@@ -257,7 +259,7 @@ func TestPersistedLicenseFindingCountDedupesByPackage(t *testing.T) {
 func TestDiffMarkdownFindingsTableHasLegendNoPolicyStatus(t *testing.T) {
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
-			Introduced: []output.AuditFinding{{
+			Introduced: []model.Finding{{
 				ID:           "INVALID-abcd-efgh-ijkl",
 				Kind:         model.FindingKindLicense,
 				Auditor:      "license",
@@ -287,27 +289,27 @@ func TestDiffMarkdownFindingsTableHasLegendNoPolicyStatus(t *testing.T) {
 func TestEmphasizeFindingTitle(t *testing.T) {
 	tests := []struct {
 		name    string
-		finding output.AuditFinding
+		finding model.Finding
 		want    string
 	}{
 		{
 			name:    "invalid license bolds the offending expression",
-			finding: output.AuditFinding{Kind: model.FindingKindLicense, Title: "Package has invalid SPDX license: non-standard"},
+			finding: model.Finding{Kind: model.FindingKindLicense, Title: "Package has invalid SPDX license: non-standard"},
 			want:    "Package has invalid SPDX license: **non-standard**",
 		},
 		{
 			name:    "invalid license with multiple expressions bolds all of them",
-			finding: output.AuditFinding{Kind: model.FindingKindLicense, Title: "Package has invalid SPDX license: foo, bar"},
+			finding: model.Finding{Kind: model.FindingKindLicense, Title: "Package has invalid SPDX license: foo, bar"},
 			want:    "Package has invalid SPDX license: **foo, bar**",
 		},
 		{
 			name:    "license title without a colon value is unchanged",
-			finding: output.AuditFinding{Kind: model.FindingKindLicense, Title: "Package license is unknown"},
+			finding: model.Finding{Kind: model.FindingKindLicense, Title: "Package license is unknown"},
 			want:    "Package license is unknown",
 		},
 		{
 			name:    "non-license finding is never emphasized",
-			finding: output.AuditFinding{Kind: model.FindingKindVulnerability, Title: "Prototype pollution: critical impact"},
+			finding: model.Finding{Kind: model.FindingKindVulnerability, Title: "Prototype pollution: critical impact"},
 			want:    "Prototype pollution: critical impact",
 		},
 	}

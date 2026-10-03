@@ -5,6 +5,8 @@ import (
 	"io"
 	"strings"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
@@ -128,7 +130,7 @@ func ecosystemFromPURL(purl string) string {
 	return parts[0]
 }
 
-func formatExplainAuditSummary(summary *output.AuditSummary) string {
+func formatExplainAuditSummary(summary *scan.AuditSummary) string {
 	if summary == nil || summary.Total == 0 {
 		return "no active findings"
 	}

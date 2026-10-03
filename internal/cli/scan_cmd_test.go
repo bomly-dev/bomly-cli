@@ -4,9 +4,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/config"
-	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"go.uber.org/zap"
 
@@ -119,11 +120,11 @@ func newScanTestGraph(t *testing.T) (*model.Graph, *model.PackageRegistry) {
 
 func TestRenderScanReportGroupsManifestsBySubprojectAndModule(t *testing.T) {
 	g, registry := newScanTestGraph(t)
-	manifests := []output.ScanManifest{
-		{Path: "package-lock.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Dependencies: make([]output.ScanDependency, 3)},
-		{Path: "apps/web/package.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Dependencies: make([]output.ScanDependency, 2)},
-		{Path: "services/api/pom.xml", Subproject: "services/api", PackageManager: model.PackageManagerMaven, Dependencies: make([]output.ScanDependency, 1)},
-		{Path: "services/api/module-a/pom.xml", Subproject: "services/api", PackageManager: model.PackageManagerMaven, Dependencies: make([]output.ScanDependency, 4)},
+	manifests := []scan.Manifest{
+		{Path: "package-lock.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Dependencies: make([]scan.Dependency, 3)},
+		{Path: "apps/web/package.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Dependencies: make([]scan.Dependency, 2)},
+		{Path: "services/api/pom.xml", Subproject: "services/api", PackageManager: model.PackageManagerMaven, Dependencies: make([]scan.Dependency, 1)},
+		{Path: "services/api/module-a/pom.xml", Subproject: "services/api", PackageManager: model.PackageManagerMaven, Dependencies: make([]scan.Dependency, 4)},
 	}
 	report := render.StripANSI(render.Scan(g, registry, nil, nil, false, false, false, nil, manifests, nil))
 
@@ -144,7 +145,7 @@ func TestRenderScanReportGroupsManifestsBySubprojectAndModule(t *testing.T) {
 
 func TestRenderScanReportFlatScanHasNoManifestTree(t *testing.T) {
 	g, registry := newScanTestGraph(t)
-	manifests := []output.ScanManifest{
+	manifests := []scan.Manifest{
 		{Path: "package-lock.json", Subproject: ".", PackageManager: model.PackageManagerNPM},
 	}
 	report := render.StripANSI(render.Scan(g, registry, nil, nil, false, false, false, nil, manifests, nil))
@@ -158,12 +159,12 @@ func TestRenderScanReportFlatScanHasNoManifestTree(t *testing.T) {
 
 func TestRenderScanReportMergedNodeUsesPackageName(t *testing.T) {
 	g, registry := newScanTestGraph(t)
-	manifests := []output.ScanManifest{
-		{Path: "package-lock.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Dependencies: []output.ScanDependency{
+	manifests := []scan.Manifest{
+		{Path: "package-lock.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Dependencies: []scan.Dependency{
 			{ID: "root@1.0.0", Name: "demo-workspace", DependsOn: []string{"ms@2.1.3"}},
 			{ID: "ms@2.1.3", Name: "ms"},
 		}},
-		{Path: "apps/web/package.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Dependencies: []output.ScanDependency{
+		{Path: "apps/web/package.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Dependencies: []scan.Dependency{
 			{ID: "web@1.0.0", Name: "web", DependsOn: []string{"minimist@1.2.5"}},
 			{ID: "minimist@1.2.5", Name: "minimist"},
 		}},

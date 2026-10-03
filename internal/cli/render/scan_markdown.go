@@ -2,19 +2,22 @@ package render
 
 import (
 	"fmt"
-	"github.com/bomly-dev/bomly-sdk/model"
 	"io"
 	"sort"
 	"strings"
+
+	"github.com/bomly-dev/bomly-sdk/scan"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
 // ScanMarkdown writes a GitHub-flavored Markdown scan report.
-func ScanMarkdown(w io.Writer, payload output.ScanResponse, descriptor output.ProjectDescriptor) error {
-	return writeMarkdownReport(w, MarkdownReport[output.ScanResponse]{
+func ScanMarkdown(w io.Writer, payload scan.Record, descriptor output.ProjectDescriptor) error {
+	return writeMarkdownReport(w, MarkdownReport[scan.Record]{
 		Title: "Bomly Scan Summary",
-		Intro: func(payload output.ScanResponse) []string {
+		Intro: func(payload scan.Record) []string {
 			var lines []string
 			// The record identifies its subject without a local path; the
 			// report, read where the scan ran, may still name the project.
@@ -35,19 +38,19 @@ func ScanMarkdown(w io.Writer, payload output.ScanResponse, descriptor output.Pr
 			}
 			return lines
 		},
-		Sections: []MarkdownSection[output.ScanResponse]{
+		Sections: []MarkdownSection[scan.Record]{
 			{Title: "Executive Summary", Lines: scanSummaryMarkdown},
 			{Title: "Manifests", Lines: scanManifestMarkdown},
 			{Title: "Dependency Inventory", Lines: scanInventoryMarkdown},
 			{Title: "Policy Findings", Lines: scanFindingsMarkdown},
-			{Title: "Remediation", Optional: true, Lines: func(payload output.ScanResponse) []string {
+			{Title: "Remediation", Optional: true, Lines: func(payload scan.Record) []string {
 				return remediationMarkdown(payload.Packages)
 			}},
 		},
 	}, payload)
 }
 
-func scanSummaryMarkdown(payload output.ScanResponse) []string {
+func scanSummaryMarkdown(payload scan.Record) []string {
 	lines := []string{
 		fmt.Sprintf("- Manifests: %d", len(payload.Manifests)),
 		fmt.Sprintf("- Packages: %d", scanPackageCount(payload.Manifests)),
@@ -59,7 +62,7 @@ func scanSummaryMarkdown(payload output.ScanResponse) []string {
 	return lines
 }
 
-func scanManifestMarkdown(payload output.ScanResponse) []string {
+func scanManifestMarkdown(payload scan.Record) []string {
 	if len(payload.Manifests) == 0 {
 		return []string{"No manifests detected."}
 	}
@@ -93,7 +96,7 @@ func scanManifestMarkdown(payload output.ScanResponse) []string {
 	return markdownTable([]string{"Name", "Location", "Manifest", "Manager", "Packages"}, rows)
 }
 
-func scanInventoryMarkdown(payload output.ScanResponse) []string {
+func scanInventoryMarkdown(payload scan.Record) []string {
 	dependencies := scanDependencies(payload.Manifests)
 	if len(dependencies) == 0 {
 		return []string{"No packages detected."}
@@ -110,7 +113,7 @@ func scanInventoryMarkdown(payload output.ScanResponse) []string {
 	return markdownTable([]string{"Package", "Version", "Scope", "Licenses"}, rows)
 }
 
-func scanDependencyDisplayName(dep output.ScanDependency) string {
+func scanDependencyDisplayName(dep scan.Dependency) string {
 	switch {
 	case dep.Name != "" && dep.Version != "":
 		return dep.Name + "@" + dep.Version
@@ -121,7 +124,7 @@ func scanDependencyDisplayName(dep output.ScanDependency) string {
 	}
 }
 
-func scanFindingsMarkdown(payload output.ScanResponse) []string {
+func scanFindingsMarkdown(payload scan.Record) []string {
 	if len(payload.Findings) == 0 {
 		return []string{"No policy findings."}
 	}
@@ -172,15 +175,15 @@ func scanFindingsMarkdown(payload output.ScanResponse) []string {
 // scanPackageCount counts distinct packages across manifests. Manifests can
 // share packages (workspace/reactor module manifests overlap on transitive
 // dependencies), so counting per-manifest lengths would overcount.
-func scanPackageCount(manifests []output.ScanManifest) int {
+func scanPackageCount(manifests []scan.Manifest) int {
 	return len(scanDependencies(manifests))
 }
 
 // scanDependencies flattens manifests into a distinct, sorted dependency
 // list, deduplicating shared packages by identity (PURL when set, else ID).
-func scanDependencies(manifests []output.ScanManifest) []output.ScanDependency {
+func scanDependencies(manifests []scan.Manifest) []scan.Dependency {
 	seen := make(map[string]struct{})
-	dependencies := make([]output.ScanDependency, 0)
+	dependencies := make([]scan.Dependency, 0)
 	for _, manifest := range manifests {
 		for _, dep := range manifest.Dependencies {
 			key := dep.PURL
@@ -206,7 +209,7 @@ func scanDependencies(manifests []output.ScanManifest) []output.ScanDependency {
 	return dependencies
 }
 
-func scanAuditSummaryMarkdown(summary *output.AuditSummary) string {
+func scanAuditSummaryMarkdown(summary *scan.AuditSummary) string {
 	if summary == nil || summary.Total == 0 {
 		return "none"
 	}

@@ -17,28 +17,12 @@ import (
 // record and carries scan.SchemaVersion.
 const SchemaVersion = "1.0"
 
-// Metadata captures execution metadata shared by all command outputs. It is
-// the scan record's metadata type, so the three documents agree on it.
-type Metadata = scan.Metadata
-
 // The collections of the scan document are the SDK's own types, not
 // projections of them: a manifest and its dependencies are scan.Manifest and
 // scan.Dependency, a package is model.Package with its enrichment, a finding
 // is model.Finding referencing its package by URL, a license is
-// model.PackageLicense and a location model.PackageLocation. The names below
-// remain for the renderers that grew up on them.
-type (
-	ScanResponse     = scan.Record
-	ScanManifest     = scan.Manifest
-	ScanDependency   = scan.Dependency
-	ScanPackageEntry = model.Package
-	AuditFinding     = model.Finding
-	AuditSummary     = scan.AuditSummary
-	LicenseRef       = model.PackageLicense
-	LocationRef      = model.PackageLocation
-	PositionRef      = model.SourcePosition
-	VulnerabilityRef = model.Vulnerability
-)
+// model.PackageLicense and a location model.PackageLocation. Callers name
+// those types directly; this package defines none of its own for them.
 
 // ReportOptions controls optional experimental data in structured command
 // outputs.
@@ -73,9 +57,9 @@ type PackageRef struct {
 	Purl            string                  `json:"purl,omitempty"`
 	ID              string                  `json:"id,omitempty"`
 	Metadata        map[string]any          `json:"metadata,omitempty"`
-	Locations       []LocationRef           `json:"locations,omitempty"`
-	Licenses        []LicenseRef            `json:"licenses"`
-	Vulnerabilities []VulnerabilityRef      `json:"vulnerabilities"`
+	Locations       []model.PackageLocation `json:"locations,omitempty"`
+	Licenses        []model.PackageLicense  `json:"licenses"`
+	Vulnerabilities []model.Vulnerability   `json:"vulnerabilities"`
 	Scorecard       *model.PackageScorecard `json:"scorecard,omitempty"`
 	Relationship    string                  `json:"relationship,omitempty"`
 	// Direct reports whether the package is a direct dependency of a project

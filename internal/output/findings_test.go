@@ -109,7 +109,7 @@ func TestFindingsFromScanKeepsANonPurlReferenceVerbatim(t *testing.T) {
 func TestFindingVulnerabilityInPackagesJoinsByPurlAndAlias(t *testing.T) {
 	registry := scopedNPMRegistry(t)
 	packages := PackagesFromRegistry(registry)
-	finding := AuditFinding{
+	finding := model.Finding{
 		ID:              "CVE-2026-0001",
 		Kind:            model.FindingKindVulnerability,
 		VulnerabilityID: "CVE-2026-0001", // alias of GHSA-scoped
@@ -123,10 +123,10 @@ func TestFindingVulnerabilityInPackagesJoinsByPurlAndAlias(t *testing.T) {
 		t.Fatalf("advisory detail missing on joined ref: got %#v", vuln)
 	}
 
-	if got := FindingVulnerabilityInPackages(AuditFinding{PackageRef: "pkg:npm/other@1.0.0", VulnerabilityID: "GHSA-scoped"}, packages); got != nil {
+	if got := FindingVulnerabilityInPackages(model.Finding{PackageRef: "pkg:npm/other@1.0.0", VulnerabilityID: "GHSA-scoped"}, packages); got != nil {
 		t.Fatalf("expected nil for unknown package, got %#v", got)
 	}
-	if got := FindingVulnerabilityInPackages(AuditFinding{}, packages); got != nil {
+	if got := FindingVulnerabilityInPackages(model.Finding{}, packages); got != nil {
 		t.Fatalf("expected nil for empty purl, got %#v", got)
 	}
 }

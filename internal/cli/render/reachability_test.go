@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-sdk/scan"
+
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 
@@ -58,18 +60,18 @@ func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 }
 
 func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
-	payload := output.ScanResponse{
-		Metadata: output.Metadata{ReachabilityEnabled: true},
+	payload := scan.Record{
+		Metadata: scan.Metadata{ReachabilityEnabled: true},
 		Packages: []*sdkmodel.Package{{
 			PURL: libPURL,
 			Name: "lib",
-			Vulnerabilities: []output.VulnerabilityRef{{
+			Vulnerabilities: []sdkmodel.Vulnerability{{
 				ID:           "CVE-2024-0001",
 				Source:       "osv",
 				Reachability: &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
 			}},
 		}},
-		Findings: []output.AuditFinding{{
+		Findings: []sdkmodel.Finding{{
 			ID:              "CVE-2024-0001",
 			VulnerabilityID: "CVE-2024-0001",
 			Severity:        "high",
@@ -96,12 +98,12 @@ func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
 
 func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 	payload := output.DiffResponse{
-		Metadata: output.Metadata{ReachabilityEnabled: true},
+		Metadata: scan.Metadata{ReachabilityEnabled: true},
 		Results: output.DiffResults{
 			Vulnerabilities: output.DiffVulnerabilityResults{
 				Added: []output.DiffVulnerabilityChange{{
 					Package: output.PackageRef{Name: "lib", Version: "1.0.0"},
-					Vulnerability: output.VulnerabilityRef{
+					Vulnerability: sdkmodel.Vulnerability{
 						ID:             "CVE-2024-0001",
 						ParsedSeverity: "high",
 						Reachability:   &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
@@ -112,14 +114,14 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 		Packages: []*sdkmodel.Package{{
 			PURL: libPURL,
 			Name: "lib",
-			Vulnerabilities: []output.VulnerabilityRef{{
+			Vulnerabilities: []sdkmodel.Vulnerability{{
 				ID:             "CVE-2024-0001",
 				ParsedSeverity: "high",
 				Reachability:   &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
 			}},
 		}},
 		Audit: &output.DiffAudit{
-			Introduced: []output.AuditFinding{{
+			Introduced: []sdkmodel.Finding{{
 				ID:              "CVE-2024-0001",
 				VulnerabilityID: "CVE-2024-0001",
 				Severity:        "high",
@@ -164,14 +166,14 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 		Project: output.ProjectDescriptor{Name: "demo"},
 		Dependency: output.ExplainDependency{PackageRef: output.PackageRef{
 			Name: "lib",
-			Vulnerabilities: []output.VulnerabilityRef{{
+			Vulnerabilities: []sdkmodel.Vulnerability{{
 				ID:             "CVE-2024-0001",
 				Source:         "osv",
 				ParsedSeverity: "high",
 				Reachability:   &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
 			}},
 		}},
-		Findings: []output.AuditFinding{{
+		Findings: []sdkmodel.Finding{{
 			ID:              "CVE-2024-0001",
 			VulnerabilityID: "CVE-2024-0001",
 			Severity:        "high",
@@ -193,7 +195,7 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 	}
 
 	payload := output.ExplainResponse{
-		Metadata: output.Metadata{ReachabilityEnabled: true},
+		Metadata: scan.Metadata{ReachabilityEnabled: true},
 		Query:    output.ExplainQuery{Name: "lib"},
 		Targets:  []output.ExplainTargetResponse{target},
 	}

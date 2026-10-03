@@ -80,10 +80,12 @@ func isConcreteFixAction(action model.RemediationAction) bool {
 
 func remediationPackageLabel(pkg *model.Package) string {
 	switch {
+	// DisplayName is the ecosystem-aware spelling: a scoped npm package
+	// reads @org/name, not the bare name the Coordinates field holds.
 	case pkg.Name != "" && pkg.Version != "":
-		return pkg.Name + "@" + pkg.Version
+		return pkg.DisplayName() + "@" + pkg.Version
 	case pkg.Name != "":
-		return pkg.Name
+		return pkg.DisplayName()
 	case pkg.PURL != "":
 		return pkg.PURL
 	default:

@@ -336,3 +336,12 @@ func remediationTestPackage(purl string) *model.Package {
 		},
 	}
 }
+
+// A scoped package reads @org/name in a remediation table, as it did before
+// the output projection was removed; the bare Name would be ambiguous.
+func TestRemediationPackageLabelKeepsTheScope(t *testing.T) {
+	pkg := &model.Package{Coordinates: model.Coordinates{PURL: "pkg:npm/@tailwindcss/postcss@4.0.0", Ecosystem: model.EcosystemNPM, Org: "tailwindcss", Name: "postcss", Version: "4.0.0"}}
+	if got := remediationPackageLabel(pkg); got != "@tailwindcss/postcss@4.0.0" {
+		t.Fatalf("remediation label = %q, want the scoped name", got)
+	}
+}

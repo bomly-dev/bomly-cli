@@ -3964,7 +3964,7 @@
     "analyzer_stats": {
       "jsreach": {
         "reachable": 25,
-        "unreachable": 27
+        "unreachable": 30
       }
     },
     "reachability_enabled": true
@@ -4738,6 +4738,83 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "details": "brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion",
+          "epss": [
+            {
+              "cve": "CVE-2026-102276",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-6j4f-fj2g-mc7p",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jsreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
           "details": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
           "epss": [
             {
@@ -4837,6 +4914,160 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-mh99-v99m-4gvg",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "high",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jsreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service",
+          "epss": [
+            {
+              "cve": "CVE-2026-102277",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-q2hr-2g5m-vwhr",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "medium",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jsreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion",
+          "epss": [
+            {
+              "cve": "CVE-2026-102278",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-qhr7-859c-m2p7",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "high",
           "reachability": {

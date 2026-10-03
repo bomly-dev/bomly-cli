@@ -997,7 +997,7 @@
     "analyzer_stats": {
       "jvmreach": {
         "reachable": 37,
-        "unreachable": 62
+        "unreachable": 63
       }
     },
     "reachability_enabled": true
@@ -6601,7 +6601,101 @@
       "org": "org.freemarker",
       "package_manager": "maven",
       "purl": "pkg:maven/org.freemarker/freemarker@2.3.23",
-      "version": "2.3.23"
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:maven/org.freemarker/freemarker@2.3.23"
+            ],
+            "manifest_path": "pom.xml",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.struts/struts2-core@2.5.13"
+          }
+        ]
+      },
+      "version": "2.3.23",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "Apache FreeMarker template loading mechanism vulnerable to path traversal",
+          "epss": [
+            {
+              "cve": "CVE-2026-84939",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-27j2-h3m2-8237",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "critical",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
     },
     {
       "ecosystem": "maven",

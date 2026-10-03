@@ -39,7 +39,10 @@ func TestStructuredAndSARIFFindingContractsAgree(t *testing.T) {
 		VulnerabilityID: "GHSA-contract",
 	}}
 
-	structured := append([]model.Finding(nil), findings...)
+	// The structured document carries findings through FindingsWithSeverity;
+	// the SARIF document is written from the same findings. Both must keep
+	// the fields a baseline entry is authored against.
+	structured := FindingsWithSeverity(findings, registry)
 	if len(structured) != 1 {
 		t.Fatalf("structured finding count = %d", len(structured))
 	}

@@ -19,14 +19,24 @@ func TestFailingFindingCountKeepsSuppressedFindingNonBlocking(t *testing.T) {
 	}
 }
 
-// TestFindingsFromScanExposesStableRuleID verifies structured output includes
-// the package-specific rule identity required to author baseline entries.
-func TestFindingsFromScanExposesStableRuleID(t *testing.T) {
-	findings := []model.Finding{{
-		ID: "package:denied:example", RuleID: "denied-package",
-		Kind: model.FindingKindPackage, PackageRef: "pkg:npm/example@1.0.0",
-	}}
-	if len(findings) != 1 || findings[0].RuleID != "denied-package" {
-		t.Fatalf("projected findings = %#v", findings)
+// TestFindingsWithSeverityKeepsStableRuleID verifies that the findings a
+// document carries keep the package-specific rule identity required to
+// author baseline entries, and that a severity the finding did not state is
+// filled from the advisory it references.
+func TestFindingsWithSeverityKeepsStableRuleID(t *testing.T) {
+	registry := model.NewPackageRegistry()
+	registry.Add(&model.Package{
+		Coordinates:     model.Coordinates{PURL: "pkg:npm/example@1.0.0", Ecosystem: model.EcosystemNPM, Name: "example", Version: "1.0.0"},
+		Vulnerabilities: []model.Vulnerability{{ID: "GHSA-example", ParsedSeverity: model.SeverityHigh}},
+	})
+	findings := FindingsWithSeverity([]model.Finding{
+		{ID: "package:denied:example", RuleID: "denied-package", Kind: model.FindingKindPackage, PackageRef: "pkg:npm/example@1.0.0"},
+		{ID: "GHSA-example", Kind: model.FindingKindVulnerability, PackageRef: "pkg:npm/example@1.0.0", VulnerabilityID: "GHSA-example"},
+	}, registry)
+	if len(findings) != 2 || findings[0].RuleID != "denied-package" {
+		t.Fatalf("document findings = %#v", findings)
+	}
+	if findings[1].Severity != model.SeverityHigh {
+		t.Fatalf("severity was not filled from the advisory: %#v", findings[1])
 	}
 }

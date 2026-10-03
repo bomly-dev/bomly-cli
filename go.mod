@@ -14,7 +14,7 @@ require (
 	github.com/bomly-dev/bomly-plugin-pyreach-analyzer v0.4.0
 	github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.3.0
 	github.com/bomly-dev/bomly-plugin-syft-detector v0.6.0
-	github.com/bomly-dev/bomly-sdk v0.13.1-0.20261003003105-c9ef781cfbd6
+	github.com/bomly-dev/bomly-sdk v0.13.1-0.20261003005936-9d429518c9c2
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0

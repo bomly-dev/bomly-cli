@@ -218,6 +218,9 @@
                   },
                   "type": "array"
                 },
+                "source": {
+                  "type": "string"
+                },
                 "version": {
                   "type": "string"
                 }
@@ -629,8 +632,8 @@
                 "type": "string"
               },
               "runDate": {
-                "properties": {},
-                "type": "object"
+                "format": "date-time",
+                "type": "string"
               },
               "scorecardVersion": {
                 "type": "string"
@@ -1279,6 +1282,9 @@
                   },
                   "type": "array"
                 },
+                "recommendation": {
+                  "type": "string"
+                },
                 "references": {
                   "items": {
                     "properties": {
@@ -1350,8 +1356,8 @@
           "type": "string"
         },
         "evaluated_at": {
-          "properties": {},
-          "type": "object"
+          "format": "date-time",
+          "type": "string"
         },
         "name": {
           "type": "string"
@@ -1362,8 +1368,8 @@
     "run": {
       "properties": {
         "completed_at": {
-          "properties": {},
-          "type": "object"
+          "format": "date-time",
+          "type": "string"
         },
         "components": {
           "items": {
@@ -1412,8 +1418,8 @@
           "type": "object"
         },
         "started_at": {
-          "properties": {},
-          "type": "object"
+          "format": "date-time",
+          "type": "string"
         },
         "tool": {
           "properties": {
@@ -1440,6 +1446,9 @@
         "image_digest": {
           "type": "string"
         },
+        "image_reference": {
+          "type": "string"
+        },
         "kind": {
           "type": "string"
         },
@@ -1462,12 +1471,12 @@
             "type": "string"
           },
           "created_at": {
-            "properties": {},
-            "type": "object"
+            "format": "date-time",
+            "type": "string"
           },
           "expires_at": {
-            "properties": {},
-            "type": "object"
+            "format": "date-time",
+            "type": "string"
           },
           "id": {
             "type": "string"

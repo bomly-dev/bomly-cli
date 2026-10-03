@@ -613,8 +613,8 @@
                 "type": "string"
               },
               "runDate": {
-                "properties": {},
-                "type": "object"
+                "format": "date-time",
+                "type": "string"
               },
               "scorecardVersion": {
                 "type": "string"
@@ -1263,6 +1263,9 @@
                   },
                   "type": "array"
                 },
+                "recommendation": {
+                  "type": "string"
+                },
                 "references": {
                   "items": {
                     "properties": {
@@ -1491,8 +1494,8 @@
                             "type": "string"
                           },
                           "runDate": {
-                            "properties": {},
-                            "type": "object"
+                            "format": "date-time",
+                            "type": "string"
                           },
                           "scorecardVersion": {
                             "type": "string"
@@ -2123,6 +2126,9 @@
                                 "type": "string"
                               },
                               "type": "array"
+                            },
+                            "recommendation": {
+                              "type": "string"
                             },
                             "references": {
                               "items": {
@@ -2332,8 +2338,8 @@
                             "type": "string"
                           },
                           "runDate": {
-                            "properties": {},
-                            "type": "object"
+                            "format": "date-time",
+                            "type": "string"
                           },
                           "scorecardVersion": {
                             "type": "string"
@@ -2964,6 +2970,9 @@
                                 "type": "string"
                               },
                               "type": "array"
+                            },
+                            "recommendation": {
+                              "type": "string"
                             },
                             "references": {
                               "items": {
@@ -3162,8 +3171,8 @@
                             "type": "string"
                           },
                           "runDate": {
-                            "properties": {},
-                            "type": "object"
+                            "format": "date-time",
+                            "type": "string"
                           },
                           "scorecardVersion": {
                             "type": "string"
@@ -3794,6 +3803,9 @@
                                 "type": "string"
                               },
                               "type": "array"
+                            },
+                            "recommendation": {
+                              "type": "string"
                             },
                             "references": {
                               "items": {
@@ -4004,8 +4016,8 @@
                             "type": "string"
                           },
                           "runDate": {
-                            "properties": {},
-                            "type": "object"
+                            "format": "date-time",
+                            "type": "string"
                           },
                           "scorecardVersion": {
                             "type": "string"
@@ -4636,6 +4648,9 @@
                                 "type": "string"
                               },
                               "type": "array"
+                            },
+                            "recommendation": {
+                              "type": "string"
                             },
                             "references": {
                               "items": {
@@ -4965,8 +4980,8 @@
                             "type": "string"
                           },
                           "runDate": {
-                            "properties": {},
-                            "type": "object"
+                            "format": "date-time",
+                            "type": "string"
                           },
                           "scorecardVersion": {
                             "type": "string"
@@ -5597,6 +5612,9 @@
                                 "type": "string"
                               },
                               "type": "array"
+                            },
+                            "recommendation": {
+                              "type": "string"
                             },
                             "references": {
                               "items": {
@@ -5859,8 +5877,8 @@
                             "type": "string"
                           },
                           "runDate": {
-                            "properties": {},
-                            "type": "object"
+                            "format": "date-time",
+                            "type": "string"
                           },
                           "scorecardVersion": {
                             "type": "string"
@@ -6491,6 +6509,9 @@
                                 "type": "string"
                               },
                               "type": "array"
+                            },
+                            "recommendation": {
+                              "type": "string"
                             },
                             "references": {
                               "items": {
@@ -6728,8 +6749,8 @@
                             "type": "string"
                           },
                           "runDate": {
-                            "properties": {},
-                            "type": "object"
+                            "format": "date-time",
+                            "type": "string"
                           },
                           "scorecardVersion": {
                             "type": "string"
@@ -7361,6 +7382,9 @@
                               },
                               "type": "array"
                             },
+                            "recommendation": {
+                              "type": "string"
+                            },
                             "references": {
                               "items": {
                                 "properties": {
@@ -7576,8 +7600,8 @@
                               "type": "string"
                             },
                             "runDate": {
-                              "properties": {},
-                              "type": "object"
+                              "format": "date-time",
+                              "type": "string"
                             },
                             "scorecardVersion": {
                               "type": "string"
@@ -8208,6 +8232,9 @@
                                   "type": "string"
                                 },
                                 "type": "array"
+                              },
+                              "recommendation": {
+                                "type": "string"
                               },
                               "references": {
                                 "items": {
@@ -8417,8 +8444,8 @@
                               "type": "string"
                             },
                             "runDate": {
-                              "properties": {},
-                              "type": "object"
+                              "format": "date-time",
+                              "type": "string"
                             },
                             "scorecardVersion": {
                               "type": "string"
@@ -9049,6 +9076,9 @@
                                   "type": "string"
                                 },
                                 "type": "array"
+                              },
+                              "recommendation": {
+                                "type": "string"
                               },
                               "references": {
                                 "items": {
@@ -9247,8 +9277,8 @@
                               "type": "string"
                             },
                             "runDate": {
-                              "properties": {},
-                              "type": "object"
+                              "format": "date-time",
+                              "type": "string"
                             },
                             "scorecardVersion": {
                               "type": "string"
@@ -9879,6 +9909,9 @@
                                   "type": "string"
                                 },
                                 "type": "array"
+                              },
+                              "recommendation": {
+                                "type": "string"
                               },
                               "references": {
                                 "items": {
@@ -10101,8 +10134,8 @@
                               "type": "string"
                             },
                             "runDate": {
-                              "properties": {},
-                              "type": "object"
+                              "format": "date-time",
+                              "type": "string"
                             },
                             "scorecardVersion": {
                               "type": "string"
@@ -10733,6 +10766,9 @@
                                   "type": "string"
                                 },
                                 "type": "array"
+                              },
+                              "recommendation": {
+                                "type": "string"
                               },
                               "references": {
                                 "items": {
@@ -11047,8 +11083,8 @@
                             "type": "string"
                           },
                           "runDate": {
-                            "properties": {},
-                            "type": "object"
+                            "format": "date-time",
+                            "type": "string"
                           },
                           "scorecardVersion": {
                             "type": "string"
@@ -11679,6 +11715,9 @@
                                 "type": "string"
                               },
                               "type": "array"
+                            },
+                            "recommendation": {
+                              "type": "string"
                             },
                             "references": {
                               "items": {
@@ -12361,6 +12400,9 @@
                           "type": "string"
                         },
                         "type": "array"
+                      },
+                      "recommendation": {
+                        "type": "string"
                       },
                       "references": {
                         "items": {
@@ -12561,8 +12603,8 @@
                             "type": "string"
                           },
                           "runDate": {
-                            "properties": {},
-                            "type": "object"
+                            "format": "date-time",
+                            "type": "string"
                           },
                           "scorecardVersion": {
                             "type": "string"
@@ -13193,6 +13235,9 @@
                                 "type": "string"
                               },
                               "type": "array"
+                            },
+                            "recommendation": {
+                              "type": "string"
                             },
                             "references": {
                               "items": {
@@ -13875,6 +13920,9 @@
                           "type": "string"
                         },
                         "type": "array"
+                      },
+                      "recommendation": {
+                        "type": "string"
                       },
                       "references": {
                         "items": {
@@ -14075,8 +14123,8 @@
                             "type": "string"
                           },
                           "runDate": {
-                            "properties": {},
-                            "type": "object"
+                            "format": "date-time",
+                            "type": "string"
                           },
                           "scorecardVersion": {
                             "type": "string"
@@ -14707,6 +14755,9 @@
                                 "type": "string"
                               },
                               "type": "array"
+                            },
+                            "recommendation": {
+                              "type": "string"
                             },
                             "references": {
                               "items": {
@@ -15389,6 +15440,9 @@
                           "type": "string"
                         },
                         "type": "array"
+                      },
+                      "recommendation": {
+                        "type": "string"
                       },
                       "references": {
                         "items": {

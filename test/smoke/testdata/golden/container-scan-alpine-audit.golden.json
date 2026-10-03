@@ -691,6 +691,7 @@
   },
   "schema_version": "bomly.scan.v1",
   "subject": {
+    "image_reference": "alpine:3.20",
     "kind": "container-image"
   },
   "verdict": "pass"

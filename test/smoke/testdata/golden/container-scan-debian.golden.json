@@ -76,13 +76,13 @@
           "id": "pkg:deb/debian/apt@2.6.1?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "Expat"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "Expat"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -283,6 +283,22 @@
           "id": "pkg:deb/debian/gpgv@2.2.40-1.1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gnupg2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "Expat"
+            },
+            {
+              "type": "declared",
+              "value": "RFC-Reference"
+            },
+            {
+              "type": "declared",
+              "value": "TinySCHEME"
+            },
+            {
+              "type": "declared",
+              "value": "permissive"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -291,10 +307,6 @@
               "spdx_expression": "CC0-1.0",
               "type": "declared",
               "value": "CC0-1.0"
-            },
-            {
-              "type": "declared",
-              "value": "Expat"
             },
             {
               "spdx_expression": "GPL-3.0-only",
@@ -325,18 +337,6 @@
               "spdx_expression": "LGPL-3.0-or-later",
               "type": "declared",
               "value": "LGPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "RFC-Reference"
-            },
-            {
-              "type": "declared",
-              "value": "TinySCHEME"
-            },
-            {
-              "type": "declared",
-              "value": "permissive"
             }
           ],
           "locations": [
@@ -380,13 +380,13 @@
           "id": "pkg:deb/debian/libapt-pkg6.0@2.6.1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=apt",
           "licenses": [
             {
+              "type": "declared",
+              "value": "Expat"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "Expat"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -709,11 +709,6 @@
               "value": "Artistic"
             },
             {
-              "spdx_expression": "BSD-3-Clause",
-              "type": "declared",
-              "value": "BSD-3-clause"
-            },
-            {
               "type": "declared",
               "value": "BSD-3-clause-fjord"
             },
@@ -722,13 +717,22 @@
               "value": "GPL"
             },
             {
-              "spdx_expression": "GPL-3.0-only",
               "type": "declared",
-              "value": "GPL-3"
+              "value": "MIT-old"
             },
             {
               "type": "declared",
-              "value": "MIT-old"
+              "value": "TCL-like"
+            },
+            {
+              "spdx_expression": "BSD-3-Clause",
+              "type": "declared",
+              "value": "BSD-3-clause"
+            },
+            {
+              "spdx_expression": "GPL-3.0-only",
+              "type": "declared",
+              "value": "GPL-3"
             },
             {
               "spdx_expression": "MS-PL",
@@ -739,10 +743,6 @@
               "spdx_expression": "Sleepycat",
               "type": "declared",
               "value": "Sleepycat"
-            },
-            {
-              "type": "declared",
-              "value": "TCL-like"
             },
             {
               "spdx_expression": "X11",
@@ -789,6 +789,10 @@
               "value": "GPL"
             },
             {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "GPL-2.0-or-later",
               "type": "declared",
               "value": "GPL-2+"
@@ -807,10 +811,6 @@
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -994,6 +994,10 @@
           "id": "pkg:deb/debian/libgpg-error0@1.46-1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libgpg-error",
           "licenses": [
             {
+              "type": "declared",
+              "value": "g10-permissive"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -1017,10 +1021,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "g10-permissive"
             }
           ],
           "locations": [
@@ -1063,6 +1063,14 @@
               "value": "GPL"
             },
             {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -1078,10 +1086,6 @@
               "value": "GPL-3+"
             },
             {
-              "type": "declared",
-              "value": "LGPL"
-            },
-            {
               "spdx_expression": "LGPL-2.0-only",
               "type": "declared",
               "value": "LGPL-2"
@@ -1095,10 +1099,6 @@
               "spdx_expression": "LGPL-3.0-or-later",
               "type": "declared",
               "value": "LGPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -1128,6 +1128,10 @@
           "id": "pkg:deb/debian/libidn2-0@2.3.3-1%2Bb1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libidn2%402.3.3-1",
           "licenses": [
             {
+              "type": "declared",
+              "value": "Unicode"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -1156,10 +1160,6 @@
               "spdx_expression": "LGPL-3.0-or-later",
               "type": "declared",
               "value": "LGPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "Unicode"
             }
           ],
           "locations": [
@@ -1233,6 +1233,34 @@
               "value": "Autoconf"
             },
             {
+              "type": "declared",
+              "value": "PD"
+            },
+            {
+              "type": "declared",
+              "value": "PD-debian"
+            },
+            {
+              "type": "declared",
+              "value": "config-h"
+            },
+            {
+              "type": "declared",
+              "value": "noderivs"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-fsf"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-nowarranty"
+            },
+            {
+              "type": "declared",
+              "value": "probably-PD"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -1261,34 +1289,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "PD"
-            },
-            {
-              "type": "declared",
-              "value": "PD-debian"
-            },
-            {
-              "type": "declared",
-              "value": "config-h"
-            },
-            {
-              "type": "declared",
-              "value": "noderivs"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-fsf"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-nowarranty"
-            },
-            {
-              "type": "declared",
-              "value": "probably-PD"
             }
           ],
           "locations": [
@@ -1329,6 +1329,14 @@
               "value": "GPL"
             },
             {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -1344,10 +1352,6 @@
               "value": "GPL-3+"
             },
             {
-              "type": "declared",
-              "value": "LGPL"
-            },
-            {
               "spdx_expression": "LGPL-2.0-only",
               "type": "declared",
               "value": "LGPL-2"
@@ -1361,10 +1365,6 @@
               "spdx_expression": "LGPL-3.0-or-later",
               "type": "declared",
               "value": "LGPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -1394,6 +1394,18 @@
           "id": "pkg:deb/debian/libp11-kit0@0.24.1-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=p11-kit",
           "licenses": [
             {
+              "type": "declared",
+              "value": "ISC+IBM"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-like-automake-output"
+            },
+            {
+              "type": "declared",
+              "value": "same-as-rest-of-p11kit"
+            },
+            {
               "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2.0"
@@ -1409,10 +1421,6 @@
               "value": "ISC"
             },
             {
-              "type": "declared",
-              "value": "ISC+IBM"
-            },
-            {
               "spdx_expression": "LGPL-2.1-only",
               "type": "declared",
               "value": "LGPL-2.1"
@@ -1421,14 +1429,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-like-automake-output"
-            },
-            {
-              "type": "declared",
-              "value": "same-as-rest-of-p11kit"
             }
           ],
           "locations": [
@@ -1461,22 +1461,26 @@
           "id": "pkg:deb/debian/libpam-modules-bin@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-tcp_wrappers"
+            },
+            {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-tcp_wrappers"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -1507,10 +1511,6 @@
               "spdx_expression": "LGPL-2.0-or-later",
               "type": "declared",
               "value": "LGPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -1550,22 +1550,26 @@
           "id": "pkg:deb/debian/libpam-modules@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-tcp_wrappers"
+            },
+            {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-tcp_wrappers"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -1596,10 +1600,6 @@
               "spdx_expression": "LGPL-2.0-or-later",
               "type": "declared",
               "value": "LGPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -1634,22 +1634,26 @@
           "id": "pkg:deb/debian/libpam0g@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-tcp_wrappers"
+            },
+            {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-tcp_wrappers"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -1680,10 +1684,6 @@
               "spdx_expression": "LGPL-2.0-or-later",
               "type": "declared",
               "value": "LGPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -1712,6 +1712,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -1722,17 +1730,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -1981,13 +1981,17 @@
           "id": "pkg:deb/debian/libsystemd0@252.39-1~deb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=systemd",
           "licenses": [
             {
-              "spdx_expression": "CC0-1.0",
               "type": "declared",
-              "value": "CC0-1.0"
+              "value": "Expat"
             },
             {
               "type": "declared",
-              "value": "Expat"
+              "value": "public-domain"
+            },
+            {
+              "spdx_expression": "CC0-1.0",
+              "type": "declared",
+              "value": "CC0-1.0"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -2008,10 +2012,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -2070,13 +2070,17 @@
           "id": "pkg:deb/debian/libudev1@252.39-1~deb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=systemd",
           "licenses": [
             {
-              "spdx_expression": "CC0-1.0",
               "type": "declared",
-              "value": "CC0-1.0"
+              "value": "Expat"
             },
             {
               "type": "declared",
-              "value": "Expat"
+              "value": "public-domain"
+            },
+            {
+              "spdx_expression": "CC0-1.0",
+              "type": "declared",
+              "value": "CC0-1.0"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -2097,10 +2101,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -2240,13 +2240,13 @@
           "id": "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libzstd",
           "licenses": [
             {
+              "type": "declared",
+              "value": "Expat"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "Expat"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -2291,6 +2291,10 @@
           "id": "pkg:deb/debian/passwd@1:4.13%2Bdfsg1-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=shadow",
           "licenses": [
             {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -2309,10 +2313,6 @@
               "spdx_expression": "GPL-2.0-or-later",
               "type": "declared",
               "value": "GPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -2406,13 +2406,13 @@
           "id": "pkg:deb/debian/base-passwd@3.6.1?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -2599,6 +2599,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -2609,17 +2617,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -2732,6 +2732,18 @@
           "id": "pkg:deb/debian/bash@5.2.15-2%2Bb13?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=bash%405.2.15-2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "GFDL-NIV-1.3"
+            },
+            {
+              "type": "declared",
+              "value": "MIT-like"
+            },
+            {
+              "type": "declared",
+              "value": "permissive"
+            },
+            {
               "spdx_expression": "BSD-4-Clause-UC",
               "type": "declared",
               "value": "BSD-4-clause-UC"
@@ -2740,10 +2752,6 @@
               "spdx_expression": "GFDL-1.3-only",
               "type": "declared",
               "value": "GFDL-1.3"
-            },
-            {
-              "type": "declared",
-              "value": "GFDL-NIV-1.3"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -2769,14 +2777,6 @@
               "spdx_expression": "Latex2e",
               "type": "declared",
               "value": "Latex2e"
-            },
-            {
-              "type": "declared",
-              "value": "MIT-like"
-            },
-            {
-              "type": "declared",
-              "value": "permissive"
             }
           ],
           "locations": [
@@ -2825,6 +2825,10 @@
           "id": "pkg:deb/debian/debianutils@5.7-0.5~deb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -2838,10 +2842,6 @@
               "spdx_expression": "SMAIL-GPL",
               "type": "declared",
               "value": "SMAIL-GPL"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -2982,13 +2982,13 @@
           "id": "pkg:deb/debian/libtinfo6@6.4-4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=ncurses",
           "licenses": [
             {
+              "type": "declared",
+              "value": "MIT/X11"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "MIT/X11"
             },
             {
               "spdx_expression": "X11",
@@ -3084,6 +3084,18 @@
           "id": "pkg:deb/debian/bsdutils@1:2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux%402.38.1-5%2Bdeb12u3",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -3092,10 +3104,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -3116,10 +3124,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -3155,10 +3159,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -3355,6 +3355,10 @@
           "id": "pkg:deb/debian/libgpg-error0@1.46-1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libgpg-error",
           "licenses": [
             {
+              "type": "declared",
+              "value": "g10-permissive"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -3378,10 +3382,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "g10-permissive"
             }
           ],
           "locations": [
@@ -3455,6 +3455,34 @@
               "value": "Autoconf"
             },
             {
+              "type": "declared",
+              "value": "PD"
+            },
+            {
+              "type": "declared",
+              "value": "PD-debian"
+            },
+            {
+              "type": "declared",
+              "value": "config-h"
+            },
+            {
+              "type": "declared",
+              "value": "noderivs"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-fsf"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-nowarranty"
+            },
+            {
+              "type": "declared",
+              "value": "probably-PD"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -3483,34 +3511,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "PD"
-            },
-            {
-              "type": "declared",
-              "value": "PD-debian"
-            },
-            {
-              "type": "declared",
-              "value": "config-h"
-            },
-            {
-              "type": "declared",
-              "value": "noderivs"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-fsf"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-nowarranty"
-            },
-            {
-              "type": "declared",
-              "value": "probably-PD"
             }
           ],
           "locations": [
@@ -3544,13 +3544,17 @@
           "id": "pkg:deb/debian/libsystemd0@252.39-1~deb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=systemd",
           "licenses": [
             {
-              "spdx_expression": "CC0-1.0",
               "type": "declared",
-              "value": "CC0-1.0"
+              "value": "Expat"
             },
             {
               "type": "declared",
-              "value": "Expat"
+              "value": "public-domain"
+            },
+            {
+              "spdx_expression": "CC0-1.0",
+              "type": "declared",
+              "value": "CC0-1.0"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -3571,10 +3575,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -3603,13 +3603,13 @@
           "id": "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libzstd",
           "licenses": [
             {
+              "type": "declared",
+              "value": "Expat"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "Expat"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -3660,6 +3660,10 @@
           "id": "pkg:deb/debian/coreutils@9.1-1?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "GFDL-NIV-1.3"
+            },
+            {
               "spdx_expression": "BSD-4-Clause-UC",
               "type": "declared",
               "value": "BSD-4-clause-UC"
@@ -3673,10 +3677,6 @@
               "spdx_expression": "GFDL-1.3-only",
               "type": "declared",
               "value": "GFDL-1.3"
-            },
-            {
-              "type": "declared",
-              "value": "GFDL-NIV-1.3"
             },
             {
               "spdx_expression": "GPL-3.0-only",
@@ -3976,6 +3976,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -3986,17 +3994,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -4066,6 +4066,10 @@
           "id": "pkg:deb/debian/dash@0.5.12-2?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-Clause"
@@ -4084,10 +4088,6 @@
               "spdx_expression": "GPL-2.0-or-later",
               "type": "declared",
               "value": "GPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -4132,6 +4132,10 @@
           "id": "pkg:deb/debian/debianutils@5.7-0.5~deb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -4145,10 +4149,6 @@
               "spdx_expression": "SMAIL-GPL",
               "type": "declared",
               "value": "SMAIL-GPL"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -4204,6 +4204,10 @@
           "id": "pkg:deb/debian/dpkg@1.21.23?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "public-domain-s-s-d"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -4217,10 +4221,6 @@
               "spdx_expression": "GPL-2.0-or-later",
               "type": "declared",
               "value": "GPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-s-s-d"
             }
           ],
           "locations": [
@@ -4446,6 +4446,34 @@
               "value": "Autoconf"
             },
             {
+              "type": "declared",
+              "value": "PD"
+            },
+            {
+              "type": "declared",
+              "value": "PD-debian"
+            },
+            {
+              "type": "declared",
+              "value": "config-h"
+            },
+            {
+              "type": "declared",
+              "value": "noderivs"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-fsf"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-nowarranty"
+            },
+            {
+              "type": "declared",
+              "value": "probably-PD"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -4474,34 +4502,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "PD"
-            },
-            {
-              "type": "declared",
-              "value": "PD-debian"
-            },
-            {
-              "type": "declared",
-              "value": "config-h"
-            },
-            {
-              "type": "declared",
-              "value": "noderivs"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-fsf"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-nowarranty"
-            },
-            {
-              "type": "declared",
-              "value": "probably-PD"
             }
           ],
           "locations": [
@@ -4530,6 +4530,22 @@
           "id": "pkg:deb/debian/libmd0@1.0.4-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libmd",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Aaron-D-Gifford"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-md4"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-md5"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-sha1"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -4545,10 +4561,6 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Aaron-D-Gifford"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
@@ -4557,18 +4569,6 @@
               "spdx_expression": "ISC",
               "type": "declared",
               "value": "ISC"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-md4"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-md5"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-sha1"
             }
           ],
           "locations": [
@@ -4597,6 +4597,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -4607,17 +4615,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -4677,13 +4677,13 @@
           "id": "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libzstd",
           "licenses": [
             {
+              "type": "declared",
+              "value": "Expat"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "Expat"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -4831,6 +4831,14 @@
           "id": "pkg:deb/debian/diffutils@1:3.8-4?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "GFDL-NIV-1.3"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "FSFAP",
               "type": "declared",
               "value": "FSFAP"
@@ -4844,10 +4852,6 @@
               "spdx_expression": "GFDL-1.3-only",
               "type": "declared",
               "value": "GFDL-1.3"
-            },
-            {
-              "type": "declared",
-              "value": "GFDL-NIV-1.3"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -4903,10 +4907,6 @@
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -5045,6 +5045,10 @@
           "id": "pkg:deb/debian/e2fsprogs@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
               "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2"
@@ -5058,10 +5062,6 @@
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-Clause"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -5171,6 +5171,18 @@
           "id": "pkg:deb/debian/libblkid1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -5179,10 +5191,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -5203,10 +5211,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -5242,10 +5246,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -5308,6 +5308,10 @@
           "id": "pkg:deb/debian/libcom-err2@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
               "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2"
@@ -5321,10 +5325,6 @@
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-Clause"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -5383,6 +5383,10 @@
           "id": "pkg:deb/debian/libext2fs2@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
               "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2"
@@ -5396,10 +5400,6 @@
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-Clause"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -5490,6 +5490,10 @@
           "id": "pkg:deb/debian/libss2@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
               "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2"
@@ -5503,10 +5507,6 @@
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-Clause"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -5565,6 +5565,18 @@
           "id": "pkg:deb/debian/libuuid1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -5573,10 +5585,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -5597,10 +5605,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -5636,10 +5640,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -5668,6 +5668,10 @@
           "id": "pkg:deb/debian/logsave@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
               "spdx_expression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2"
@@ -5681,10 +5685,6 @@
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-Clause"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -5756,6 +5756,18 @@
           "id": "pkg:deb/debian/findutils@4.9.0-4?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "GFDL-NIV-1.3+"
+            },
+            {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -5774,14 +5786,6 @@
               "spdx_expression": "GFDL-1.3-only",
               "type": "declared",
               "value": "GFDL-1.3"
-            },
-            {
-              "type": "declared",
-              "value": "GFDL-NIV-1.3+"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -5842,10 +5846,6 @@
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -5970,6 +5970,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -5980,17 +5988,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -6065,6 +6065,10 @@
           "id": "pkg:deb/debian/dpkg@1.21.23?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "public-domain-s-s-d"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -6078,10 +6082,6 @@
               "spdx_expression": "GPL-2.0-or-later",
               "type": "declared",
               "value": "GPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-s-s-d"
             }
           ],
           "locations": [
@@ -6349,6 +6349,34 @@
               "value": "Autoconf"
             },
             {
+              "type": "declared",
+              "value": "PD"
+            },
+            {
+              "type": "declared",
+              "value": "PD-debian"
+            },
+            {
+              "type": "declared",
+              "value": "config-h"
+            },
+            {
+              "type": "declared",
+              "value": "noderivs"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-fsf"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-nowarranty"
+            },
+            {
+              "type": "declared",
+              "value": "probably-PD"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -6377,34 +6405,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "PD"
-            },
-            {
-              "type": "declared",
-              "value": "PD-debian"
-            },
-            {
-              "type": "declared",
-              "value": "config-h"
-            },
-            {
-              "type": "declared",
-              "value": "noderivs"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-fsf"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-nowarranty"
-            },
-            {
-              "type": "declared",
-              "value": "probably-PD"
             }
           ],
           "locations": [
@@ -6433,6 +6433,22 @@
           "id": "pkg:deb/debian/libmd0@1.0.4-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libmd",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Aaron-D-Gifford"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-md4"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-md5"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-sha1"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -6448,10 +6464,6 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Aaron-D-Gifford"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
@@ -6460,18 +6472,6 @@
               "spdx_expression": "ISC",
               "type": "declared",
               "value": "ISC"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-md4"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-md5"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-sha1"
             }
           ],
           "locations": [
@@ -6500,6 +6500,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -6510,17 +6518,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -6580,13 +6580,13 @@
           "id": "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libzstd",
           "licenses": [
             {
+              "type": "declared",
+              "value": "Expat"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "Expat"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -6741,6 +6741,10 @@
           "id": "pkg:deb/debian/dpkg@1.21.23?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "public-domain-s-s-d"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -6754,10 +6758,6 @@
               "spdx_expression": "GPL-2.0-or-later",
               "type": "declared",
               "value": "GPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-s-s-d"
             }
           ],
           "locations": [
@@ -7036,6 +7036,34 @@
               "value": "Autoconf"
             },
             {
+              "type": "declared",
+              "value": "PD"
+            },
+            {
+              "type": "declared",
+              "value": "PD-debian"
+            },
+            {
+              "type": "declared",
+              "value": "config-h"
+            },
+            {
+              "type": "declared",
+              "value": "noderivs"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-fsf"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-nowarranty"
+            },
+            {
+              "type": "declared",
+              "value": "probably-PD"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -7064,34 +7092,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "PD"
-            },
-            {
-              "type": "declared",
-              "value": "PD-debian"
-            },
-            {
-              "type": "declared",
-              "value": "config-h"
-            },
-            {
-              "type": "declared",
-              "value": "noderivs"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-fsf"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-nowarranty"
-            },
-            {
-              "type": "declared",
-              "value": "probably-PD"
             }
           ],
           "locations": [
@@ -7120,6 +7120,22 @@
           "id": "pkg:deb/debian/libmd0@1.0.4-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libmd",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Aaron-D-Gifford"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-md4"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-md5"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-sha1"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -7135,10 +7151,6 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Aaron-D-Gifford"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
@@ -7147,18 +7159,6 @@
               "spdx_expression": "ISC",
               "type": "declared",
               "value": "ISC"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-md4"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-md5"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-sha1"
             }
           ],
           "locations": [
@@ -7187,6 +7187,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -7197,17 +7205,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -7267,13 +7267,13 @@
           "id": "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libzstd",
           "licenses": [
             {
+              "type": "declared",
+              "value": "Expat"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "Expat"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -8087,11 +8087,6 @@
               "value": "Artistic"
             },
             {
-              "spdx_expression": "BSD-3-Clause",
-              "type": "declared",
-              "value": "BSD-3-clause"
-            },
-            {
               "type": "declared",
               "value": "BSD-3-clause-fjord"
             },
@@ -8100,13 +8095,22 @@
               "value": "GPL"
             },
             {
-              "spdx_expression": "GPL-3.0-only",
               "type": "declared",
-              "value": "GPL-3"
+              "value": "MIT-old"
             },
             {
               "type": "declared",
-              "value": "MIT-old"
+              "value": "TCL-like"
+            },
+            {
+              "spdx_expression": "BSD-3-Clause",
+              "type": "declared",
+              "value": "BSD-3-clause"
+            },
+            {
+              "spdx_expression": "GPL-3.0-only",
+              "type": "declared",
+              "value": "GPL-3"
             },
             {
               "spdx_expression": "MS-PL",
@@ -8117,10 +8121,6 @@
               "spdx_expression": "Sleepycat",
               "type": "declared",
               "value": "Sleepycat"
-            },
-            {
-              "type": "declared",
-              "value": "TCL-like"
             },
             {
               "spdx_expression": "X11",
@@ -8194,22 +8194,26 @@
           "id": "pkg:deb/debian/libpam-modules-bin@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-tcp_wrappers"
+            },
+            {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-tcp_wrappers"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -8240,10 +8244,6 @@
               "spdx_expression": "LGPL-2.0-or-later",
               "type": "declared",
               "value": "LGPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -8283,22 +8283,26 @@
           "id": "pkg:deb/debian/libpam-modules@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-tcp_wrappers"
+            },
+            {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-tcp_wrappers"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -8329,10 +8333,6 @@
               "spdx_expression": "LGPL-2.0-or-later",
               "type": "declared",
               "value": "LGPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -8366,22 +8366,26 @@
           "id": "pkg:deb/debian/libpam-runtime@1.5.2-6%2Bdeb12u2?arch=all\u0026distro=debian-12.15\u0026upstream=pam",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-tcp_wrappers"
+            },
+            {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-tcp_wrappers"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -8412,10 +8416,6 @@
               "spdx_expression": "LGPL-2.0-or-later",
               "type": "declared",
               "value": "LGPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -8470,22 +8470,26 @@
           "id": "pkg:deb/debian/libpam0g@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-tcp_wrappers"
+            },
+            {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-tcp_wrappers"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -8516,10 +8520,6 @@
               "spdx_expression": "LGPL-2.0-or-later",
               "type": "declared",
               "value": "LGPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -8548,6 +8548,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -8558,17 +8566,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -8633,6 +8633,10 @@
           "id": "pkg:deb/debian/login@1:4.13%2Bdfsg1-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=shadow",
           "licenses": [
             {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -8651,10 +8655,6 @@
               "spdx_expression": "GPL-2.0-or-later",
               "type": "declared",
               "value": "GPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -8742,6 +8742,18 @@
           "id": "pkg:deb/debian/libblkid1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -8750,10 +8762,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -8774,10 +8782,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -8813,10 +8817,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -8912,6 +8912,18 @@
           "id": "pkg:deb/debian/libmount1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -8920,10 +8932,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -8944,10 +8952,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -8983,10 +8987,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -9015,6 +9015,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -9025,17 +9033,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -9095,6 +9095,18 @@
           "id": "pkg:deb/debian/libsmartcols1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -9103,10 +9115,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -9127,10 +9135,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -9166,10 +9170,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -9202,6 +9202,18 @@
           "id": "pkg:deb/debian/mount@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -9210,10 +9222,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -9234,10 +9242,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -9273,10 +9277,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -9314,13 +9314,13 @@
           "id": "pkg:deb/debian/ncurses-base@6.4-4?arch=all\u0026distro=debian-12.15\u0026upstream=ncurses",
           "licenses": [
             {
+              "type": "declared",
+              "value": "MIT/X11"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "MIT/X11"
             },
             {
               "spdx_expression": "X11",
@@ -9462,13 +9462,13 @@
           "id": "pkg:deb/debian/libtinfo6@6.4-4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=ncurses",
           "licenses": [
             {
+              "type": "declared",
+              "value": "MIT/X11"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "MIT/X11"
             },
             {
               "spdx_expression": "X11",
@@ -9503,13 +9503,13 @@
           "id": "pkg:deb/debian/ncurses-bin@6.4-4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=ncurses",
           "licenses": [
             {
+              "type": "declared",
+              "value": "MIT/X11"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "MIT/X11"
             },
             {
               "spdx_expression": "X11",
@@ -9562,6 +9562,10 @@
           "id": "pkg:deb/debian/dpkg@1.21.23?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "public-domain-s-s-d"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -9575,10 +9579,6 @@
               "spdx_expression": "GPL-2.0-or-later",
               "type": "declared",
               "value": "GPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-s-s-d"
             }
           ],
           "locations": [
@@ -9834,6 +9834,34 @@
               "value": "Autoconf"
             },
             {
+              "type": "declared",
+              "value": "PD"
+            },
+            {
+              "type": "declared",
+              "value": "PD-debian"
+            },
+            {
+              "type": "declared",
+              "value": "config-h"
+            },
+            {
+              "type": "declared",
+              "value": "noderivs"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-fsf"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-nowarranty"
+            },
+            {
+              "type": "declared",
+              "value": "probably-PD"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -9862,34 +9890,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "PD"
-            },
-            {
-              "type": "declared",
-              "value": "PD-debian"
-            },
-            {
-              "type": "declared",
-              "value": "config-h"
-            },
-            {
-              "type": "declared",
-              "value": "noderivs"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-fsf"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-nowarranty"
-            },
-            {
-              "type": "declared",
-              "value": "probably-PD"
             }
           ],
           "locations": [
@@ -9918,6 +9918,22 @@
           "id": "pkg:deb/debian/libmd0@1.0.4-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libmd",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Aaron-D-Gifford"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-md4"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-md5"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain-sha1"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -9933,10 +9949,6 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Aaron-D-Gifford"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
@@ -9945,18 +9957,6 @@
               "spdx_expression": "ISC",
               "type": "declared",
               "value": "ISC"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-md4"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-md5"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain-sha1"
             }
           ],
           "locations": [
@@ -9985,6 +9985,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -9995,17 +10003,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -10065,13 +10065,13 @@
           "id": "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libzstd",
           "licenses": [
             {
+              "type": "declared",
+              "value": "Expat"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "Expat"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -10116,21 +10116,6 @@
               "value": "Artistic"
             },
             {
-              "spdx_expression": "Artistic-2.0",
-              "type": "declared",
-              "value": "Artistic-2"
-            },
-            {
-              "spdx_expression": "Artistic-dist",
-              "type": "declared",
-              "value": "Artistic-dist"
-            },
-            {
-              "spdx_expression": "BSD-3-Clause",
-              "type": "declared",
-              "value": "BSD-3-clause"
-            },
-            {
               "type": "declared",
               "value": "BSD-3-clause-GENERIC"
             },
@@ -10155,26 +10140,6 @@
               "value": "Expat"
             },
             {
-              "spdx_expression": "GPL-1.0-only",
-              "type": "declared",
-              "value": "GPL-1"
-            },
-            {
-              "spdx_expression": "GPL-1.0-or-later",
-              "type": "declared",
-              "value": "GPL-1+"
-            },
-            {
-              "spdx_expression": "GPL-2.0-only",
-              "type": "declared",
-              "value": "GPL-2"
-            },
-            {
-              "spdx_expression": "GPL-2.0-or-later",
-              "type": "declared",
-              "value": "GPL-2+"
-            },
-            {
               "type": "declared",
               "value": "GPL-3+-WITH-BISON-EXCEPTION"
             },
@@ -10185,11 +10150,6 @@
             {
               "type": "declared",
               "value": "HSIEH-DERIVATIVE"
-            },
-            {
-              "spdx_expression": "LGPL-2.1-only",
-              "type": "declared",
-              "value": "LGPL-2.1"
             },
             {
               "type": "declared",
@@ -10214,6 +10174,46 @@
             {
               "type": "declared",
               "value": "Unicode"
+            },
+            {
+              "spdx_expression": "Artistic-2.0",
+              "type": "declared",
+              "value": "Artistic-2"
+            },
+            {
+              "spdx_expression": "Artistic-dist",
+              "type": "declared",
+              "value": "Artistic-dist"
+            },
+            {
+              "spdx_expression": "BSD-3-Clause",
+              "type": "declared",
+              "value": "BSD-3-clause"
+            },
+            {
+              "spdx_expression": "GPL-1.0-only",
+              "type": "declared",
+              "value": "GPL-1"
+            },
+            {
+              "spdx_expression": "GPL-1.0-or-later",
+              "type": "declared",
+              "value": "GPL-1+"
+            },
+            {
+              "spdx_expression": "GPL-2.0-only",
+              "type": "declared",
+              "value": "GPL-2"
+            },
+            {
+              "spdx_expression": "GPL-2.0-or-later",
+              "type": "declared",
+              "value": "GPL-2+"
+            },
+            {
+              "spdx_expression": "LGPL-2.1-only",
+              "type": "declared",
+              "value": "LGPL-2.1"
             },
             {
               "spdx_expression": "Zlib",
@@ -10514,6 +10514,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -10524,17 +10532,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -10596,6 +10596,14 @@
           "id": "pkg:deb/debian/sed@4.9-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "GFDL-NIV-1.3+"
+            },
+            {
+              "type": "declared",
+              "value": "pcre"
+            },
+            {
               "spdx_expression": "BSD-4-Clause-UC",
               "type": "declared",
               "value": "BSD-4-clause-UC"
@@ -10609,10 +10617,6 @@
               "spdx_expression": "GFDL-1.3-only",
               "type": "declared",
               "value": "GFDL-1.3"
-            },
-            {
-              "type": "declared",
-              "value": "GFDL-NIV-1.3+"
             },
             {
               "spdx_expression": "GPL-3.0-only",
@@ -10633,10 +10637,6 @@
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "pcre"
             }
           ],
           "locations": [
@@ -11110,6 +11110,18 @@
           "id": "pkg:deb/debian/libblkid1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -11118,10 +11130,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -11142,10 +11150,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -11181,10 +11185,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -11431,6 +11431,10 @@
           "id": "pkg:deb/debian/libgpg-error0@1.46-1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libgpg-error",
           "licenses": [
             {
+              "type": "declared",
+              "value": "g10-permissive"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -11454,10 +11458,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "g10-permissive"
             }
           ],
           "locations": [
@@ -11531,6 +11531,34 @@
               "value": "Autoconf"
             },
             {
+              "type": "declared",
+              "value": "PD"
+            },
+            {
+              "type": "declared",
+              "value": "PD-debian"
+            },
+            {
+              "type": "declared",
+              "value": "config-h"
+            },
+            {
+              "type": "declared",
+              "value": "noderivs"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-fsf"
+            },
+            {
+              "type": "declared",
+              "value": "permissive-nowarranty"
+            },
+            {
+              "type": "declared",
+              "value": "probably-PD"
+            },
+            {
               "spdx_expression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2"
@@ -11559,34 +11587,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "PD"
-            },
-            {
-              "type": "declared",
-              "value": "PD-debian"
-            },
-            {
-              "type": "declared",
-              "value": "config-h"
-            },
-            {
-              "type": "declared",
-              "value": "noderivs"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-fsf"
-            },
-            {
-              "type": "declared",
-              "value": "permissive-nowarranty"
-            },
-            {
-              "type": "declared",
-              "value": "probably-PD"
             }
           ],
           "locations": [
@@ -11617,6 +11617,18 @@
           "id": "pkg:deb/debian/libmount1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -11625,10 +11637,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -11649,10 +11657,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -11688,10 +11692,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -11722,22 +11722,26 @@
           "id": "pkg:deb/debian/libpam0g@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-tcp_wrappers"
+            },
+            {
+              "type": "declared",
+              "value": "GPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-tcp_wrappers"
-            },
-            {
               "spdx_expression": "Beerware",
               "type": "declared",
               "value": "Beerware"
-            },
-            {
-              "type": "declared",
-              "value": "GPL"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -11768,10 +11772,6 @@
               "spdx_expression": "LGPL-2.0-or-later",
               "type": "declared",
               "value": "LGPL-2+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -11800,6 +11800,14 @@
           "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSD-3-clause-Cambridge"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-2-Clause",
               "type": "declared",
               "value": "BSD-2-clause"
@@ -11810,17 +11818,9 @@
               "value": "BSD-3-clause"
             },
             {
-              "type": "declared",
-              "value": "BSD-3-clause-Cambridge"
-            },
-            {
               "spdx_expression": "X11",
               "type": "declared",
               "value": "X11"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -11880,6 +11880,18 @@
           "id": "pkg:deb/debian/libsmartcols1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -11888,10 +11900,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -11912,10 +11920,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -11951,10 +11955,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -11988,13 +11988,17 @@
           "id": "pkg:deb/debian/libsystemd0@252.39-1~deb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=systemd",
           "licenses": [
             {
-              "spdx_expression": "CC0-1.0",
               "type": "declared",
-              "value": "CC0-1.0"
+              "value": "Expat"
             },
             {
               "type": "declared",
-              "value": "Expat"
+              "value": "public-domain"
+            },
+            {
+              "spdx_expression": "CC0-1.0",
+              "type": "declared",
+              "value": "CC0-1.0"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -12015,10 +12019,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -12047,13 +12047,13 @@
           "id": "pkg:deb/debian/libtinfo6@6.4-4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=ncurses",
           "licenses": [
             {
+              "type": "declared",
+              "value": "MIT/X11"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "MIT/X11"
             },
             {
               "spdx_expression": "X11",
@@ -12087,13 +12087,17 @@
           "id": "pkg:deb/debian/libudev1@252.39-1~deb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=systemd",
           "licenses": [
             {
-              "spdx_expression": "CC0-1.0",
               "type": "declared",
-              "value": "CC0-1.0"
+              "value": "Expat"
             },
             {
               "type": "declared",
-              "value": "Expat"
+              "value": "public-domain"
+            },
+            {
+              "spdx_expression": "CC0-1.0",
+              "type": "declared",
+              "value": "CC0-1.0"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -12114,10 +12118,6 @@
               "spdx_expression": "LGPL-2.1-or-later",
               "type": "declared",
               "value": "LGPL-2.1+"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -12146,6 +12146,18 @@
           "id": "pkg:deb/debian/libuuid1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -12154,10 +12166,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -12178,10 +12186,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -12217,10 +12221,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -12249,13 +12249,13 @@
           "id": "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libzstd",
           "licenses": [
             {
+              "type": "declared",
+              "value": "Expat"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
-            },
-            {
-              "type": "declared",
-              "value": "Expat"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -12296,6 +12296,18 @@
           "id": "pkg:deb/debian/util-linux-extra@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -12304,10 +12316,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -12328,10 +12336,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -12367,10 +12371,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -12432,6 +12432,18 @@
           "id": "pkg:deb/debian/util-linux@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
             {
+              "type": "declared",
+              "value": "BSLA"
+            },
+            {
+              "type": "declared",
+              "value": "LGPL"
+            },
+            {
+              "type": "declared",
+              "value": "public-domain"
+            },
+            {
               "spdx_expression": "BSD-3-Clause",
               "type": "declared",
               "value": "BSD-3-clause"
@@ -12440,10 +12452,6 @@
               "spdx_expression": "BSD-4-Clause",
               "type": "declared",
               "value": "BSD-4-clause"
-            },
-            {
-              "type": "declared",
-              "value": "BSLA"
             },
             {
               "spdx_expression": "GPL-2.0-only",
@@ -12464,10 +12472,6 @@
               "spdx_expression": "GPL-3.0-or-later",
               "type": "declared",
               "value": "GPL-3+"
-            },
-            {
-              "type": "declared",
-              "value": "LGPL"
             },
             {
               "spdx_expression": "LGPL-2.0-only",
@@ -12503,10 +12507,6 @@
               "spdx_expression": "MIT",
               "type": "declared",
               "value": "MIT"
-            },
-            {
-              "type": "declared",
-              "value": "public-domain"
             }
           ],
           "locations": [
@@ -12620,13 +12620,13 @@
       "id": "pkg:deb/debian/apt@2.6.1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "licenses": [
         {
+          "type": "declared",
+          "value": "Expat"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
-        },
-        {
-          "type": "declared",
-          "value": "Expat"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -12683,13 +12683,13 @@
       "id": "pkg:deb/debian/base-passwd@3.6.1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "licenses": [
         {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "GPL-2.0-only",
           "type": "declared",
           "value": "GPL-2"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "base-passwd",
@@ -12707,6 +12707,18 @@
       "id": "pkg:deb/debian/bash@5.2.15-2%2Bb13?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=bash%405.2.15-2",
       "licenses": [
         {
+          "type": "declared",
+          "value": "GFDL-NIV-1.3"
+        },
+        {
+          "type": "declared",
+          "value": "MIT-like"
+        },
+        {
+          "type": "declared",
+          "value": "permissive"
+        },
+        {
           "spdx_expression": "BSD-4-Clause-UC",
           "type": "declared",
           "value": "BSD-4-clause-UC"
@@ -12715,10 +12727,6 @@
           "spdx_expression": "GFDL-1.3-only",
           "type": "declared",
           "value": "GFDL-1.3"
-        },
-        {
-          "type": "declared",
-          "value": "GFDL-NIV-1.3"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -12744,14 +12752,6 @@
           "spdx_expression": "Latex2e",
           "type": "declared",
           "value": "Latex2e"
-        },
-        {
-          "type": "declared",
-          "value": "MIT-like"
-        },
-        {
-          "type": "declared",
-          "value": "permissive"
         }
       ],
       "name": "bash",
@@ -12769,6 +12769,18 @@
       "id": "pkg:deb/debian/bsdutils@1:2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux%402.38.1-5%2Bdeb12u3",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSLA"
+        },
+        {
+          "type": "declared",
+          "value": "LGPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -12777,10 +12789,6 @@
           "spdx_expression": "BSD-4-Clause",
           "type": "declared",
           "value": "BSD-4-clause"
-        },
-        {
-          "type": "declared",
-          "value": "BSLA"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -12801,10 +12809,6 @@
           "spdx_expression": "GPL-3.0-or-later",
           "type": "declared",
           "value": "GPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "LGPL"
         },
         {
           "spdx_expression": "LGPL-2.0-only",
@@ -12840,10 +12844,6 @@
           "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "bsdutils",
@@ -12861,6 +12861,10 @@
       "id": "pkg:deb/debian/coreutils@9.1-1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "licenses": [
         {
+          "type": "declared",
+          "value": "GFDL-NIV-1.3"
+        },
+        {
           "spdx_expression": "BSD-4-Clause-UC",
           "type": "declared",
           "value": "BSD-4-clause-UC"
@@ -12874,10 +12878,6 @@
           "spdx_expression": "GFDL-1.3-only",
           "type": "declared",
           "value": "GFDL-1.3"
-        },
-        {
-          "type": "declared",
-          "value": "GFDL-NIV-1.3"
         },
         {
           "spdx_expression": "GPL-3.0-only",
@@ -12910,6 +12910,10 @@
       "id": "pkg:deb/debian/dash@0.5.12-2?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "licenses": [
         {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
@@ -12928,10 +12932,6 @@
           "spdx_expression": "GPL-2.0-or-later",
           "type": "declared",
           "value": "GPL-2+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "dash",
@@ -12997,6 +12997,10 @@
       "id": "pkg:deb/debian/debianutils@5.7-0.5~deb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "licenses": [
         {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "GPL-2.0-only",
           "type": "declared",
           "value": "GPL-2"
@@ -13010,10 +13014,6 @@
           "spdx_expression": "SMAIL-GPL",
           "type": "declared",
           "value": "SMAIL-GPL"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "debianutils",
@@ -13031,6 +13031,14 @@
       "id": "pkg:deb/debian/diffutils@1:3.8-4?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "licenses": [
         {
+          "type": "declared",
+          "value": "GFDL-NIV-1.3"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "FSFAP",
           "type": "declared",
           "value": "FSFAP"
@@ -13044,10 +13052,6 @@
           "spdx_expression": "GFDL-1.3-only",
           "type": "declared",
           "value": "GFDL-1.3"
-        },
-        {
-          "type": "declared",
-          "value": "GFDL-NIV-1.3"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -13103,10 +13107,6 @@
           "spdx_expression": "X11",
           "type": "declared",
           "value": "X11"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "diffutils",
@@ -13124,6 +13124,10 @@
       "id": "pkg:deb/debian/dpkg@1.21.23?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "licenses": [
         {
+          "type": "declared",
+          "value": "public-domain-s-s-d"
+        },
+        {
           "spdx_expression": "BSD-2-Clause",
           "type": "declared",
           "value": "BSD-2-clause"
@@ -13137,10 +13141,6 @@
           "spdx_expression": "GPL-2.0-or-later",
           "type": "declared",
           "value": "GPL-2+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain-s-s-d"
         }
       ],
       "name": "dpkg",
@@ -13158,6 +13158,10 @@
       "id": "pkg:deb/debian/e2fsprogs@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
       "licenses": [
         {
+          "type": "declared",
+          "value": "GPL"
+        },
+        {
           "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2"
@@ -13171,10 +13175,6 @@
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
-        },
-        {
-          "type": "declared",
-          "value": "GPL"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -13222,6 +13222,18 @@
       "id": "pkg:deb/debian/findutils@4.9.0-4?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "licenses": [
         {
+          "type": "declared",
+          "value": "GFDL-NIV-1.3+"
+        },
+        {
+          "type": "declared",
+          "value": "GPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -13240,14 +13252,6 @@
           "spdx_expression": "GFDL-1.3-only",
           "type": "declared",
           "value": "GFDL-1.3"
-        },
-        {
-          "type": "declared",
-          "value": "GFDL-NIV-1.3+"
-        },
-        {
-          "type": "declared",
-          "value": "GPL"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -13308,10 +13312,6 @@
           "spdx_expression": "X11",
           "type": "declared",
           "value": "X11"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "findutils",
@@ -13357,6 +13357,22 @@
       "id": "pkg:deb/debian/gpgv@2.2.40-1.1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=gnupg2",
       "licenses": [
         {
+          "type": "declared",
+          "value": "Expat"
+        },
+        {
+          "type": "declared",
+          "value": "RFC-Reference"
+        },
+        {
+          "type": "declared",
+          "value": "TinySCHEME"
+        },
+        {
+          "type": "declared",
+          "value": "permissive"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -13365,10 +13381,6 @@
           "spdx_expression": "CC0-1.0",
           "type": "declared",
           "value": "CC0-1.0"
-        },
-        {
-          "type": "declared",
-          "value": "Expat"
         },
         {
           "spdx_expression": "GPL-3.0-only",
@@ -13399,18 +13411,6 @@
           "spdx_expression": "LGPL-3.0-or-later",
           "type": "declared",
           "value": "LGPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "RFC-Reference"
-        },
-        {
-          "type": "declared",
-          "value": "TinySCHEME"
-        },
-        {
-          "type": "declared",
-          "value": "permissive"
         }
       ],
       "name": "gpgv",
@@ -13589,13 +13589,13 @@
       "id": "pkg:deb/debian/libapt-pkg6.0@2.6.1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=apt",
       "licenses": [
         {
+          "type": "declared",
+          "value": "Expat"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
-        },
-        {
-          "type": "declared",
-          "value": "Expat"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -13723,6 +13723,18 @@
       "id": "pkg:deb/debian/libblkid1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSLA"
+        },
+        {
+          "type": "declared",
+          "value": "LGPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -13731,10 +13743,6 @@
           "spdx_expression": "BSD-4-Clause",
           "type": "declared",
           "value": "BSD-4-clause"
-        },
-        {
-          "type": "declared",
-          "value": "BSLA"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -13755,10 +13763,6 @@
           "spdx_expression": "GPL-3.0-or-later",
           "type": "declared",
           "value": "GPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "LGPL"
         },
         {
           "spdx_expression": "LGPL-2.0-only",
@@ -13794,10 +13798,6 @@
           "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libblkid1",
@@ -13967,6 +13967,10 @@
       "id": "pkg:deb/debian/libcom-err2@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
       "licenses": [
         {
+          "type": "declared",
+          "value": "GPL"
+        },
+        {
           "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2"
@@ -13980,10 +13984,6 @@
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
-        },
-        {
-          "type": "declared",
-          "value": "GPL"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -14054,11 +14054,6 @@
           "value": "Artistic"
         },
         {
-          "spdx_expression": "BSD-3-Clause",
-          "type": "declared",
-          "value": "BSD-3-clause"
-        },
-        {
           "type": "declared",
           "value": "BSD-3-clause-fjord"
         },
@@ -14067,13 +14062,22 @@
           "value": "GPL"
         },
         {
-          "spdx_expression": "GPL-3.0-only",
           "type": "declared",
-          "value": "GPL-3"
+          "value": "MIT-old"
         },
         {
           "type": "declared",
-          "value": "MIT-old"
+          "value": "TCL-like"
+        },
+        {
+          "spdx_expression": "BSD-3-Clause",
+          "type": "declared",
+          "value": "BSD-3-clause"
+        },
+        {
+          "spdx_expression": "GPL-3.0-only",
+          "type": "declared",
+          "value": "GPL-3"
         },
         {
           "spdx_expression": "MS-PL",
@@ -14084,10 +14088,6 @@
           "spdx_expression": "Sleepycat",
           "type": "declared",
           "value": "Sleepycat"
-        },
-        {
-          "type": "declared",
-          "value": "TCL-like"
         },
         {
           "spdx_expression": "X11",
@@ -14150,6 +14150,10 @@
       "id": "pkg:deb/debian/libext2fs2@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
       "licenses": [
         {
+          "type": "declared",
+          "value": "GPL"
+        },
+        {
           "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2"
@@ -14163,10 +14167,6 @@
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
-        },
-        {
-          "type": "declared",
-          "value": "GPL"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -14222,6 +14222,10 @@
           "value": "GPL"
         },
         {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "GPL-2.0-or-later",
           "type": "declared",
           "value": "GPL-2+"
@@ -14240,10 +14244,6 @@
           "spdx_expression": "X11",
           "type": "declared",
           "value": "X11"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libffi8",
@@ -14373,6 +14373,10 @@
       "id": "pkg:deb/debian/libgpg-error0@1.46-1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libgpg-error",
       "licenses": [
         {
+          "type": "declared",
+          "value": "g10-permissive"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -14396,10 +14400,6 @@
           "spdx_expression": "LGPL-2.1-or-later",
           "type": "declared",
           "value": "LGPL-2.1+"
-        },
-        {
-          "type": "declared",
-          "value": "g10-permissive"
         }
       ],
       "name": "libgpg-error0",
@@ -14429,6 +14429,14 @@
           "value": "GPL"
         },
         {
+          "type": "declared",
+          "value": "LGPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "GPL-2.0-only",
           "type": "declared",
           "value": "GPL-2"
@@ -14444,10 +14452,6 @@
           "value": "GPL-3+"
         },
         {
-          "type": "declared",
-          "value": "LGPL"
-        },
-        {
           "spdx_expression": "LGPL-2.0-only",
           "type": "declared",
           "value": "LGPL-2"
@@ -14461,10 +14465,6 @@
           "spdx_expression": "LGPL-3.0-or-later",
           "type": "declared",
           "value": "LGPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libhogweed6",
@@ -14486,6 +14486,10 @@
       "ecosystem": "dpkg",
       "id": "pkg:deb/debian/libidn2-0@2.3.3-1%2Bb1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libidn2%402.3.3-1",
       "licenses": [
+        {
+          "type": "declared",
+          "value": "Unicode"
+        },
         {
           "spdx_expression": "GPL-2.0-only",
           "type": "declared",
@@ -14515,10 +14519,6 @@
           "spdx_expression": "LGPL-3.0-or-later",
           "type": "declared",
           "value": "LGPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "Unicode"
         }
       ],
       "name": "libidn2-0",
@@ -14575,6 +14575,34 @@
           "value": "Autoconf"
         },
         {
+          "type": "declared",
+          "value": "PD"
+        },
+        {
+          "type": "declared",
+          "value": "PD-debian"
+        },
+        {
+          "type": "declared",
+          "value": "config-h"
+        },
+        {
+          "type": "declared",
+          "value": "noderivs"
+        },
+        {
+          "type": "declared",
+          "value": "permissive-fsf"
+        },
+        {
+          "type": "declared",
+          "value": "permissive-nowarranty"
+        },
+        {
+          "type": "declared",
+          "value": "probably-PD"
+        },
+        {
           "spdx_expression": "GPL-2.0-only",
           "type": "declared",
           "value": "GPL-2"
@@ -14603,34 +14631,6 @@
           "spdx_expression": "LGPL-2.1-or-later",
           "type": "declared",
           "value": "LGPL-2.1+"
-        },
-        {
-          "type": "declared",
-          "value": "PD"
-        },
-        {
-          "type": "declared",
-          "value": "PD-debian"
-        },
-        {
-          "type": "declared",
-          "value": "config-h"
-        },
-        {
-          "type": "declared",
-          "value": "noderivs"
-        },
-        {
-          "type": "declared",
-          "value": "permissive-fsf"
-        },
-        {
-          "type": "declared",
-          "value": "permissive-nowarranty"
-        },
-        {
-          "type": "declared",
-          "value": "probably-PD"
         }
       ],
       "name": "liblzma5",
@@ -14648,6 +14648,22 @@
       "id": "pkg:deb/debian/libmd0@1.0.4-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libmd",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSD-3-clause-Aaron-D-Gifford"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain-md4"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain-md5"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain-sha1"
+        },
+        {
           "spdx_expression": "BSD-2-Clause",
           "type": "declared",
           "value": "BSD-2-clause"
@@ -14663,10 +14679,6 @@
           "value": "BSD-3-clause"
         },
         {
-          "type": "declared",
-          "value": "BSD-3-clause-Aaron-D-Gifford"
-        },
-        {
           "spdx_expression": "Beerware",
           "type": "declared",
           "value": "Beerware"
@@ -14675,18 +14687,6 @@
           "spdx_expression": "ISC",
           "type": "declared",
           "value": "ISC"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain-md4"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain-md5"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain-sha1"
         }
       ],
       "name": "libmd0",
@@ -14704,6 +14704,18 @@
       "id": "pkg:deb/debian/libmount1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSLA"
+        },
+        {
+          "type": "declared",
+          "value": "LGPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -14712,10 +14724,6 @@
           "spdx_expression": "BSD-4-Clause",
           "type": "declared",
           "value": "BSD-4-clause"
-        },
-        {
-          "type": "declared",
-          "value": "BSLA"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -14736,10 +14744,6 @@
           "spdx_expression": "GPL-3.0-or-later",
           "type": "declared",
           "value": "GPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "LGPL"
         },
         {
           "spdx_expression": "LGPL-2.0-only",
@@ -14775,10 +14779,6 @@
           "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libmount1",
@@ -14808,6 +14808,14 @@
           "value": "GPL"
         },
         {
+          "type": "declared",
+          "value": "LGPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "GPL-2.0-only",
           "type": "declared",
           "value": "GPL-2"
@@ -14823,10 +14831,6 @@
           "value": "GPL-3+"
         },
         {
-          "type": "declared",
-          "value": "LGPL"
-        },
-        {
           "spdx_expression": "LGPL-2.0-only",
           "type": "declared",
           "value": "LGPL-2"
@@ -14840,10 +14844,6 @@
           "spdx_expression": "LGPL-3.0-or-later",
           "type": "declared",
           "value": "LGPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libnettle8",
@@ -14866,6 +14866,18 @@
       "id": "pkg:deb/debian/libp11-kit0@0.24.1-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=p11-kit",
       "licenses": [
         {
+          "type": "declared",
+          "value": "ISC+IBM"
+        },
+        {
+          "type": "declared",
+          "value": "permissive-like-automake-output"
+        },
+        {
+          "type": "declared",
+          "value": "same-as-rest-of-p11kit"
+        },
+        {
           "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
@@ -14881,10 +14893,6 @@
           "value": "ISC"
         },
         {
-          "type": "declared",
-          "value": "ISC+IBM"
-        },
-        {
           "spdx_expression": "LGPL-2.1-only",
           "type": "declared",
           "value": "LGPL-2.1"
@@ -14893,14 +14901,6 @@
           "spdx_expression": "LGPL-2.1-or-later",
           "type": "declared",
           "value": "LGPL-2.1+"
-        },
-        {
-          "type": "declared",
-          "value": "permissive-like-automake-output"
-        },
-        {
-          "type": "declared",
-          "value": "same-as-rest-of-p11kit"
         }
       ],
       "name": "libp11-kit0",
@@ -14927,22 +14927,26 @@
       "id": "pkg:deb/debian/libpam-modules-bin@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSD-tcp_wrappers"
+        },
+        {
+          "type": "declared",
+          "value": "GPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
         },
         {
-          "type": "declared",
-          "value": "BSD-tcp_wrappers"
-        },
-        {
           "spdx_expression": "Beerware",
           "type": "declared",
           "value": "Beerware"
-        },
-        {
-          "type": "declared",
-          "value": "GPL"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -14973,10 +14977,6 @@
           "spdx_expression": "LGPL-2.0-or-later",
           "type": "declared",
           "value": "LGPL-2+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libpam-modules-bin",
@@ -14999,22 +14999,26 @@
       "id": "pkg:deb/debian/libpam-modules@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSD-tcp_wrappers"
+        },
+        {
+          "type": "declared",
+          "value": "GPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
         },
         {
-          "type": "declared",
-          "value": "BSD-tcp_wrappers"
-        },
-        {
           "spdx_expression": "Beerware",
           "type": "declared",
           "value": "Beerware"
-        },
-        {
-          "type": "declared",
-          "value": "GPL"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -15045,10 +15049,6 @@
           "spdx_expression": "LGPL-2.0-or-later",
           "type": "declared",
           "value": "LGPL-2+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libpam-modules",
@@ -15071,22 +15071,26 @@
       "id": "pkg:deb/debian/libpam-runtime@1.5.2-6%2Bdeb12u2?arch=all\u0026distro=debian-12.15\u0026upstream=pam",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSD-tcp_wrappers"
+        },
+        {
+          "type": "declared",
+          "value": "GPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
         },
         {
-          "type": "declared",
-          "value": "BSD-tcp_wrappers"
-        },
-        {
           "spdx_expression": "Beerware",
           "type": "declared",
           "value": "Beerware"
-        },
-        {
-          "type": "declared",
-          "value": "GPL"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -15117,10 +15121,6 @@
           "spdx_expression": "LGPL-2.0-or-later",
           "type": "declared",
           "value": "LGPL-2+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libpam-runtime",
@@ -15138,22 +15138,26 @@
       "id": "pkg:deb/debian/libpam0g@1.5.2-6%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pam",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSD-tcp_wrappers"
+        },
+        {
+          "type": "declared",
+          "value": "GPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
         },
         {
-          "type": "declared",
-          "value": "BSD-tcp_wrappers"
-        },
-        {
           "spdx_expression": "Beerware",
           "type": "declared",
           "value": "Beerware"
-        },
-        {
-          "type": "declared",
-          "value": "GPL"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -15184,10 +15188,6 @@
           "spdx_expression": "LGPL-2.0-or-later",
           "type": "declared",
           "value": "LGPL-2+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libpam0g",
@@ -15214,6 +15214,14 @@
       "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSD-3-clause-Cambridge"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-2-Clause",
           "type": "declared",
           "value": "BSD-2-clause"
@@ -15224,17 +15232,9 @@
           "value": "BSD-3-clause"
         },
         {
-          "type": "declared",
-          "value": "BSD-3-clause-Cambridge"
-        },
-        {
           "spdx_expression": "X11",
           "type": "declared",
           "value": "X11"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libpcre2-8-0",
@@ -15374,6 +15374,18 @@
       "id": "pkg:deb/debian/libsmartcols1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSLA"
+        },
+        {
+          "type": "declared",
+          "value": "LGPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -15382,10 +15394,6 @@
           "spdx_expression": "BSD-4-Clause",
           "type": "declared",
           "value": "BSD-4-clause"
-        },
-        {
-          "type": "declared",
-          "value": "BSLA"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -15406,10 +15414,6 @@
           "spdx_expression": "GPL-3.0-or-later",
           "type": "declared",
           "value": "GPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "LGPL"
         },
         {
           "spdx_expression": "LGPL-2.0-only",
@@ -15445,10 +15449,6 @@
           "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libsmartcols1",
@@ -15466,6 +15466,10 @@
       "id": "pkg:deb/debian/libss2@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
       "licenses": [
         {
+          "type": "declared",
+          "value": "GPL"
+        },
+        {
           "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2"
@@ -15479,10 +15483,6 @@
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
-        },
-        {
-          "type": "declared",
-          "value": "GPL"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -15549,13 +15549,17 @@
       "id": "pkg:deb/debian/libsystemd0@252.39-1~deb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=systemd",
       "licenses": [
         {
-          "spdx_expression": "CC0-1.0",
           "type": "declared",
-          "value": "CC0-1.0"
+          "value": "Expat"
         },
         {
           "type": "declared",
-          "value": "Expat"
+          "value": "public-domain"
+        },
+        {
+          "spdx_expression": "CC0-1.0",
+          "type": "declared",
+          "value": "CC0-1.0"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -15576,10 +15580,6 @@
           "spdx_expression": "LGPL-2.1-or-later",
           "type": "declared",
           "value": "LGPL-2.1+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libsystemd0",
@@ -15621,13 +15621,13 @@
       "id": "pkg:deb/debian/libtinfo6@6.4-4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=ncurses",
       "licenses": [
         {
+          "type": "declared",
+          "value": "MIT/X11"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
-        },
-        {
-          "type": "declared",
-          "value": "MIT/X11"
         },
         {
           "spdx_expression": "X11",
@@ -15650,13 +15650,17 @@
       "id": "pkg:deb/debian/libudev1@252.39-1~deb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=systemd",
       "licenses": [
         {
-          "spdx_expression": "CC0-1.0",
           "type": "declared",
-          "value": "CC0-1.0"
+          "value": "Expat"
         },
         {
           "type": "declared",
-          "value": "Expat"
+          "value": "public-domain"
+        },
+        {
+          "spdx_expression": "CC0-1.0",
+          "type": "declared",
+          "value": "CC0-1.0"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -15677,10 +15681,6 @@
           "spdx_expression": "LGPL-2.1-or-later",
           "type": "declared",
           "value": "LGPL-2.1+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libudev1",
@@ -15762,6 +15762,18 @@
       "id": "pkg:deb/debian/libuuid1@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSLA"
+        },
+        {
+          "type": "declared",
+          "value": "LGPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -15770,10 +15782,6 @@
           "spdx_expression": "BSD-4-Clause",
           "type": "declared",
           "value": "BSD-4-clause"
-        },
-        {
-          "type": "declared",
-          "value": "BSLA"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -15794,10 +15802,6 @@
           "spdx_expression": "GPL-3.0-or-later",
           "type": "declared",
           "value": "GPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "LGPL"
         },
         {
           "spdx_expression": "LGPL-2.0-only",
@@ -15833,10 +15837,6 @@
           "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "libuuid1",
@@ -15879,13 +15879,13 @@
       "id": "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libzstd",
       "licenses": [
         {
+          "type": "declared",
+          "value": "Expat"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
-        },
-        {
-          "type": "declared",
-          "value": "Expat"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -15913,6 +15913,10 @@
       "id": "pkg:deb/debian/login@1:4.13%2Bdfsg1-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=shadow",
       "licenses": [
         {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -15931,10 +15935,6 @@
           "spdx_expression": "GPL-2.0-or-later",
           "type": "declared",
           "value": "GPL-2+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "login",
@@ -15952,6 +15952,10 @@
       "id": "pkg:deb/debian/logsave@1.47.0-2%2Bb2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=e2fsprogs%401.47.0-2",
       "licenses": [
         {
+          "type": "declared",
+          "value": "GPL"
+        },
+        {
           "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2"
@@ -15965,10 +15969,6 @@
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-Clause"
-        },
-        {
-          "type": "declared",
-          "value": "GPL"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -16046,6 +16046,18 @@
       "id": "pkg:deb/debian/mount@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSLA"
+        },
+        {
+          "type": "declared",
+          "value": "LGPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -16054,10 +16066,6 @@
           "spdx_expression": "BSD-4-Clause",
           "type": "declared",
           "value": "BSD-4-clause"
-        },
-        {
-          "type": "declared",
-          "value": "BSLA"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -16078,10 +16086,6 @@
           "spdx_expression": "GPL-3.0-or-later",
           "type": "declared",
           "value": "GPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "LGPL"
         },
         {
           "spdx_expression": "LGPL-2.0-only",
@@ -16117,10 +16121,6 @@
           "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "mount",
@@ -16143,13 +16143,13 @@
       "id": "pkg:deb/debian/ncurses-base@6.4-4?arch=all\u0026distro=debian-12.15\u0026upstream=ncurses",
       "licenses": [
         {
+          "type": "declared",
+          "value": "MIT/X11"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
-        },
-        {
-          "type": "declared",
-          "value": "MIT/X11"
         },
         {
           "spdx_expression": "X11",
@@ -16177,13 +16177,13 @@
       "id": "pkg:deb/debian/ncurses-bin@6.4-4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=ncurses",
       "licenses": [
         {
+          "type": "declared",
+          "value": "MIT/X11"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
-        },
-        {
-          "type": "declared",
-          "value": "MIT/X11"
         },
         {
           "spdx_expression": "X11",
@@ -16206,6 +16206,10 @@
       "id": "pkg:deb/debian/passwd@1:4.13%2Bdfsg1-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=shadow",
       "licenses": [
         {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -16224,10 +16228,6 @@
           "spdx_expression": "GPL-2.0-or-later",
           "type": "declared",
           "value": "GPL-2+"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "passwd",
@@ -16254,21 +16254,6 @@
           "value": "Artistic"
         },
         {
-          "spdx_expression": "Artistic-2.0",
-          "type": "declared",
-          "value": "Artistic-2"
-        },
-        {
-          "spdx_expression": "Artistic-dist",
-          "type": "declared",
-          "value": "Artistic-dist"
-        },
-        {
-          "spdx_expression": "BSD-3-Clause",
-          "type": "declared",
-          "value": "BSD-3-clause"
-        },
-        {
           "type": "declared",
           "value": "BSD-3-clause-GENERIC"
         },
@@ -16293,26 +16278,6 @@
           "value": "Expat"
         },
         {
-          "spdx_expression": "GPL-1.0-only",
-          "type": "declared",
-          "value": "GPL-1"
-        },
-        {
-          "spdx_expression": "GPL-1.0-or-later",
-          "type": "declared",
-          "value": "GPL-1+"
-        },
-        {
-          "spdx_expression": "GPL-2.0-only",
-          "type": "declared",
-          "value": "GPL-2"
-        },
-        {
-          "spdx_expression": "GPL-2.0-or-later",
-          "type": "declared",
-          "value": "GPL-2+"
-        },
-        {
           "type": "declared",
           "value": "GPL-3+-WITH-BISON-EXCEPTION"
         },
@@ -16323,11 +16288,6 @@
         {
           "type": "declared",
           "value": "HSIEH-DERIVATIVE"
-        },
-        {
-          "spdx_expression": "LGPL-2.1-only",
-          "type": "declared",
-          "value": "LGPL-2.1"
         },
         {
           "type": "declared",
@@ -16354,6 +16314,46 @@
           "value": "Unicode"
         },
         {
+          "spdx_expression": "Artistic-2.0",
+          "type": "declared",
+          "value": "Artistic-2"
+        },
+        {
+          "spdx_expression": "Artistic-dist",
+          "type": "declared",
+          "value": "Artistic-dist"
+        },
+        {
+          "spdx_expression": "BSD-3-Clause",
+          "type": "declared",
+          "value": "BSD-3-clause"
+        },
+        {
+          "spdx_expression": "GPL-1.0-only",
+          "type": "declared",
+          "value": "GPL-1"
+        },
+        {
+          "spdx_expression": "GPL-1.0-or-later",
+          "type": "declared",
+          "value": "GPL-1+"
+        },
+        {
+          "spdx_expression": "GPL-2.0-only",
+          "type": "declared",
+          "value": "GPL-2"
+        },
+        {
+          "spdx_expression": "GPL-2.0-or-later",
+          "type": "declared",
+          "value": "GPL-2+"
+        },
+        {
+          "spdx_expression": "LGPL-2.1-only",
+          "type": "declared",
+          "value": "LGPL-2.1"
+        },
+        {
           "spdx_expression": "Zlib",
           "type": "declared",
           "value": "ZLIB"
@@ -16374,6 +16374,14 @@
       "id": "pkg:deb/debian/sed@4.9-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "licenses": [
         {
+          "type": "declared",
+          "value": "GFDL-NIV-1.3+"
+        },
+        {
+          "type": "declared",
+          "value": "pcre"
+        },
+        {
           "spdx_expression": "BSD-4-Clause-UC",
           "type": "declared",
           "value": "BSD-4-clause-UC"
@@ -16387,10 +16395,6 @@
           "spdx_expression": "GFDL-1.3-only",
           "type": "declared",
           "value": "GFDL-1.3"
-        },
-        {
-          "type": "declared",
-          "value": "GFDL-NIV-1.3+"
         },
         {
           "spdx_expression": "GPL-3.0-only",
@@ -16411,10 +16415,6 @@
           "spdx_expression": "X11",
           "type": "declared",
           "value": "X11"
-        },
-        {
-          "type": "declared",
-          "value": "pcre"
         }
       ],
       "name": "sed",
@@ -16584,6 +16584,18 @@
       "id": "pkg:deb/debian/util-linux-extra@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=util-linux",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSLA"
+        },
+        {
+          "type": "declared",
+          "value": "LGPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -16592,10 +16604,6 @@
           "spdx_expression": "BSD-4-Clause",
           "type": "declared",
           "value": "BSD-4-clause"
-        },
-        {
-          "type": "declared",
-          "value": "BSLA"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -16616,10 +16624,6 @@
           "spdx_expression": "GPL-3.0-or-later",
           "type": "declared",
           "value": "GPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "LGPL"
         },
         {
           "spdx_expression": "LGPL-2.0-only",
@@ -16655,10 +16659,6 @@
           "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "util-linux-extra",
@@ -16681,6 +16681,18 @@
       "id": "pkg:deb/debian/util-linux@2.38.1-5%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15",
       "licenses": [
         {
+          "type": "declared",
+          "value": "BSLA"
+        },
+        {
+          "type": "declared",
+          "value": "LGPL"
+        },
+        {
+          "type": "declared",
+          "value": "public-domain"
+        },
+        {
           "spdx_expression": "BSD-3-Clause",
           "type": "declared",
           "value": "BSD-3-clause"
@@ -16689,10 +16701,6 @@
           "spdx_expression": "BSD-4-Clause",
           "type": "declared",
           "value": "BSD-4-clause"
-        },
-        {
-          "type": "declared",
-          "value": "BSLA"
         },
         {
           "spdx_expression": "GPL-2.0-only",
@@ -16713,10 +16721,6 @@
           "spdx_expression": "GPL-3.0-or-later",
           "type": "declared",
           "value": "GPL-3+"
-        },
-        {
-          "type": "declared",
-          "value": "LGPL"
         },
         {
           "spdx_expression": "LGPL-2.0-only",
@@ -16752,10 +16756,6 @@
           "spdx_expression": "MIT",
           "type": "declared",
           "value": "MIT"
-        },
-        {
-          "type": "declared",
-          "value": "public-domain"
         }
       ],
       "name": "util-linux",
@@ -16797,6 +16797,7 @@
   },
   "schema_version": "bomly.scan.v1",
   "subject": {
+    "image_reference": "debian:bookworm-slim",
     "kind": "container-image"
   }
 }

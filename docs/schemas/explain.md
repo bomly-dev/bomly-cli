@@ -276,7 +276,7 @@ Complete reference for the `bomly explain` JSON output.
 | `repository` | `string` | |
 | `commitSha` | `string` | |
 | `scorecardVersion` | `string` | |
-| `runDate` | [`Time`](#time) | |
+| `runDate` | `string` (RFC 3339 timestamp) | |
 | `aggregateScore` | `number` | |
 | `checks` | Array<[`PackageScorecardCheck`](#packagescorecardcheck)> | |
 
@@ -365,8 +365,6 @@ Complete reference for the `bomly explain` JSON output.
 | `column` | `integer` | |
 | `end_line` | `integer` | |
 
-### `Time`
-
 ### `VersionRange`
 
 | Field | Type | Description |
@@ -413,6 +411,7 @@ Complete reference for the `bomly explain` JSON output.
 | `affected_symbols` | Array<[`AffectedSymbol`](#affectedsymbol)> | |
 | `reachability` | [`Reachability`](#reachability) | |
 | `analysis` | [`VulnerabilityAnalysis`](#vulnerabilityanalysis) | |
+| `recommendation` | `string` | |
 
 ### `VulnerabilityAnalysis`
 

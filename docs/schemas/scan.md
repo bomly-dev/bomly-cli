@@ -139,6 +139,7 @@ Complete reference for the `bomly scan` JSON output.
 | `name` | `string` | |
 | `version` | `string` | |
 | `purl` | `string` | |
+| `source` | `string` | |
 | `scopes` | Array<`string`> | |
 | `depends_on` | Array<`string`> | |
 | `matched` | `boolean` | |
@@ -378,7 +379,7 @@ Complete reference for the `bomly scan` JSON output.
 | `repository` | `string` | |
 | `commitSha` | `string` | |
 | `scorecardVersion` | `string` | |
-| `runDate` | [`Time`](#time) | |
+| `runDate` | `string` (RFC 3339 timestamp) | |
 | `aggregateScore` | `number` | |
 | `checks` | Array<[`PackageScorecardCheck`](#packagescorecardcheck)> | |
 
@@ -397,7 +398,7 @@ Complete reference for the `bomly scan` JSON output.
 |-------|------|-------------|
 | `name` | `string` | |
 | `digest` | `string` | |
-| `evaluated_at` | [`Time`](#time) | |
+| `evaluated_at` | `string` (RFC 3339 timestamp) | |
 
 ### `RangeEvent`
 
@@ -471,8 +472,8 @@ Complete reference for the `bomly scan` JSON output.
 |-------|------|-------------|
 | `id` | `string` | |
 | `correlator` | `string` | |
-| `started_at` | [`Time`](#time) | |
-| `completed_at` | [`Time`](#time) | |
+| `started_at` | `string` (RFC 3339 timestamp) | |
+| `completed_at` | `string` (RFC 3339 timestamp) | |
 | `tool` | [`Tool`](#tool) | |
 | `components` | Array<[`Component`](#component)> | |
 | `options` | [`Options`](#options) | |
@@ -509,9 +510,8 @@ Complete reference for the `bomly scan` JSON output.
 | `repository_url` | `string` | |
 | `ref` | `string` | |
 | `commit_sha` | `string` | |
+| `image_reference` | `string` | |
 | `image_digest` | `string` | |
-
-### `Time`
 
 ### `Tool`
 
@@ -566,6 +566,7 @@ Complete reference for the `bomly scan` JSON output.
 | `affected_symbols` | Array<[`AffectedSymbol`](#affectedsymbol)> | |
 | `reachability` | [`Reachability`](#reachability) | |
 | `analysis` | [`VulnerabilityAnalysis`](#vulnerabilityanalysis) | |
+| `recommendation` | `string` | |
 
 ### `VulnerabilityAnalysis`
 
@@ -588,6 +589,6 @@ Complete reference for the `bomly scan` JSON output.
 | `rule_id` | `string` | |
 | `justification` | `string` | |
 | `approved_by` | `string` | |
-| `created_at` | [`Time`](#time) | |
-| `expires_at` | [`Time`](#time) | |
+| `created_at` | `string` (RFC 3339 timestamp) | |
+| `expires_at` | `string` (RFC 3339 timestamp) | |
 

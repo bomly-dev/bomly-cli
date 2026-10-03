@@ -3652,14 +3652,14 @@
       "licenses": [
         {
           "source": "external-depsdev",
-          "spdx_expression": "LGPL-2.1-only",
           "type": "declared",
-          "value": "LGPL-2.1"
+          "value": "non-standard"
         },
         {
           "source": "external-depsdev",
+          "spdx_expression": "LGPL-2.1-only",
           "type": "declared",
-          "value": "non-standard"
+          "value": "LGPL-2.1"
         }
       ],
       "matched": true,
@@ -3675,14 +3675,14 @@
       "licenses": [
         {
           "source": "external-depsdev",
-          "spdx_expression": "LGPL-2.1-only",
           "type": "declared",
-          "value": "LGPL-2.1"
+          "value": "non-standard"
         },
         {
           "source": "external-depsdev",
+          "spdx_expression": "LGPL-2.1-only",
           "type": "declared",
-          "value": "non-standard"
+          "value": "LGPL-2.1"
         }
       ],
       "matched": true,
@@ -6725,15 +6725,15 @@
         },
         {
           "source": "external-depsdev",
-          "spdx_expression": "LGPL-2.1-only",
-          "type": "declared",
-          "value": "LGPL-2.1"
-        },
-        {
-          "source": "external-depsdev",
           "spdx_expression": "Apache-2.0",
           "type": "declared",
           "value": "Apache-2.0"
+        },
+        {
+          "source": "external-depsdev",
+          "spdx_expression": "LGPL-2.1-only",
+          "type": "declared",
+          "value": "LGPL-2.1"
         }
       ],
       "matched": true,

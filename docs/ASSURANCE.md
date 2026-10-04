@@ -43,7 +43,7 @@ Highlights:
 - **End-to-end scans.** Every supported ecosystem is scanned from a pinned
   public example project and compared against a checked-in expected result.
 - **Platform stability.** The full unit test suite runs on Linux, macOS, and
-  Windows, and a second time on Linux, the Java detector suites run ten times because that is where
+  Windows, the Java detector suites run ten times because that is where
   intermittent failures have appeared, and every release binary is
   cross-compiled.
 - **Parser safety.** Fuzz targets feed malformed project, configuration,

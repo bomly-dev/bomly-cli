@@ -75,15 +75,12 @@ jobs:
     uses: ./.github/workflows/fuzz.yml
     with:
       ref: ${{ inputs.ref || github.ref }}
-      # Thirty targets one after another took over half an hour and made this
-      # the slowest job in the stage. Six at a time for thirty seconds each
-      # is the same order of total fuzzing in a fraction of the wall clock;
-      # the nightly run keeps the long budget. Six rather than four because
-      # two slots are taken for minutes by the two targets that compile most
-      # of the module graph (see scripts/run-fuzz.sh), and the rest should not
-      # queue behind them.
+      # The parser targets one after another took over half an hour and made
+      # this the slowest job in the stage. Four at a time for thirty seconds
+      # each is the same order of total fuzzing in a fraction of the wall
+      # clock; the nightly run keeps the long budget.
       fuzztime: 30s
-      jobs: 6
+      jobs: 4
       assurance: true
       assurance_tag: ${{ inputs.assurance_tag }}
 

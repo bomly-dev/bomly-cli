@@ -44,8 +44,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Two jobs, one per target group in scripts/run-fuzz.sh. The two targets in
+  # engine-and-plugin compile most of the module graph before they fuzz; in
+  # one job they held the run open for minutes after every parser target had
+  # finished. More targets at once does not help them: they are bounded by
+  # compiling, and extra fuzzers only take the processors they compile on.
   fuzz:
-    name: Native Go fuzzing
+    name: Native Go fuzzing (${{ matrix.group }})
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [parsers, engine-and-plugin]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -67,7 +76,10 @@ jobs:
         env:
           FUZZ_RESULTS_JSONL: ${{ runner.temp }}/fuzz-details.jsonl
           FUZZTIME: ${{ inputs.fuzztime || '2m' }}
-          FUZZ_JOBS: ${{ inputs.jobs || 1 }}
+          FUZZ_GROUP: ${{ matrix.group }}
+          # The two engine-and-plugin targets always run side by side: they
+          # share almost every dependency, so they compile it once between them.
+          FUZZ_JOBS: ${{ matrix.group == 'engine-and-plugin' && 2 || inputs.jobs || 1 }}
         run: make fuzz FUZZTIME="${FUZZTIME}"
 
       - name: Record the fuzz result
@@ -75,6 +87,7 @@ jobs:
         env:
           BOMLY_ASSURANCE_TAG: ${{ inputs.assurance_tag }}
           FUZZ_OUTCOME: ${{ steps.fuzz.outcome }}
+          FUZZ_GROUP: ${{ matrix.group }}
           FUZZTIME: ${{ inputs.fuzztime || '2m' }}
         run: |
           set -euo pipefail
@@ -99,7 +112,7 @@ jobs:
           fi
           # shellcheck disable=SC2086 # details_arg is a flag pair or empty
           go run ./internal/assurance/cmd emit \
-            --id fuzz --exit-code "${exit_code}" --summary "${summary}" \
+            --id fuzz --instance "${FUZZ_GROUP}" --exit-code "${exit_code}" --summary "${summary}" \
             --metric targets="${targets}" --metric targets_failed="${failed}" \
             ${details_arg} \
             --out assurance-results --step-summary
@@ -108,7 +121,7 @@ jobs:
         if: always() && inputs.assurance
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: assurance-fuzz
+          name: assurance-fuzz-${{ matrix.group }}
           path: assurance-results
           if-no-files-found: error
           retention-days: 7
@@ -117,7 +130,7 @@ jobs:
         if: steps.fuzz.outcome == 'failure'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: go-fuzz-failures
+          name: go-fuzz-failures-${{ matrix.group }}
           path: |
             **/testdata/fuzz/**
           if-no-files-found: ignore

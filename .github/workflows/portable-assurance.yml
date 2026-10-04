@@ -1,6 +1,6 @@
 # Unit tests across supported platforms and cross-builds of every release
-# binary. The `portable` job runs the full suite on three platforms, and a
-# second time on Linux; `linux-stability` repeats only the Java detector
+# binary. The `portable` job runs the full suite on three platforms;
+# `linux-stability` repeats only the Java detector
 # suites, which is where intermittent failures have actually appeared;
 # `cross-build` compiles every release target. Runs on its own when a
 # maintainer starts it, and as part of the "Release prerequisites" stage
@@ -39,20 +39,13 @@ jobs:
     name: Portable suite (${{ matrix.os }})
     strategy:
       fail-fast: false
-      # The second run exists to catch a test that only passes once: one that
-      # leaves state behind, or depends on what ran before it. That is a
-      # property of the test, not of the operating system, so it is paid for
-      # once, on the fastest runner. Repeating on Windows and macOS as well
-      # made them the slowest jobs of the whole stage (15 and 12 minutes) for
-      # no finding the Linux repeat would not also make.
+      # One run per platform. The suite used to run twice here so that a pass
+      # was never a single lucky run, but the same suite already runs on every
+      # pull request, on every push to main, and again in the release
+      # workflow, so a test that only passes sometimes shows up there. The
+      # repeat made this the slowest job of the release prerequisites stage.
       matrix:
-        include:
-          - os: ubuntu-latest
-            runs: 2
-          - os: macos-latest
-            runs: 1
-          - os: windows-latest
-            runs: 1
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out repository
@@ -71,60 +64,25 @@ jobs:
         id: portable-tests
         continue-on-error: true
         shell: bash
-        env:
-          RUNS: ${{ matrix.runs }}
-        run: |
-          set -uo pipefail
-          completed=0
-          failed=0
-          : > "${RUNNER_TEMP}/portable-details.jsonl"
-          for iteration in $(seq 1 "${RUNS}"); do
-            echo "portable suite iteration ${iteration} of ${RUNS}"
-            if go test ./... -count=1; then
-              completed="${iteration}"
-              printf '{"name":"iteration %s","status":"pass"}\n' "${iteration}" \
-                >> "${RUNNER_TEMP}/portable-details.jsonl"
-            else
-              failed="${iteration}"
-              printf '{"name":"iteration %s","status":"fail"}\n' "${iteration}" \
-                >> "${RUNNER_TEMP}/portable-details.jsonl"
-              break
-            fi
-          done
-          echo "completed=${completed}" >> "${GITHUB_OUTPUT}"
-          echo "failed=${failed}" >> "${GITHUB_OUTPUT}"
-          if [[ "${failed}" != "0" ]]; then
-            exit 1
-          fi
+        run: go test ./... -count=1
 
       - name: Record the platform result
         if: always()
         shell: bash
         env:
           BOMLY_ASSURANCE_TAG: ${{ inputs.assurance_tag }}
-          RUNS: ${{ matrix.runs }}
           TEST_RESULT: ${{ steps.portable-tests.outcome }}
-          COMPLETED: ${{ steps.portable-tests.outputs.completed }}
-          FAILED: ${{ steps.portable-tests.outputs.failed }}
         run: |
           set -euo pipefail
-          completed="${COMPLETED:-0}"
-          failed="${FAILED:-0}"
           exit_code=0
-          times="once"
-          if [[ "${RUNS}" != "1" ]]; then
-            times="${RUNS} times in a row"
-          fi
-          summary="The complete Go test suite passed ${times} on ${RUNNER_OS}/${RUNNER_ARCH}, with no reused results."
+          summary="The complete Go test suite passed on ${RUNNER_OS}/${RUNNER_ARCH}, with no reused results."
           if [[ "${TEST_RESULT}" != "success" ]]; then
             exit_code=1
-            summary="The complete Go test suite failed on run ${failed} of ${RUNS} on ${RUNNER_OS}/${RUNNER_ARCH}. Open the Run the portable suite step for the failing package and test."
+            summary="The complete Go test suite failed on ${RUNNER_OS}/${RUNNER_ARCH}. Open the Run the portable suite step for the failing package and test."
           fi
           go run ./internal/assurance/cmd emit \
             --id unit-portable --instance '${{ matrix.os }}' \
             --exit-code "${exit_code}" --summary "${summary}" \
-            --metric planned_runs="${RUNS}" --metric completed_runs="${completed}" \
-            --details-jsonl "${RUNNER_TEMP}/portable-details.jsonl" \
             --out assurance-results --step-summary
 
       - name: Upload check result

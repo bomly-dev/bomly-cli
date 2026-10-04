@@ -13,7 +13,7 @@ its own minimal CI in its own repository.
 | `Smoke`                 | Pull request approval, nightly, manual dispatch, `workflow_call` | End-to-end smoke slices driving the built binary against pinned public repositories |
 | `Smoke status`          | Completion of an approval-triggered `Smoke` run | Posts the required `Smoke` commit status on the pull request head from the run's result (a trusted `workflow_run`, so fork pull requests get a status too) |
 | `Update Smoke Goldens`  | Manual dispatch on the branch to regenerate from | Regenerates smoke golden files per slice and opens a PR with the drift |
-| `Portable stability assurance` | Manual dispatch, `workflow_call` | Unit tests on Linux, macOS, and Windows (repeated on Linux) plus cross-builds of every release binary |
+| `Portable stability assurance` | Manual dispatch, `workflow_call` | Unit tests on Linux, macOS, and Windows plus cross-builds of every release binary |
 | `Fuzz`                  | Nightly schedule, dispatch, `workflow_call` | Native Go fuzzing over the `scripts/run-fuzz.sh` target list; uploads minimized failures as artifacts |
 | `CodeQL`                | Pull requests, pushes, schedule  | Static analysis for Go and JavaScript                                |
 | `SBOM interoperability assurance` | Pull requests touching SBOM output, dispatch, `workflow_call` | Validates generated SPDX and CycloneDX documents with checksum-pinned official tools |

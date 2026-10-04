@@ -16,6 +16,10 @@ FUZZ_RESULTS_JSONL="${FUZZ_RESULTS_JSONL:-}"
 # and each one's output is printed whole when it finishes rather than
 # interleaved with its neighbours'.
 FUZZ_JOBS="${FUZZ_JOBS:-1}"
+
+# FUZZ_GROUP picks which targets run: all (the default), parsers, or
+# engine-and-plugin. See the target lists below for why there are two.
+FUZZ_GROUP="${FUZZ_GROUP:-all}"
 case "${FUZZ_JOBS}" in
   ''|*[!0-9]*|0) echo "FUZZ_JOBS must be a positive integer, got '${FUZZ_JOBS}'" >&2; exit 2 ;;
 esac
@@ -61,14 +65,17 @@ fi
 # transport JSON) moved with the sdk package to the bomly-sdk repository and
 # run there.
 #
-# The first two targets are first on purpose. Their packages pull in most of
-# the module graph, and a fuzz build instruments every dependency, so each
-# spends about six minutes compiling before it fuzzes for the first second.
-# At the end of the list that was six minutes with nothing else left to run;
-# at the start, the other targets fuzz while these compile.
-targets=(
+# The targets are in two groups. The packages of the second group pull in most
+# of the module graph, and a fuzz build instruments every dependency, so each
+# of those targets spends minutes compiling before it fuzzes for the first
+# second. In one list they held the whole run open: the other 28 targets were
+# done in five minutes and the job then compiled these two for six more. CI
+# runs each group as its own job (FUZZ_GROUP); locally, the default runs both.
+engine_and_plugin_targets=(
   "github.com/bomly-dev/bomly-cli/internal/engine FuzzConsolidateVulnerabilities"
   "github.com/bomly-dev/bomly-cli/internal/plugin FuzzPluginPathSanitizers"
+)
+parser_targets=(
   "github.com/bomly-dev/bomly-cli/internal/assurance FuzzParseCatalog"
   "github.com/bomly-dev/bomly-cli/internal/assurance FuzzParseCheckResult"
   "github.com/bomly-dev/bomly-cli/internal/assurance FuzzParseGoTestEvents"
@@ -98,6 +105,13 @@ targets=(
   "github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm FuzzDepGraphFromSwiftResolved"
   "github.com/bomly-dev/bomly-cli/internal/baseline FuzzLoad"
 )
+
+case "${FUZZ_GROUP}" in
+  all) targets=("${parser_targets[@]}" "${engine_and_plugin_targets[@]}") ;;
+  parsers) targets=("${parser_targets[@]}") ;;
+  engine-and-plugin) targets=("${engine_and_plugin_targets[@]}") ;;
+  *) echo "FUZZ_GROUP must be all, parsers, or engine-and-plugin, got '${FUZZ_GROUP}'" >&2; exit 2 ;;
+esac
 
 if [ -n "${FUZZ_RESULTS_JSONL}" ]; then
   : > "${FUZZ_RESULTS_JSONL}"

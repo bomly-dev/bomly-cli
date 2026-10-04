@@ -150,6 +150,14 @@
         "workflow": "fuzz.yml",
         "job": "fuzz"
       },
+      "expected_instances": [
+        {
+          "name": "parsers"
+        },
+        {
+          "name": "engine-and-plugin"
+        }
+      ],
       "reproduce": [
         [
           "make",
@@ -673,7 +681,7 @@
       "area": "stability",
       "stage": "prerequisites",
       "level": "gate",
-      "description": "Runs the full Go unit test suite on Linux, macOS, and Windows, and a second time on Linux, so a pass is never a single lucky run.",
+      "description": "Runs the full Go unit test suite on Linux, macOS, and Windows.",
       "source": {
         "workflow": "portable-assurance.yml",
         "job": "portable"
@@ -701,11 +709,10 @@
         ]
       ],
       "proves": [
-        "Every unit test passes on all three supported operating systems, and passes again when the whole suite is run a second time on Linux, so a pass is not a one-off."
+        "Every unit test passes on all three supported operating systems."
       ],
       "limitations": [
-        "Unit tests run in process against fixtures. They do not download repositories or call external services.",
-        "The repeat run happens on Linux only. A test that passes once but not twice for a reason specific to macOS or Windows would not be caught by it."
+        "Unit tests run in process against fixtures. They do not download repositories or call external services."
       ]
     },
     {

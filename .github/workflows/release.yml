@@ -100,6 +100,15 @@ jobs:
             echo "WINGET_GITHUB_TOKEN has no expiration date."
           fi
 
+  # The unit suite and vet run here, before anything is built, on every
+  # release. The prerequisites stage has usually just run the same suite, and
+  # two ways of not repeating it were tried and removed: running it beside the
+  # build lets GoReleaser open the Homebrew, Scoop and WinGet pull requests
+  # for a release whose tests then fail, and skipping it when preflight found
+  # a passing prerequisites run trusts the tag's parent commit, which a
+  # hand-made tag can sit on top of with untested changes (and that stage
+  # does not run vet). Five minutes is the price of testing the exact commit
+  # being released; do not trade it away again without solving both.
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -319,8 +328,10 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-          cache: true
-          cache-dependency-path: go.sum
+          # No cache. This job only runs the assurance tool, which compiles in
+          # seconds and has one small dependency. Restoring the repository's
+          # multi-gigabyte Go cache to do that took five minutes on Windows.
+          cache: false
 
       - name: Mint release token
         # Draft release assets are not publicly downloadable, so this job needs

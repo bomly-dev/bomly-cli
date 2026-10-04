@@ -233,6 +233,7 @@ var additiveMetrics = map[string]bool{
 	"packages":         true,
 	"planned_runs":     true,
 	"targets":          true,
+	"targets_failed":   true,
 	"tests_failed":     true,
 	"tests_passed":     true,
 	"tests_skipped":    true,

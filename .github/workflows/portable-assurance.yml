@@ -1,8 +1,10 @@
-# Repeated unit tests across supported platforms and cross-builds of every
-# release binary. The full suite is repeated by the `portable` job (twice on
-# each of three platforms); this job repeats only the Java detector suites,
-# which is where intermittent failures have actually appeared. Runs on its own when a maintainer starts it, and as part of
-# the "Release prerequisites" stage before a version is tagged.
+# Unit tests across supported platforms and cross-builds of every release
+# binary. The `portable` job runs the full suite on three platforms;
+# `linux-stability` repeats only the Java detector
+# suites, which is where intermittent failures have actually appeared;
+# `cross-build` compiles every release target. Runs on its own when a
+# maintainer starts it, and as part of the "Release prerequisites" stage
+# before a version is tagged.
 #
 # Every step ends by writing a release assurance check result; the job summary
 # is rendered from that same result, so the summary and the report can never
@@ -37,6 +39,11 @@ jobs:
     name: Portable suite (${{ matrix.os }})
     strategy:
       fail-fast: false
+      # One run per platform. The suite used to run twice here so that a pass
+      # was never a single lucky run, but the same suite already runs on every
+      # pull request and on every push to main, so a test that only passes
+      # sometimes shows up there. The
+      # repeat made this the slowest job of the release prerequisites stage.
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -53,33 +60,28 @@ jobs:
           cache: true
           cache-dependency-path: go.sum
 
-      - name: Repeat portable suite twice
+      # Several tests build a small plugin in a temporary module, which needs
+      # the pinned modules in the module cache. Without this step the download
+      # happens inside the test, with no retry, and a slow connection to the
+      # module proxy fails the suite: macOS runners have timed out on the TLS
+      # handshake twice. Fetching here keeps the network out of the tests.
+      - name: Download modules
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if go mod download; then
+              exit 0
+            fi
+            echo "go mod download failed (attempt ${attempt} of 3)"
+            sleep 10
+          done
+          exit 1
+
+      - name: Run the portable suite
         id: portable-tests
         continue-on-error: true
         shell: bash
-        run: |
-          set -uo pipefail
-          completed=0
-          failed=0
-          : > "${RUNNER_TEMP}/portable-details.jsonl"
-          for iteration in 1 2; do
-            echo "portable suite iteration ${iteration}"
-            if go test ./... -count=1; then
-              completed="${iteration}"
-              printf '{"name":"iteration %s","status":"pass"}\n' "${iteration}" \
-                >> "${RUNNER_TEMP}/portable-details.jsonl"
-            else
-              failed="${iteration}"
-              printf '{"name":"iteration %s","status":"fail"}\n' "${iteration}" \
-                >> "${RUNNER_TEMP}/portable-details.jsonl"
-              break
-            fi
-          done
-          echo "completed=${completed}" >> "${GITHUB_OUTPUT}"
-          echo "failed=${failed}" >> "${GITHUB_OUTPUT}"
-          if [[ "${failed}" != "0" ]]; then
-            exit 1
-          fi
+        run: go test ./... -count=1
 
       - name: Record the platform result
         if: always()
@@ -87,23 +89,17 @@ jobs:
         env:
           BOMLY_ASSURANCE_TAG: ${{ inputs.assurance_tag }}
           TEST_RESULT: ${{ steps.portable-tests.outcome }}
-          COMPLETED: ${{ steps.portable-tests.outputs.completed }}
-          FAILED: ${{ steps.portable-tests.outputs.failed }}
         run: |
           set -euo pipefail
-          completed="${COMPLETED:-0}"
-          failed="${FAILED:-0}"
           exit_code=0
-          summary="The complete Go test suite passed twice on ${RUNNER_OS}/${RUNNER_ARCH}, with no reused results."
+          summary="The complete Go test suite passed on ${RUNNER_OS}/${RUNNER_ARCH}, with no reused results."
           if [[ "${TEST_RESULT}" != "success" ]]; then
             exit_code=1
-            summary="The complete Go test suite failed on run ${failed} of 2 on ${RUNNER_OS}/${RUNNER_ARCH}. Open the Repeat portable suite twice step for the failing package and test."
+            summary="The complete Go test suite failed on ${RUNNER_OS}/${RUNNER_ARCH}. Open the Run the portable suite step for the failing package and test."
           fi
           go run ./internal/assurance/cmd emit \
             --id unit-portable --instance '${{ matrix.os }}' \
             --exit-code "${exit_code}" --summary "${summary}" \
-            --metric planned_runs=2 --metric completed_runs="${completed}" \
-            --details-jsonl "${RUNNER_TEMP}/portable-details.jsonl" \
             --out assurance-results --step-summary
 
       - name: Upload check result
@@ -189,53 +185,83 @@ jobs:
             --details-jsonl "${RUNNER_TEMP}/java-details.jsonl" \
             --out assurance-results --step-summary
 
+      - name: Upload check results
+        if: always() && inputs.assurance
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: assurance-linux-stability
+          path: assurance-results
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Fail the job when the Java suites failed
+        if: steps.java-tests.outcome == 'failure'
+        run: exit 1
+
+  # One job per target operating system. The twelve builds used to run one
+  # after another inside `linux-stability` and took eleven minutes, which made
+  # that job one of the slowest in the release prerequisites stage.
+  cross-build:
+    name: Cross-build (${{ matrix.target_os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        target_os: [linux, darwin, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
       # Every target is attempted, even after one fails, so the report shows the
-      # complete build matrix instead of stopping at the first problem.
+      # complete build matrix instead of stopping at the first problem. The
+      # flags are the ones .goreleaser.yaml builds a release with.
       - name: Cross-build release targets
         id: release-builds
         continue-on-error: true
+        env:
+          TARGET_OS: ${{ matrix.target_os }}
         run: |
           set -uo pipefail
           completed=0
           planned=0
           : > "${RUNNER_TEMP}/build-details.jsonl"
-          targets=(
-            "linux amd64"
-            "linux arm64"
-            "darwin amd64"
-            "darwin arm64"
-            "windows amd64"
-            "windows arm64"
-          )
           record() {
             printf '{"name":"%s","status":"%s"}\n' "${1}" "${2}" >> "${RUNNER_TEMP}/build-details.jsonl"
           }
-          for target in "${targets[@]}"; do
-            read -r target_os target_arch <<<"${target}"
-            suffix=""
-            if [[ "${target_os}" == "windows" ]]; then
-              suffix=".exe"
-            fi
+          suffix=""
+          if [[ "${TARGET_OS}" == "windows" ]]; then
+            suffix=".exe"
+          fi
+          for target_arch in amd64 arm64; do
             for variant in full lite; do
               planned=$((planned + 1))
-              echo "cross-build ${target_os}/${target_arch} ${variant}"
+              echo "cross-build ${TARGET_OS}/${target_arch} ${variant}"
               status=fail
               if [[ "${variant}" == "full" ]]; then
-                if GOOS="${target_os}" GOARCH="${target_arch}" CGO_ENABLED=0 \
-                  go build -o "bin/bomly-${target_os}-${target_arch}${suffix}" ./cmd/bomly; then
+                if GOOS="${TARGET_OS}" GOARCH="${target_arch}" CGO_ENABLED=0 \
+                  go build -trimpath -o "bin/bomly-${TARGET_OS}-${target_arch}${suffix}" ./cmd/bomly; then
                   status=pass
                 fi
               else
-                if GOOS="${target_os}" GOARCH="${target_arch}" CGO_ENABLED=0 \
-                  go build -tags "bomly_external_syft,bomly_external_grype" \
-                  -o "bin/bomly-lite-${target_os}-${target_arch}${suffix}" ./cmd/bomly; then
+                if GOOS="${TARGET_OS}" GOARCH="${target_arch}" CGO_ENABLED=0 \
+                  go build -trimpath -tags "bomly_external_syft,bomly_external_grype" \
+                  -o "bin/bomly-lite-${TARGET_OS}-${target_arch}${suffix}" ./cmd/bomly; then
                   status=pass
                 fi
               fi
               if [[ "${status}" == "pass" ]]; then
                 completed=$((completed + 1))
               fi
-              record "${target_os}/${target_arch} ${variant}" "${status}"
+              record "${TARGET_OS}/${target_arch} ${variant}" "${status}"
             done
           done
           echo "completed=${completed}" >> "${GITHUB_OUTPUT}"
@@ -248,36 +274,36 @@ jobs:
         if: always()
         env:
           BOMLY_ASSURANCE_TAG: ${{ inputs.assurance_tag }}
+          TARGET_OS: ${{ matrix.target_os }}
           BUILD_RESULT: ${{ steps.release-builds.outcome }}
           COMPLETED: ${{ steps.release-builds.outputs.completed }}
           PLANNED: ${{ steps.release-builds.outputs.planned }}
         run: |
           set -euo pipefail
           completed="${COMPLETED:-0}"
-          planned="${PLANNED:-12}"
+          planned="${PLANNED:-4}"
           exit_code=0
-          summary="All ${planned} release binaries built: full and lite for Linux, macOS, and Windows on amd64 and arm64."
+          summary="All ${planned} ${TARGET_OS} release binaries built: full and lite on amd64 and arm64."
           if [[ "${BUILD_RESULT}" != "success" ]]; then
             exit_code=1
-            summary="${completed} of ${planned} release binaries built. The failed targets are listed below."
+            summary="${completed} of ${planned} ${TARGET_OS} release binaries built. The failed targets are listed below."
           fi
           go run ./internal/assurance/cmd emit \
-            --id cross-build --exit-code "${exit_code}" --summary "${summary}" \
+            --id cross-build --instance "${TARGET_OS}" \
+            --exit-code "${exit_code}" --summary "${summary}" \
             --metric builds_planned="${planned}" --metric builds_completed="${completed}" \
             --details-jsonl "${RUNNER_TEMP}/build-details.jsonl" \
             --out assurance-results --step-summary
 
-      - name: Upload check results
+      - name: Upload check result
         if: always() && inputs.assurance
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: assurance-linux-stability
+          name: assurance-cross-build-${{ matrix.target_os }}
           path: assurance-results
           if-no-files-found: error
           retention-days: 7
 
-      - name: Fail the job when any check failed
-        if: >-
-          steps.java-tests.outcome == 'failure' ||
-          steps.release-builds.outcome == 'failure'
+      - name: Fail the job when a build failed
+        if: steps.release-builds.outcome == 'failure'
         run: exit 1

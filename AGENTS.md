@@ -40,8 +40,9 @@ variants, and the generated-docs drift check. `make verify` runs all of that
 locally when you want it. All of it must pass before work is done.
 
 Do not run the smoke suite locally unless you are debugging a smoke case: it
-needs the network, every ecosystem's toolchain, and tens of minutes. It runs
-in CI nightly and on demand. To refresh goldens after an intended output
+needs the network, every ecosystem's toolchain, and tens of minutes. CI runs
+it when a pull request is approved -- its `Smoke` commit status is required,
+so a pull request waits on it after approval -- and nightly. To refresh goldens after an intended output
 change, dispatch the golden workflow on your branch; it opens a pull
 request with the drift against it:
 

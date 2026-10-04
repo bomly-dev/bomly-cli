@@ -49,7 +49,7 @@ make lint        # golangci-lint plus the house-rule analyzers in internal/tools
 make generate    # regenerate config reference, schemas, support matrix, component docs
 ```
 
-Run `make test` before submitting -- `.githooks/pre-push` runs it once `make install-hooks` turns the hooks on; CI runs lint, builds, the generated-docs check, and the smoke suite. If your change touches configuration,
+Run `make test` before submitting -- `.githooks/pre-push` runs it once `make install-hooks` turns the hooks on; CI runs lint, builds, the generated-docs check, and, once the pull request is approved, the smoke suite. If your change touches configuration,
 output schemas, or the pinned SDK version, run `make generate` and commit the
 regenerated docs.
 

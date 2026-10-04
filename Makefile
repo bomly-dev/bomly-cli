@@ -63,7 +63,7 @@ fuzz:
 
 # verify runs every check CI gates on, locally, for when you want the full
 # picture before pushing. The pre-push hook runs only `make test`; CI runs the
-# rest on the pull request, and the smoke suite runs in CI on its own schedule.
+# rest on the pull request, and the smoke suite runs once it is approved.
 #
 # SMOKE=1 adds the network-driven smoke suite. Generated-docs drift is checked
 # too: it is a CI job, and it fails for edits that look unrelated to it.

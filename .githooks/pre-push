@@ -2,7 +2,7 @@
 #
 # The unit suite gates a push. Everything slower runs elsewhere: lint, vet,
 # both builds and the generated-docs drift run in CI on the pull request, and
-# the network-driven smoke suite runs in CI on its own schedule. `make verify`
+# the network-driven smoke suite runs in CI once the pull request is approved. `make verify`
 # runs the CI checks locally when you want them.
 #
 # To push without testing, say so out loud: `git push --no-verify`.

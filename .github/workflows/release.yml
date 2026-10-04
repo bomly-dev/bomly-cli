@@ -209,8 +209,8 @@ jobs:
     # release, it can't find one — so it creates a *second*, non-draft release
     # for the same tag instead, which immediately and permanently marks that
     # tag as immutable (even if the bad release is later deleted). The
-    # `publish` job uploads this provenance file itself, by release ID, to
-    # avoid that entirely.
+    # `attach-provenance` job uploads this provenance file itself, by release
+    # ID, to avoid that entirely.
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: ${{ needs.release.outputs.hashes }}
@@ -249,8 +249,8 @@ jobs:
 
       - name: Attach provenance to the draft release
         # Uploads directly to the draft by ID, not by tag — see the
-        # `provenance` job comment for why. A re-run finds the file already
-        # there and leaves it, so this job can be retried on its own.
+        # `provenance` job comment for why. A re-run finds a completed upload
+        # and leaves it, so this job can be retried on its own.
         env:
           GH_TOKEN: ${{ steps.release-token.outputs.token }}
           RELEASE_TAG: ${{ github.ref_name }}
@@ -265,12 +265,25 @@ jobs:
             exit 1
           fi
 
-          attached="$(gh api "repos/bomly-dev/bomly-cli/releases/${release_id}/assets?per_page=100" | \
-            jq -r --arg name "$PROVENANCE_FILE" '[.[] | select(.name == $name)] | length')"
-          if [ "$attached" != "0" ]; then
-            echo "${PROVENANCE_FILE} is already attached to the draft."
-            exit 0
-          fi
+          # Only a completed upload counts. GitHub documents that an upload
+          # which fails partway (a 502 from the upload endpoint) can leave an
+          # empty asset behind in the "starter" state, under the same name. A
+          # retry that matched on the name alone would call that attached and
+          # hand the gate a file with nothing in it, on every retry after.
+          # Anything under this name that is not a finished upload is removed
+          # and uploaded again.
+          gh api "repos/bomly-dev/bomly-cli/releases/${release_id}/assets?per_page=100" | \
+            jq -r --arg name "$PROVENANCE_FILE" '.[] | select(.name == $name) | [.id, .state, .size] | @tsv' \
+            > existing-assets.tsv
+
+          while IFS=$'\t' read -r asset_id asset_state asset_size; do
+            if [ "$asset_state" = "uploaded" ] && [ "$asset_size" -gt 0 ]; then
+              echo "${PROVENANCE_FILE} is already attached to the draft (${asset_size} bytes)."
+              exit 0
+            fi
+            echo "Removing an incomplete ${PROVENANCE_FILE} (state ${asset_state}, ${asset_size} bytes) left by an earlier attempt."
+            gh api -X DELETE "repos/bomly-dev/bomly-cli/releases/assets/${asset_id}"
+          done < existing-assets.tsv
 
           curl -fsSL \
             -X POST \

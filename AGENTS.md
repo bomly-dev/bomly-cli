@@ -66,9 +66,10 @@ repository found only after adopting each one.
    checkout. `make sdk-status` says which SDK is in use.
 2. Change both repositories and run `make test` here. From the SDK side,
    `make cli-test CLI=<this checkout>` runs this repository's build, vet and
-   unit tests against the SDK checkout without touching either one, and the
-   SDK's `CLI compatibility` job does the same against `main` on every SDK
-   pull request.
+   unit tests against the SDK checkout without touching either one. On an
+   SDK pull request, the `cli-compat` label adds a `CLI compatibility` job
+   that does the same against `main` in CI (opt-in: it takes several
+   minutes).
 3. Push every review fix to the SDK pull request **before** it merges and
    tags; a commit that lands after the squash is not in the tag.
 4. After the tag: `make sdk-pinned`, then `go get

@@ -25,10 +25,22 @@
       "stage": "post-release",
       "level": "advisory",
       "description": "Runs the same scan several times and records timing.",
-      "source": { "workflow": "assurance-assessment.yml", "job": "perf-samples" },
-      "reproduce": [["make", "benchmark-samples"]],
-      "proves": ["Repeated runs produced identical normalized output."],
-      "limitations": ["Timings are observations from one machine, not limits."]
+      "source": {
+        "workflow": "assurance-assessment.yml",
+        "job": "perf-samples"
+      },
+      "reproduce": [
+        [
+          "make",
+          "benchmark-samples"
+        ]
+      ],
+      "proves": [
+        "Repeated runs produced identical normalized output."
+      ],
+      "limitations": [
+        "Timings are observations from one machine, not limits."
+      ]
     },
     {
       "id": "release-checksums",
@@ -37,10 +49,23 @@
       "stage": "pre-release",
       "level": "gate",
       "description": "Hashes every release file and compares it with SHA256SUMS.",
-      "source": { "workflow": "release.yml", "job": "verify-draft" },
-      "reproduce": [["sha256sum", "--check", "SHA256SUMS"]],
-      "proves": ["Every published file hashes to the recorded value."],
-      "limitations": ["Checksums prove the files were not altered after they were built."]
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "reproduce": [
+        [
+          "sha256sum",
+          "--check",
+          "SHA256SUMS"
+        ]
+      ],
+      "proves": [
+        "Every published file hashes to the recorded value."
+      ],
+      "limitations": [
+        "Checksums prove the files were not altered after they were built."
+      ]
     },
     {
       "id": "smoke",
@@ -49,14 +74,36 @@
       "stage": "prerequisites",
       "level": "gate",
       "description": "Runs scan against pinned public repositories.",
-      "source": { "workflow": "smoke.yml", "job": "smoke" },
+      "source": {
+        "workflow": "smoke.yml",
+        "job": "smoke"
+      },
       "expected_instances": [
-        { "name": "go", "ecosystems": ["Go"] },
-        { "name": "node", "ecosystems": ["JavaScript"] }
+        {
+          "name": "go",
+          "ecosystems": [
+            "Go"
+          ]
+        },
+        {
+          "name": "node",
+          "ecosystems": [
+            "JavaScript"
+          ]
+        }
       ],
-      "reproduce": [["make", "smoke"]],
-      "proves": ["Each ecosystem produces the dependency graph recorded in its golden file."],
-      "limitations": ["Golden files pin one revision of one example project per ecosystem."]
+      "reproduce": [
+        [
+          "make",
+          "smoke"
+        ]
+      ],
+      "proves": [
+        "Each ecosystem produces the dependency graph recorded in its golden file."
+      ],
+      "limitations": [
+        "Golden files pin one revision of one example project per ecosystem."
+      ]
     }
   ],
   "evidence": [
@@ -76,16 +123,27 @@
           "revision": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
         }
       ],
-      "required_tools": ["git", "go"],
-      "reproduce": [["make", "smoke"]],
+      "required_tools": [
+        "git",
+        "go"
+      ],
+      "reproduce": [
+        [
+          "make",
+          "smoke"
+        ]
+      ],
       "artifacts": [
         {
-          "path": "internal/assurance/testdata/fixtures/all-pass/results/smoke.go.json",
-          "sha256": "27a48399b6669f7b6a436080e277877dc9ef3c884634ceb3c0cdcab634eb97d0"
+          "path": "internal/assurance/testdata/fixtures/all-pass/results/smoke.go.json"
         }
       ],
-      "proves": ["The Go detector resolves a build-tool-backed module graph."],
-      "limitations": ["The result depends on a compatible Go toolchain."]
+      "proves": [
+        "The Go detector resolves a build-tool-backed module graph."
+      ],
+      "limitations": [
+        "The result depends on a compatible Go toolchain."
+      ]
     }
   ]
 }

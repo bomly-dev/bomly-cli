@@ -79,7 +79,7 @@
       "area": "framework",
       "stage": "prerequisites",
       "level": "gate",
-      "description": "Validates this catalog and confirms every fixture and golden file it points at still has the recorded checksum.",
+      "description": "Validates this catalog and confirms every fixture and expected-result file it points at exists.",
       "source": {
         "workflow": "assurance-prerequisites.yml",
         "job": "catalog"
@@ -91,7 +91,7 @@
         ]
       ],
       "proves": [
-        "Every claim in this report points at a real check and at repository files that have not changed since the claim was written."
+        "Every claim in this report points at a real check and at files that are present in this release's source."
       ],
       "limitations": [
         "A valid catalog says the paperwork is consistent; the checks themselves decide whether the software works."
@@ -180,7 +180,7 @@
         [
           "sh",
           "-c",
-          "BOMLY_VERSION=\u003ctag\u003e BOMLY_INSTALL_DIR=$PWD/bin sh scripts/install.sh"
+          "BOMLY_VERSION=<tag> BOMLY_INSTALL_DIR=$PWD/bin sh scripts/install.sh"
         ]
       ],
       "proves": [
@@ -230,7 +230,7 @@
           "gh",
           "release",
           "download",
-          "\u003ctag\u003e",
+          "<tag>",
           "--repo",
           "bomly-dev/bomly-cli"
         ]
@@ -264,7 +264,7 @@
           "--dir",
           "assets",
           "--version",
-          "\u003cversion\u003e"
+          "<version>"
         ]
       ],
       "proves": [
@@ -308,7 +308,7 @@
           "--dir",
           "assets",
           "--version",
-          "\u003cversion\u003e",
+          "<version>",
           "--scope",
           "native"
         ]
@@ -374,7 +374,7 @@
         [
           "slsa-verifier",
           "verify-artifact",
-          "\u003carchive\u003e",
+          "<archive>",
           "--provenance-path",
           "multiple.intoto.jsonl",
           "--source-uri",
@@ -759,8 +759,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/finding-baseline-workflow.golden.json",
-          "sha256": "84fb94c8cec1b0399259be84c5d9b252d8f4df3c15b0ac813eca2c765c363ae1"
+          "path": "test/smoke/testdata/golden/finding-baseline-workflow.golden.json"
         }
       ],
       "proves": [
@@ -802,8 +801,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/container-scan-alpine.golden.json",
-          "sha256": "6fc075beb7e3eca64c9ca8e79c07ff0160e3ff8a3f4284b8df813ef927ce5b9e"
+          "path": "test/smoke/testdata/golden/container-scan-alpine.golden.json"
         }
       ],
       "proves": [
@@ -823,8 +821,7 @@
       "inputs": [
         {
           "kind": "fixture",
-          "location": "internal/engine/pipeline_fallback_test.go",
-          "sha256": "c8c189a7eeb7ec13e647c33746deac0aae99238be0e57d0cadfdbef0dee5d140"
+          "location": "internal/engine/pipeline_fallback_test.go"
         }
       ],
       "required_tools": [
@@ -842,8 +839,7 @@
       ],
       "artifacts": [
         {
-          "path": "internal/engine/pipeline_fallback_test.go",
-          "sha256": "c8c189a7eeb7ec13e647c33746deac0aae99238be0e57d0cadfdbef0dee5d140"
+          "path": "internal/engine/pipeline_fallback_test.go"
         }
       ],
       "proves": [
@@ -889,8 +885,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-bun.golden.json",
-          "sha256": "e4df856333b558128b07165cc16d44a12d9981bbd42054ad2912cfb699a563a5"
+          "path": "test/smoke/testdata/golden/scan-bun.golden.json"
         }
       ],
       "proves": [
@@ -937,8 +932,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-go.golden.json",
-          "sha256": "267270c11e350f668c4e018c7d36e675c7412b11d37aec5725380fabb391e2a8"
+          "path": "test/smoke/testdata/golden/scan-go.golden.json"
         }
       ],
       "proves": [
@@ -986,8 +980,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-maven.golden.json",
-          "sha256": "7093935763fe2735f42a475ad22c6af6284beb352f3bed02f87521a4f48f383d"
+          "path": "test/smoke/testdata/golden/scan-maven.golden.json"
         }
       ],
       "proves": [
@@ -1034,8 +1027,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-npm.golden.json",
-          "sha256": "bb19b6686664f1ce4ba3424168a417b46c89e5680e84f996c879b40281451527"
+          "path": "test/smoke/testdata/golden/scan-npm.golden.json"
         }
       ],
       "proves": [
@@ -1082,8 +1074,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-pnpm.golden.json",
-          "sha256": "eb67f160516425a5828bc546589dc468d50f37525e47e4dc793a0d166bbc4286"
+          "path": "test/smoke/testdata/golden/scan-pnpm.golden.json"
         }
       ],
       "proves": [
@@ -1129,8 +1120,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-python-pip.golden.json",
-          "sha256": "38a550af6decc30523da724abd78acddb2e7b659df4651eba8313bd9000a9fd9"
+          "path": "test/smoke/testdata/golden/scan-python-pip.golden.json"
         }
       ],
       "proves": [
@@ -1177,8 +1167,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-yarn.golden.json",
-          "sha256": "de649973a762167d0d474532773226c284330ee2bcaab4f6fa6dbd26867e34b2"
+          "path": "test/smoke/testdata/golden/scan-yarn.golden.json"
         }
       ],
       "proves": [
@@ -1198,8 +1187,7 @@
       "inputs": [
         {
           "kind": "fixture",
-          "location": "internal/auditors/license/spdx_policy_matrix_test.go",
-          "sha256": "846bc1cbff37531829124935192034c3cfdc9267c226ccd5144355d0dceec33b"
+          "location": "internal/auditors/license/spdx_policy_matrix_test.go"
         }
       ],
       "required_tools": [
@@ -1217,8 +1205,7 @@
       ],
       "artifacts": [
         {
-          "path": "internal/auditors/license/spdx_policy_matrix_test.go",
-          "sha256": "846bc1cbff37531829124935192034c3cfdc9267c226ccd5144355d0dceec33b"
+          "path": "internal/auditors/license/spdx_policy_matrix_test.go"
         }
       ],
       "proves": [
@@ -1238,8 +1225,7 @@
       "inputs": [
         {
           "kind": "fixture",
-          "location": "internal/engine/diff/diff_test.go",
-          "sha256": "b2f8300336868c2af153d7c77b88ced45955b7b17a0da09c1d3ba08e72a7af73"
+          "location": "internal/engine/diff/diff_test.go"
         }
       ],
       "required_tools": [
@@ -1257,8 +1243,7 @@
       ],
       "artifacts": [
         {
-          "path": "internal/engine/diff/diff_test.go",
-          "sha256": "b2f8300336868c2af153d7c77b88ced45955b7b17a0da09c1d3ba08e72a7af73"
+          "path": "internal/engine/diff/diff_test.go"
         }
       ],
       "proves": [
@@ -1305,8 +1290,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-go-reachability.golden.json",
-          "sha256": "9d70ea49a7c99e9dc2c2bee0ad4c1dc0368bbe02167386d62eb8bb793f39b5ae"
+          "path": "test/smoke/testdata/golden/scan-go-reachability.golden.json"
         }
       ],
       "proves": [
@@ -1354,8 +1338,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-java-maven-reachability.golden.json",
-          "sha256": "60060bf892235feef6df1e2d18e69cd1a00b6a277e8d3537a4dad4fed0a6c022"
+          "path": "test/smoke/testdata/golden/scan-java-maven-reachability.golden.json"
         }
       ],
       "proves": [
@@ -1402,8 +1385,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-npm-reachability.golden.json",
-          "sha256": "f9774f51e9e9c3a931a900c9be62b93b5810cf023f500ebf9a96f6f1fdeb2a66"
+          "path": "test/smoke/testdata/golden/scan-npm-reachability.golden.json"
         }
       ],
       "proves": [
@@ -1449,8 +1431,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-python-pip-reachability.golden.json",
-          "sha256": "8a40d041d23f4bc4984bb3ba00cc3919592fddcd694b45855e0fb45d5d73077b"
+          "path": "test/smoke/testdata/golden/scan-python-pip-reachability.golden.json"
         }
       ],
       "proves": [
@@ -1470,8 +1451,7 @@
       "inputs": [
         {
           "kind": "fixture",
-          "location": "internal/remediation/derive_test.go",
-          "sha256": "0be22480c9395c834dbcc23f015629cc837a51d5e122eaac36b520b43d1759ed"
+          "location": "internal/remediation/derive_test.go"
         }
       ],
       "required_tools": [
@@ -1489,8 +1469,7 @@
       ],
       "artifacts": [
         {
-          "path": "internal/remediation/derive_test.go",
-          "sha256": "0be22480c9395c834dbcc23f015629cc837a51d5e122eaac36b520b43d1759ed"
+          "path": "internal/remediation/derive_test.go"
         }
       ],
       "proves": [
@@ -1511,8 +1490,7 @@
       "inputs": [
         {
           "kind": "fixture",
-          "location": "test/smoke/testdata/sboms/go.cdx.json",
-          "sha256": "78454a7207f98ba0c8d35df8a257f9185c313d22691cc90a06f11809021bed93"
+          "location": "test/smoke/testdata/sboms/go.cdx.json"
         }
       ],
       "required_tools": [
@@ -1535,8 +1513,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-sbom-cyclonedx.golden.json",
-          "sha256": "96a1a56860eb1c28bcb0da4d01809f74a7b07e6d0bcf637f2b8e36c6ecd9208e"
+          "path": "test/smoke/testdata/golden/scan-sbom-cyclonedx.golden.json"
         }
       ],
       "proves": [
@@ -1557,8 +1534,7 @@
       "inputs": [
         {
           "kind": "fixture",
-          "location": "test/smoke/testdata/sboms/go.spdx.json",
-          "sha256": "99bd846daec887cfcb61d6d5384ccff91c6045482652f4719fab8b312192fe0e"
+          "location": "test/smoke/testdata/sboms/go.spdx.json"
         }
       ],
       "required_tools": [
@@ -1581,8 +1557,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/testdata/golden/scan-sbom-spdx.golden.json",
-          "sha256": "a0bb88cb6bbdbbe49e02ca6e091d15953be4320dd82c1dedcff32085dfbf042a"
+          "path": "test/smoke/testdata/golden/scan-sbom-spdx.golden.json"
         }
       ],
       "proves": [
@@ -1635,8 +1610,7 @@
       ],
       "artifacts": [
         {
-          "path": "test/smoke/audit_test.go",
-          "sha256": "d0d49980d6d4a5fd3cc67ac1ca39d5aa4f17bd378faac7831f11f02d3271a1a6"
+          "path": "test/smoke/audit_test.go"
         }
       ],
       "proves": [
@@ -1656,8 +1630,7 @@
       "inputs": [
         {
           "kind": "fixture",
-          "location": "internal/auditors/vulnerability/policy_matrix_test.go",
-          "sha256": "3bc30277032a8a1159e5f1a5d9b4697c0be914368a7946d69a2480754937283b"
+          "location": "internal/auditors/vulnerability/policy_matrix_test.go"
         }
       ],
       "required_tools": [
@@ -1675,8 +1648,7 @@
       ],
       "artifacts": [
         {
-          "path": "internal/auditors/vulnerability/policy_matrix_test.go",
-          "sha256": "3bc30277032a8a1159e5f1a5d9b4697c0be914368a7946d69a2480754937283b"
+          "path": "internal/auditors/vulnerability/policy_matrix_test.go"
         }
       ],
       "proves": [

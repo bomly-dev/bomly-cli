@@ -79,7 +79,7 @@ The report uses one vocabulary, and it is worth being precise about it:
 
 Some claims are asserted directly by a check. Others are asserted by comparing
 a pinned input — a public repository at a recorded commit, or a checked-in
-fixture — against a checksummed result file, and name the check that performed
+fixture — against a recorded result file, and name the check that performed
 that comparison. Both appear as claims on the page, in the section they belong
 to. A claim earns a separate entry only when it adds something the check cannot
 say on its own.
@@ -94,8 +94,8 @@ make assurance-catalog
 go run ./internal/assurance/cmd catalog-validate --evidence graph-npm
 ```
 
-The first command validates the whole catalog, including the checksums of every
-expected-result file it names. The second prints one claim with its reproduction
+The first command validates the whole catalog and confirms every expected-result
+file it names exists. The second prints one claim with its reproduction
 command.
 
 ## What a verified claim does not mean

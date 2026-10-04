@@ -23,8 +23,15 @@ func repositoryCatalog(t *testing.T) Catalog {
 
 func TestRepositoryCatalogIsValid(t *testing.T) {
 	catalog := repositoryCatalog(t)
-	if err := catalog.VerifyArtifacts(repositoryRoot); err != nil {
-		t.Fatalf("catalog artifacts drifted: %v", err)
+	// Every file a claim names must exist. The count is asserted too: a
+	// catalog that stopped naming files would otherwise pass this by checking
+	// nothing (ADR-0044).
+	checked, err := catalog.VerifyFiles(repositoryRoot)
+	if err != nil {
+		t.Fatalf("a claim names a file that is not there: %v", err)
+	}
+	if checked < len(catalog.Evidence) {
+		t.Fatalf("checked %d files for %d evidence claims; every claim names at least one", checked, len(catalog.Evidence))
 	}
 	for _, stage := range Stages() {
 		if len(catalog.ChecksForStage(stage)) == 0 {
@@ -113,7 +120,7 @@ func TestCatalogRejectsInvalidDocuments(t *testing.T) {
 				}},
 				Reproduce: [][]string{{"make", "smoke"}},
 				Artifacts: []EvidenceArtifact{{
-					Path: "go.mod", SHA256: "0000000000000000000000000000000000000000000000000000000000000000",
+					Path: "go.mod",
 				}},
 				Proves:      []string{"It resolves."},
 				Limitations: []string{"One toolchain."},
@@ -145,13 +152,9 @@ func TestCatalogRejectsInvalidDocuments(t *testing.T) {
 			c.Evidence[0].Inputs = []Input{{Kind: "workflow", Location: ".github/workflows/smoke.yml"}}
 		},
 		"evidence without an artifact": func(c *Catalog) { c.Evidence[0].Artifacts = nil },
-		"fixture without hash": func(c *Catalog) {
-			c.Evidence[0].Inputs = []Input{{Kind: "fixture", Location: "go.mod"}}
-		},
 		"escaping fixture path": func(c *Catalog) {
 			c.Evidence[0].Inputs = []Input{{
 				Kind: "fixture", Location: "../../../etc/passwd",
-				SHA256: "0000000000000000000000000000000000000000000000000000000000000000",
 			}}
 		},
 		"unsorted checks": func(c *Catalog) {
@@ -170,19 +173,50 @@ func TestCatalogRejectsInvalidDocuments(t *testing.T) {
 	}
 }
 
-func TestVerifyArtifactsDetectsDrift(t *testing.T) {
+func TestVerifyFilesRequiresEveryNamedFile(t *testing.T) {
 	root := t.TempDir()
 	if err := os.WriteFile(filepath.Join(root, "golden.json"), []byte("{}\n"), 0o644); err != nil {
 		t.Fatalf("write fixture: %v", err)
 	}
-	catalog := Catalog{Evidence: []Evidence{{
-		ID: "example",
-		Artifacts: []EvidenceArtifact{{
-			Path: "golden.json", SHA256: "1111111111111111111111111111111111111111111111111111111111111111",
-		}},
-	}}}
-	if err := catalog.VerifyArtifacts(root); err == nil {
-		t.Fatal("expected a hash mismatch to be reported")
+	if err := os.Mkdir(filepath.Join(root, "directory"), 0o755); err != nil {
+		t.Fatalf("create directory: %v", err)
+	}
+	claim := func(artifact string, inputs ...Input) Catalog {
+		return Catalog{Evidence: []Evidence{{
+			ID: "example", Artifacts: []EvidenceArtifact{{Path: artifact}}, Inputs: inputs,
+		}}}
+	}
+
+	present := claim("golden.json", Input{Kind: "fixture", Location: "golden.json"},
+		Input{Kind: "git", Location: "https://example.test/repo"})
+	checked, err := present.VerifyFiles(root)
+	if err != nil {
+		t.Fatalf("files that exist were rejected: %v", err)
+	}
+	// The git input is not a repository file and is not counted.
+	if checked != 2 {
+		t.Fatalf("checked %d files, want 2", checked)
+	}
+
+	// Changing a file's contents is not drift any more: the claim names the
+	// file, and git records which bytes a release had.
+	if err := os.WriteFile(filepath.Join(root, "golden.json"), []byte("{\"changed\":true}\n"), 0o644); err != nil {
+		t.Fatalf("rewrite fixture: %v", err)
+	}
+	if _, err := present.VerifyFiles(root); err != nil {
+		t.Fatalf("a regenerated file was rejected: %v", err)
+	}
+
+	for name, catalog := range map[string]Catalog{
+		"renamed or deleted artifact": claim("gone.json"),
+		"artifact is a directory":     claim("directory"),
+		"missing fixture input":       claim("golden.json", Input{Kind: "fixture", Location: "gone.json"}),
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := catalog.VerifyFiles(root); err == nil {
+				t.Fatal("expected the missing file to be reported")
+			}
+		})
 	}
 }
 
@@ -257,36 +291,5 @@ func TestRepositoryCatalogProducesACompleteReport(t *testing.T) {
 	}
 	if len(report.Coverage.Ecosystems) == 0 {
 		t.Fatal("the coverage matrix is empty")
-	}
-}
-
-func TestRefreshArtifactsRewritesDriftedHashes(t *testing.T) {
-	root := t.TempDir()
-	if err := os.WriteFile(filepath.Join(root, "golden.json"), []byte("{}\n"), 0o644); err != nil {
-		t.Fatalf("write fixture: %v", err)
-	}
-	catalog := Catalog{Evidence: []Evidence{{
-		ID: "example",
-		Artifacts: []EvidenceArtifact{{
-			Path: "golden.json", SHA256: "1111111111111111111111111111111111111111111111111111111111111111",
-		}},
-		Inputs: []Input{{
-			Kind: "fixture", Location: "golden.json",
-			SHA256: "2222222222222222222222222222222222222222222222222222222222222222",
-		}},
-	}}}
-	changed, err := catalog.RefreshArtifacts(root)
-	if err != nil {
-		t.Fatalf("refresh: %v", err)
-	}
-	if changed != 2 {
-		t.Fatalf("refreshed %d hashes, want 2", changed)
-	}
-	if err := catalog.VerifyArtifacts(root); err != nil {
-		t.Fatalf("refreshed catalog still fails verification: %v", err)
-	}
-	again, err := catalog.RefreshArtifacts(root)
-	if err != nil || again != 0 {
-		t.Fatalf("second refresh changed %d hashes (err=%v), want 0", again, err)
 	}
 }

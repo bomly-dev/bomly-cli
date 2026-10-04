@@ -237,8 +237,7 @@ func runCatalogValidate(args []string) error {
 	catalogPath := flags.String("catalog", "", "assurance catalog path")
 	checkID := flags.String("check", "", "print one check")
 	evidenceID := flags.String("evidence", "", "print one evidence claim")
-	skipArtifacts := flags.Bool("skip-artifacts", false, "skip repository artifact hash verification")
-	refresh := flags.Bool("refresh", false, "rewrite recorded checksums from the files they name")
+	skipArtifacts := flags.Bool("skip-artifacts", false, "skip checking that the files the catalog names exist")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -246,34 +245,19 @@ func runCatalogValidate(args []string) error {
 	if err != nil {
 		return err
 	}
-	if *refresh {
-		resolvedRoot, rootErr := repositoryRoot()
-		if rootErr != nil {
-			return rootErr
-		}
-		changed, refreshErr := catalog.RefreshArtifacts(resolvedRoot)
-		if refreshErr != nil {
-			return refreshErr
-		}
-		if changed > 0 {
-			data, encodeErr := catalog.Encode()
-			if encodeErr != nil {
-				return encodeErr
-			}
-			if err := os.WriteFile(catalogFile, data, 0o644); err != nil {
-				return fmt.Errorf("write assurance catalog: %w", err)
-			}
-		}
-		fmt.Printf("Refreshed %d recorded checksum(s) in %s.\n", changed, relativeToWorkingDir(catalogFile))
-		return nil
-	}
 	if !*skipArtifacts {
 		resolvedRoot, rootErr := repositoryRoot()
 		if rootErr != nil {
 			return rootErr
 		}
-		if err := catalog.VerifyArtifacts(resolvedRoot); err != nil {
-			return err
+		checked, verifyErr := catalog.VerifyFiles(resolvedRoot)
+		if verifyErr != nil {
+			return verifyErr
+		}
+		// A run that looked at no files proved nothing about them; say so
+		// rather than report a clean catalog.
+		if checked == 0 && len(catalog.Evidence) > 0 {
+			return fmt.Errorf("the catalog has %d evidence claims but names no files to check", len(catalog.Evidence))
 		}
 	}
 	fmt.Printf("Validated %s: %d areas, %d checks, %d evidence claims.\n",

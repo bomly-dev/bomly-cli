@@ -44,6 +44,18 @@ actually download.
   are still checksummed, because a claim about a golden file is only as good as
   that file — and regenerating goldens therefore has to refresh the catalog
   (`catalog-validate --refresh`, wired into `Update Smoke Goldens`).
+
+  > **Amended 2026-10-03:** the catalog no longer stores a checksum for any
+  > file in this repository, and `--refresh` is gone. The argument above for
+  > workflow files applies to goldens too: git already addresses a file by
+  > tag and path, so the stored checksum was a hand-kept copy that could only
+  > fall behind. It did, the first time the prerequisites stage ran on `main`
+  > — a golden update and the catalog each passed CI separately and failed
+  > together, which no earlier check could have caught and a refresh step only
+  > covers when the right workflow makes the change. A claim now names its
+  > files by path; what is verified is that they exist. Git inputs stay pinned
+  > by revision and containers by digest, because this repository's history
+  > cannot address those.
 - Reports are committed to the default branch rather than attached to the
   release, because the exhaustive stage runs after publication and GitHub
   releases are immutable once published.

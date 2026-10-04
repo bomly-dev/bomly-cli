@@ -43,8 +43,8 @@
       "detector": "sbom-detector",
       "document": {
         "checksum": {
-          "algorithm": "sha256",
-          "value": "99bd846daec887cfcb61d6d5384ccff91c6045482652f4719fab8b312192fe0e"
+          "algorithm": "sha1",
+          "value": "69cda9c353f8724af58abe7079b978cfb2443d8c"
         },
         "created": "2025-01-15T10:00:00Z",
         "data_license": "CC0-1.0",

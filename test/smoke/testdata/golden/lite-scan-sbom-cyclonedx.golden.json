@@ -52,8 +52,8 @@
       "detector": "sbom-detector",
       "document": {
         "checksum": {
-          "algorithm": "sha256",
-          "value": "78454a7207f98ba0c8d35df8a257f9185c313d22691cc90a06f11809021bed93"
+          "algorithm": "sha1",
+          "value": "5ee41e46f9eff45f3d51b2dd53e5c1b71952d53f"
         },
         "created": "2025-01-15T10:00:00Z",
         "format": "cyclonedx-1.6+json",

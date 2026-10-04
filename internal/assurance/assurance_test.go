@@ -247,6 +247,22 @@ func TestTrendsCompareMetricsAndStatuses(t *testing.T) {
 	}
 }
 
+func TestRenderTrendsSaysOnlyWhatMoved(t *testing.T) {
+	unchanged := Trends{PreviousTag: "v1.0.0", Metrics: []MetricTrend{
+		{CheckID: "smoke", Metric: "tests_total", Label: "End-to-end tests run", Previous: 107, Current: 107},
+	}}
+	if got := renderTrends(unchanged); got != "" {
+		t.Fatalf("nothing moved, yet a section was rendered:\n%s", got)
+	}
+	fromZero := Trends{PreviousTag: "v1.0.0", Metrics: []MetricTrend{
+		{CheckID: "fuzz", Metric: "targets", Label: "File readers stress-tested", Previous: 0, Current: 1, Delta: 1},
+	}}
+	got := renderTrends(fromZero)
+	if !strings.Contains(got, "0.00 → 1.00 (+1.00)") || strings.Contains(got, "%") {
+		t.Fatalf("a rise from zero must show the absolute change, got:\n%s", got)
+	}
+}
+
 func TestReportGoldens(t *testing.T) {
 	previous := buildFixtureReport(t, "all-pass", nil)
 	for _, testCase := range []struct {

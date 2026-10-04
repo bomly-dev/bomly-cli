@@ -15,6 +15,10 @@ concurrency:
 
 jobs:
   preflight:
+    # Fail within seconds on the two things that strand a release: an expired
+    # publishing token, and a tag whose commit never passed the release
+    # prerequisites stage.
+    #
     # Fail within seconds if WINGET_GITHUB_TOKEN is expired or revoked,
     # instead of 14 minutes into GoReleaser — after it has already created
     # the draft release and opened the Homebrew/Scoop PRs — which strands
@@ -25,6 +29,50 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # Stage 1 of release assurance runs on the source tree before a tag
+      # exists (see assurance-prerequisites.yml). Auto Version runs it and then
+      # commits the version bump, so the tagged commit is usually the child of
+      # the commit that was checked: accept either.
+      - name: Require a passing release prerequisites run
+        if: vars.RELEASE_ASSURANCE_ENFORCE != 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          tag_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${RELEASE_TAG}" --jq '.sha')"
+          parent_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${RELEASE_TAG}" --jq '.parents[0].sha // ""')"
+
+          # A workflow called with `uses:` produces no run of its own — the
+          # jobs live in the caller's run (Auto Version). So the search is over
+          # every run for the commit, looking for the verdict job by name.
+          find_verdict_run() {
+            local sha="$1"
+            [ -n "${sha}" ] || return 1
+            local run_id
+            for run_id in $(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${sha}&per_page=50" \
+              --jq '.workflow_runs[].id'); do
+              if gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100" \
+                --jq '.jobs[] | select(.conclusion == "success") | .name' \
+                | grep -q 'Prerequisites verdict$'; then
+                echo "${run_id}"
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          for candidate in "${tag_sha}" "${parent_sha}"; do
+            if run_id="$(find_verdict_run "${candidate}")"; then
+              echo "Release prerequisites passed for ${candidate} in run ${run_id}."
+              exit 0
+            fi
+          done
+
+          echo "::error::No successful \"Release prerequisites\" run exists for ${RELEASE_TAG} (${tag_sha}) or its parent. Run it first with: gh workflow run assurance-prerequisites.yml -f ref=${tag_sha}. Set the repository variable RELEASE_ASSURANCE_ENFORCE=false to release without it."
+          exit 1
+
       - name: Check winget token validity and expiry
         env:
           WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
@@ -168,9 +216,264 @@ jobs:
       base64-subjects: ${{ needs.release.outputs.hashes }}
       upload-assets: false
 
-  publish:
+  # Stage 2 of release assurance: the release exists as a draft, so its files
+  # can be checked before anyone can download them. Published releases are
+  # immutable, so this is the last point where a bad artifact can be stopped.
+  verify-draft:
     needs: [release, provenance]
     if: startsWith(github.ref, 'refs/tags/')
+    name: Verify draft release (${{ matrix.platform.os }})
+    runs-on: ${{ matrix.platform.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - os: ubuntu-latest
+            scope: full
+          - os: macos-latest
+            scope: native
+          - os: windows-latest
+            scope: native
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Mint release token
+        # Draft release assets are not publicly downloadable, so this job needs
+        # the same app token the publish job uses to read them by release id.
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: release-token
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: bomly-dev
+          repositories: bomly-cli
+          # Draft releases are only listed to identities with push access, so
+          # read is not enough here even though this job only reads.
+          permission-contents: write
+
+      - name: Download draft release assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.release-token.outputs.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          SCOPE: ${{ matrix.platform.scope }}
+        run: |
+          set -euo pipefail
+          version="${RELEASE_TAG#v}"
+          mkdir -p "${RUNNER_TEMP}/assets"
+
+          release_id="$(gh api "repos/bomly-dev/bomly-cli/releases?per_page=100" | \
+            jq -r --arg tag "$RELEASE_TAG" '.[] | select(.tag_name == $tag and .draft == true) | .id' | head -n1)"
+          if [ -z "${release_id}" ]; then
+            echo "::error::No draft release found for tag ${RELEASE_TAG}"
+            exit 1
+          fi
+
+          case "${RUNNER_OS}" in
+            Linux) native_os=linux ;;
+            macOS) native_os=darwin ;;
+            Windows) native_os=windows ;;
+            *) echo "::error::Unsupported runner ${RUNNER_OS}"; exit 1 ;;
+          esac
+          case "${RUNNER_ARCH}" in
+            X64) native_arch=amd64 ;;
+            ARM64) native_arch=arm64 ;;
+            *) echo "::error::Unsupported runner architecture ${RUNNER_ARCH}"; exit 1 ;;
+          esac
+          extension="tar.gz"
+          if [ "${native_os}" = "windows" ]; then
+            extension="zip"
+          fi
+
+          gh api "repos/bomly-dev/bomly-cli/releases/${release_id}/assets?per_page=100" \
+            --jq '.[] | [.id, .name] | @tsv' > "${RUNNER_TEMP}/assets.tsv"
+
+          while IFS=$'\t' read -r asset_id asset_name; do
+            case "${SCOPE}" in
+              full) ;;
+              native)
+                case "${asset_name}" in
+                  SHA256SUMS|"bomly_${version}_${native_os}_${native_arch}.${extension}"|"bomly-lite_${version}_${native_os}_${native_arch}.${extension}") ;;
+                  *) continue ;;
+                esac
+                ;;
+            esac
+            echo "downloading ${asset_name}"
+            curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/octet-stream" \
+              -o "${RUNNER_TEMP}/assets/${asset_name}" \
+              "https://api.github.com/repos/bomly-dev/bomly-cli/releases/assets/${asset_id}"
+          done < "${RUNNER_TEMP}/assets.tsv"
+
+      - name: Verify release files and binaries
+        id: verify
+        continue-on-error: true
+        shell: bash
+        env:
+          BOMLY_ASSURANCE_TAG: ${{ github.ref_name }}
+        run: |
+          go run ./internal/assurance/cmd verify-release \
+            --dir "${RUNNER_TEMP}/assets" --version "${GITHUB_REF_NAME#v}" \
+            --scope '${{ matrix.platform.scope }}' \
+            --out assurance-results --step-summary
+
+      - name: Install cosign
+        if: matrix.platform.scope == 'full'
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Verify the checksum signature
+        id: signature
+        if: matrix.platform.scope == 'full'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          cosign verify-blob "${RUNNER_TEMP}/assets/SHA256SUMS" \
+            --bundle "${RUNNER_TEMP}/assets/SHA256SUMS.sigstore.json" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --certificate-identity-regexp '^https://github.com/bomly-dev/bomly-cli/\.github/workflows/release\.yml@refs/tags/'
+
+      - name: Record the signature result
+        if: matrix.platform.scope == 'full' && always()
+        shell: bash
+        env:
+          BOMLY_ASSURANCE_TAG: ${{ github.ref_name }}
+          SIGNATURE_OUTCOME: ${{ steps.signature.outcome }}
+        run: |
+          set -euo pipefail
+          exit_code=0
+          summary="The checksum list carries a valid Sigstore signature issued to this repository's release workflow."
+          if [ "${SIGNATURE_OUTCOME}" != "success" ]; then
+            exit_code=1
+            summary="cosign could not verify the signature over SHA256SUMS. Nothing about this release's files can be trusted until that is explained."
+          fi
+          go run ./internal/assurance/cmd emit \
+            --id release-signature --exit-code "${exit_code}" --summary "${summary}" \
+            --out assurance-results --step-summary
+
+      - name: Install slsa-verifier
+        if: matrix.platform.scope == 'full'
+        uses: slsa-framework/slsa-verifier/actions/installer@ea584f4502babc6f60d9bc799dbbb13c1caa9ee6 # v2.7.1
+
+      - name: Verify build provenance
+        id: provenance
+        if: matrix.platform.scope == 'full'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          for archive in "bomly_${version}_linux_amd64.tar.gz" "bomly-lite_${version}_linux_amd64.tar.gz"; do
+            slsa-verifier verify-artifact "${RUNNER_TEMP}/assets/${archive}" \
+              --provenance-path "${RUNNER_TEMP}/assets/multiple.intoto.jsonl" \
+              --source-uri github.com/bomly-dev/bomly-cli \
+              --source-tag "${GITHUB_REF_NAME}"
+          done
+
+      - name: Record the provenance result
+        if: matrix.platform.scope == 'full' && always()
+        shell: bash
+        env:
+          BOMLY_ASSURANCE_TAG: ${{ github.ref_name }}
+          PROVENANCE_OUTCOME: ${{ steps.provenance.outcome }}
+        run: |
+          set -euo pipefail
+          exit_code=0
+          summary="SLSA build provenance verifies the linux/amd64 archives against this repository and tag."
+          if [ "${PROVENANCE_OUTCOME}" != "success" ]; then
+            exit_code=1
+            summary="slsa-verifier could not verify the build provenance attached to this release."
+          fi
+          go run ./internal/assurance/cmd emit \
+            --id release-provenance --exit-code "${exit_code}" --summary "${summary}" \
+            --out assurance-results --step-summary
+
+      - name: Upload check results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: assurance-release-${{ matrix.platform.os }}
+          path: assurance-results
+          if-no-files-found: error
+          retention-days: 30
+
+  # The gate that decides whether the draft may be published. It reads the
+  # check results rather than job statuses, so an advisory check can fail
+  # without stopping a release and a missing result can never look like a pass.
+  gate:
+    needs: verify-draft
+    if: always() && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      verdict: ${{ steps.verdict.outputs.verdict }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Collect check results
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: assurance-release-*
+          merge-multiple: true
+          path: assurance-results
+
+      - name: Judge the pre-release stage
+        id: verdict
+        continue-on-error: true
+        env:
+          BOMLY_ASSURANCE_TAG: ${{ github.ref_name }}
+        run: |
+          set -o pipefail
+          if go run ./internal/assurance/cmd verdict \
+            --results assurance-results --stage pre-release \
+            --tag "${GITHUB_REF_NAME}" --step-summary; then
+            echo "verdict=pass" >> "${GITHUB_OUTPUT}"
+          else
+            echo "verdict=fail" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Upload the stage report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: assurance-stage-pre-release
+          path: assurance-results
+          # warn, not error: when nothing was collected the gate step's message
+          # is the useful one, and an upload failure would hide it.
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Fail when the stage did not pass
+        if: steps.verdict.outputs.verdict != 'pass' && vars.RELEASE_ASSURANCE_ENFORCE != 'false'
+        run: |
+          echo "::error::The pre-release stage did not pass. The draft release was left unpublished; fix the cause, delete the tag and the draft, then tag again."
+          exit 1
+
+  publish:
+    needs: [release, provenance, gate]
+    if: |
+      startsWith(github.ref, 'refs/tags/') &&
+      (needs.gate.outputs.verdict == 'pass' || vars.RELEASE_ASSURANCE_ENFORCE == 'false')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

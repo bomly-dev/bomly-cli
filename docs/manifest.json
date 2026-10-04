@@ -30,7 +30,7 @@
     {
       "slug": "getting-started",
       "title": "Getting started",
-      "description": "First scan, enrich, audit, diff — all in five minutes.",
+      "description": "First scan, enrich, audit, diff \u2014 all in five minutes.",
       "group": "start"
     },
     {
@@ -60,7 +60,7 @@
     {
       "slug": "output-formats",
       "title": "Output formats",
-      "description": "Text, JSON, SARIF, and SBOM artifacts — when to use each and how to combine them.",
+      "description": "Text, JSON, SARIF, and SBOM artifacts \u2014 when to use each and how to combine them.",
       "group": "start"
     },
     {
@@ -196,11 +196,10 @@
       "group": "reference"
     },
     {
-      "slug": "evidence",
-      "title": "Reproducible evidence",
-      "description": "Public inputs, commands, results, and limitations behind important behavior claims.",
-      "group": "reference",
-      "hasChildren": true
+      "slug": "assurance",
+      "title": "Release assurance",
+      "description": "The checks every release goes through, what they prove, and where to read the results.",
+      "group": "reference"
     },
     {
       "slug": "glossary",

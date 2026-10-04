@@ -8,4 +8,13 @@
 # To push without testing, say so out loud: `git push --no-verify`.
 set -eu
 
+# Git exports its own location (GIT_DIR and friends) to a hook, and from a
+# linked worktree those are absolute paths. The suite builds throwaway
+# repositories and runs git inside them; with the variables inherited, those
+# commands address this repository instead and fail with "this operation must
+# be run in a work tree". Clearing them is what git documents for a hook that
+# runs git elsewhere, and it lets the suite run as it does from a terminal.
+# shellcheck disable=SC2046 # the variable names are meant to split
+unset $(git rev-parse --local-env-vars)
+
 make test

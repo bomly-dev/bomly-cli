@@ -1,6 +1,7 @@
 # Measuring speed and stability
 
-`make benchmark-samples` measures the same offline Bomly scan ten times:
+`make benchmark-samples` (the `perfrun` tool under `internal/assurance/`)
+measures the same offline Bomly scan ten times:
 
 - five runs start with an empty cache;
 - five runs share a cache, like repeated scans normally do.
@@ -31,19 +32,25 @@ exceeded. It does not fail simply because one machine ran more slowly or used
 more memory. Timing and memory measurements are evidence for people to review,
 not fixed pass-or-fail limits.
 
-Some JSON fields, such as timestamps and durations, naturally change on every
-run. The comparison removes only those documented fields before calculating a
-checksum. This comparison format is named
-`bomly.benchmark-normalization/v1`. The saved raw output is never changed.
+A scan's output is not byte-identical from one run to the next: every run has
+its own identifier and its own start and finish times. What should not change
+is what the scan found. A scan result carries a checksum for each of its three
+sections — manifests, packages, and findings — and the comparison uses those,
+so Bomly itself decides what identifies a scan and no list of "fields that
+change" has to be kept up to date here. Output that is not a scan result, such
+as an SBOM export, is compared after removing its timestamp and duration
+fields. This comparison format is named `bomly.benchmark-normalization/v2`.
+The saved raw output is never changed.
 
 ## Checking supported systems
 
-The `Portable stability assurance` workflow runs only when someone starts it
-from GitHub Actions. It:
+The `Portable stability assurance` workflow runs when someone starts it from
+GitHub Actions, and as part of the `Release prerequisites` stage before a
+version is tagged. It:
 
 - runs the Go unit tests twice on Linux, macOS, and Windows;
-- runs the Java-related unit tests ten times to catch intermittent failures;
-- runs all Go unit tests on Linux five more times;
+- runs the Java-related unit tests ten times to catch intermittent failures,
+  because those are the suites where intermittent failures have appeared;
 - builds both Bomly binaries for every supported Linux, macOS, and Windows
   processor target.
 
@@ -57,10 +64,12 @@ when investigating platform-specific or intermittent failures.
 
 ## Reading a portable run
 
-Open the workflow run's **Summary** page first. The overall section explains
-what ran and whether each area passed. Each platform also has a short section
-showing how many test runs completed and which run failed, if any. The Linux
-section does the same for repeated tests and release builds.
+Open the workflow run's **Summary** page first. Each check writes its own
+section there — the repeated suites per platform, the repeated Java suites, the
+repeated complete suite, and the cross-build matrix — with the number of runs
+planned and completed and the exact point of failure. Those sections are
+rendered from the same check results the release assurance report is built
+from, so the summary and the published report always agree.
 
 If something fails, open the named job and failed step for the test or build
 output. To show only failed logs with the GitHub CLI, run:

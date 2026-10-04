@@ -1,0 +1,21 @@
+{
+  "schema_version": "bomly.assurance-check/v1",
+  "runner": {
+    "os": "linux",
+    "arch": "amd64",
+    "go_version": "go1.26.3"
+  },
+  "id": "perf-samples",
+  "stage": "post-release",
+  "level": "advisory",
+  "status": "degraded",
+  "duration_ms": 61000,
+  "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/11",
+  "summary": "canonical-sbom-scan completed 5 samples per cache mode with identical normalized output (cold median 705 ms, warm median 402 ms).",
+  "metrics": {
+    "cold_median_ms": 705,
+    "warm_median_ms": 402,
+    "samples_per_mode": 5,
+    "peak_memory_bytes": 120586240
+  }
+}

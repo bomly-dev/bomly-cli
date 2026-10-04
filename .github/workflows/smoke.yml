@@ -1,9 +1,24 @@
 name: Smoke
 
+# Smoke drives the built binary against pinned public repositories: it needs
+# the network, every ecosystem's toolchain and tens of minutes, so on a pull
+# request it runs once, when the pull request is approved, rather than on
+# every push.
+#
+# The gate is a commit status named `Smoke` on the pull request's head
+# commit, posted by smoke-status.yml once an approval-triggered run
+# completes. Required by the `main` ruleset, it reads "Expected -- waiting
+# for status" until approval, so nothing merges unsmoked. A job name could
+# not serve as the gate: a comment-only review also fires
+# pull_request_review, and a job skipped by its `if:` counts as passing. The
+# status is posted from a separate workflow_run workflow because a fork pull
+# request's token is read-only here; this workflow runs the pull request's
+# code and holds no write permission. A push after approval dismisses the
+# approval (ruleset) and moves the head, so the new head waits for a new
+# approval.
 on:
-  merge_group:
-    types:
-      - checks_requested
+  pull_request_review:
+    types: [submitted]
   schedule:
     - cron: "0 8 * * *"
   workflow_dispatch:
@@ -31,8 +46,11 @@ on:
 permissions:
   contents: read
 
+# A newer approval supersedes a running one, but a comment-only review gets a
+# group of its own: it runs nothing, and sharing the group would cancel the
+# approval's run in progress.
 concurrency:
-  group: smoke-${{ github.event_name }}-${{ github.ref }}
+  group: smoke-${{ github.event_name }}-${{ github.ref }}-${{ github.event_name == 'pull_request_review' && github.event.review.state != 'approved' && github.run_id || 'run' }}
   cancel-in-progress: true
 
 jobs:
@@ -41,6 +59,7 @@ jobs:
   # lite binary) inside TestMain.
   build:
     name: Build CLI binaries
+    if: github.event_name != 'pull_request_review' || github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -318,3 +337,4 @@ jobs:
           echo "Smoke tests failed. Check the logs above for details."
           echo "Use Update Smoke Goldens workflow to update golden files if the failures are due to expected changes."
           exit 1
+

@@ -252,14 +252,14 @@ type examplePluginPackage struct {
 
 func buildExamplePlugin(t *testing.T) examplePluginPackage {
 	t.Helper()
-	return buildExamplePluginWithSDK(t, sdkModuleVersion(t))
+	return buildExamplePluginWithSDK(t, pinnedSDK(t))
 }
 
 // buildExamplePluginWithSDK builds the example detector fixture against a
 // specific github.com/bomly-dev/bomly-sdk release. The min-version
 // wire-compatibility smoke uses it to compile against the oldest supported
 // SDK release instead of the pinned one.
-func buildExamplePluginWithSDK(t *testing.T, sdkVersion string) examplePluginPackage {
+func buildExamplePluginWithSDK(t *testing.T, sdk sdkModule) examplePluginPackage {
 	t.Helper()
 	// TODO: Replace this generated fixture with the public example plugin repos once they can be cloned in CI.
 	binaryName := "bomly-example-gomod-detector"
@@ -267,12 +267,13 @@ func buildExamplePluginWithSDK(t *testing.T, sdkVersion string) examplePluginPac
 		binaryName += ".exe"
 	}
 	sourceDir := t.TempDir()
-	writeExamplePluginSource(t, sourceDir, sdkVersion)
+	writeExamplePluginSource(t, sourceDir, sdk)
 	manifestPath := filepath.Join(sourceDir, "bomly-plugin.json")
 	readmePath := filepath.Join(sourceDir, "README.md")
 	binaryPath := filepath.Join(t.TempDir(), binaryName)
 	build := exec.Command("go", "build", "-mod=mod", "-o", binaryPath, ".")
 	build.Dir = sourceDir
+	build.Env = fixtureBuildEnv()
 	output, err := build.CombinedOutput()
 	if err != nil {
 		t.Fatalf("build example plugin: %v\n%s", err, string(output))
@@ -287,16 +288,16 @@ func buildExamplePluginWithSDK(t *testing.T, sdkVersion string) examplePluginPac
 	}
 }
 
-func writeExamplePluginSource(t *testing.T, dir, sdkVersion string) {
+func writeExamplePluginSource(t *testing.T, dir string, sdk sdkModule) {
 	t.Helper()
 	// The fixture source has to match the API of the SDK release it is built
 	// against: the node constructors replaced sdk.NewDependency in v0.8.0, so
 	// the min-version wire-compatibility build uses the legacy source.
 	source := examplePluginMainSource
-	if sdkVersion == minSupportedSDKVersion {
+	if sdk.Dir == "" && sdk.Version == minSupportedSDKVersion {
 		source = legacyExamplePluginMainSource
 	}
-	goMod := "module bomly-smoke-plugin\n\ngo 1.25\n\nrequire github.com/bomly-dev/bomly-sdk " + sdkVersion + "\n"
+	goMod := "module bomly-smoke-plugin\n\ngo 1.25\n\n" + sdk.goModRequirement()
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goMod), 0o644); err != nil {
 		t.Fatalf("write plugin go.mod: %v", err)
 	}
@@ -321,7 +322,7 @@ func buildExampleAnalyzerPlugin(t *testing.T) examplePluginPackage {
 		binaryName += ".exe"
 	}
 	sourceDir := t.TempDir()
-	goMod := "module bomly-smoke-analyzer-plugin\n\ngo 1.25\n\nrequire github.com/bomly-dev/bomly-sdk " + sdkModuleVersion(t) + "\n"
+	goMod := "module bomly-smoke-analyzer-plugin\n\ngo 1.25\n\n" + pinnedSDK(t).goModRequirement()
 	if err := os.WriteFile(filepath.Join(sourceDir, "go.mod"), []byte(goMod), 0o644); err != nil {
 		t.Fatalf("write analyzer plugin go.mod: %v", err)
 	}
@@ -331,6 +332,7 @@ func buildExampleAnalyzerPlugin(t *testing.T) examplePluginPackage {
 	binaryPath := filepath.Join(t.TempDir(), binaryName)
 	build := exec.Command("go", "build", "-mod=mod", "-o", binaryPath, ".")
 	build.Dir = sourceDir
+	build.Env = fixtureBuildEnv()
 	output, err := build.CombinedOutput()
 	if err != nil {
 		t.Fatalf("build example analyzer plugin: %v\n%s", err, string(output))

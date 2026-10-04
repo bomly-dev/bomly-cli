@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -350,22 +351,62 @@ func main() {
 }
 `
 
-// sdkModuleVersion returns the github.com/bomly-dev/bomly-sdk version this
-// repository pins, so fixture modules compile against exactly the SDK release
-// plugin authors would use.
-func sdkModuleVersion(t *testing.T) string {
+// sdkModule is the github.com/bomly-dev/bomly-sdk a fixture compiles
+// against: a released version, or, inside a Go workspace (`make sdk-local`,
+// or the SDK's `make cli-test`), the local checkout the workspace names,
+// which has a directory and no version.
+type sdkModule struct {
+	Version string
+	Dir     string
+}
+
+// pinnedSDK returns the github.com/bomly-dev/bomly-sdk this repository builds
+// against, so fixture modules compile against exactly the SDK release plugin
+// authors would use -- or, in a workspace, against the SDK change under test.
+func pinnedSDK(t *testing.T) sdkModule {
 	t.Helper()
-	cmd := exec.Command("go", "list", "-m", "-f", "{{.Version}}", "github.com/bomly-dev/bomly-sdk")
+	cmd := exec.Command("go", "list", "-m", "-f", "{{.Version}}\t{{.Dir}}", "github.com/bomly-dev/bomly-sdk")
 	cmd.Dir = fixtureRepoRoot(t)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatalf("resolve pinned bomly-sdk version: %v\n%s", err, out)
+		t.Fatalf("resolve pinned bomly-sdk: %v\n%s", err, out)
 	}
-	version := strings.TrimSpace(string(out))
+	// Trim only the line end: inside a workspace the version is empty and
+	// the output starts with the tab.
+	version, dir, _ := strings.Cut(strings.TrimRight(string(out), "\r\n"), "\t")
+	sdk := sdkModule{Version: version}
 	if version == "" {
-		t.Fatal("pinned bomly-sdk version is empty")
+		sdk.Dir = dir
 	}
-	return version
+	if sdk.Version == "" && sdk.Dir == "" {
+		t.Fatal("pinned bomly-sdk has neither a version nor a workspace directory")
+	}
+	return sdk
+}
+
+// String names the SDK for a failure message: its version, or its checkout.
+func (m sdkModule) String() string {
+	if m.Dir != "" {
+		return m.Dir
+	}
+	return m.Version
+}
+
+// goModRequirement is the go.mod text a fixture module needs to build
+// against m: a require of the release, or a require replaced by the local
+// checkout.
+func (m sdkModule) goModRequirement() string {
+	if m.Dir != "" {
+		return "require github.com/bomly-dev/bomly-sdk v0.0.0\n\nreplace github.com/bomly-dev/bomly-sdk => " + strconv.Quote(m.Dir) + "\n"
+	}
+	return "require github.com/bomly-dev/bomly-sdk " + m.Version + "\n"
+}
+
+// fixtureBuildEnv is the environment a fixture module builds in. The fixture
+// is its own module; a workspace inherited through GOWORK does not list it,
+// and the go command refuses to build it under one.
+func fixtureBuildEnv() []string {
+	return append(os.Environ(), "GOWORK=off")
 }
 
 // TestExamplePluginFixtureCompiles builds examplePluginMainSource against the
@@ -377,11 +418,11 @@ func TestExamplePluginFixtureCompiles(t *testing.T) {
 	if _, err := exec.LookPath("go"); err != nil {
 		t.Skipf("go toolchain not found on PATH: %v", err)
 	}
-	compileFixtureSource(t, "examplePluginMainSource", examplePluginMainSource, sdkModuleVersion(t))
+	compileFixtureSource(t, "examplePluginMainSource", examplePluginMainSource, pinnedSDK(t))
 	// And the legacy source against the oldest release whose binaries must
 	// keep loading, so the wire-compatibility smoke cannot silently stop
 	// building what it claims to test.
-	compileFixtureSource(t, "legacyExamplePluginMainSource", legacyExamplePluginMainSource, minSupportedSDKVersion)
+	compileFixtureSource(t, "legacyExamplePluginMainSource", legacyExamplePluginMainSource, sdkModule{Version: minSupportedSDKVersion})
 }
 
 // TestExampleAnalyzerPluginFixtureCompiles is the analyzer sibling of
@@ -391,17 +432,18 @@ func TestExampleAnalyzerPluginFixtureCompiles(t *testing.T) {
 	if _, err := exec.LookPath("go"); err != nil {
 		t.Skipf("go toolchain not found on PATH: %v", err)
 	}
-	compileFixtureSource(t, "exampleAnalyzerPluginMainSource", exampleAnalyzerPluginMainSource, sdkModuleVersion(t))
+	compileFixtureSource(t, "exampleAnalyzerPluginMainSource", exampleAnalyzerPluginMainSource, pinnedSDK(t))
 }
 
 // compileFixtureSource builds one embedded plugin fixture source against the
-// given github.com/bomly-dev/bomly-sdk version.
-func compileFixtureSource(t *testing.T, name, source, sdkVersion string) {
+// given github.com/bomly-dev/bomly-sdk, replacing it with the local checkout
+// when the SDK comes from a workspace.
+func compileFixtureSource(t *testing.T, name, source string, sdk sdkModule) {
 	t.Helper()
 
 	srcDir := t.TempDir()
 
-	goMod := "module bomly-fixture-compile\n\ngo 1.25\n\nrequire github.com/bomly-dev/bomly-sdk " + sdkVersion + "\n"
+	goMod := "module bomly-fixture-compile\n\ngo 1.25\n\n" + sdk.goModRequirement()
 	if err := os.WriteFile(filepath.Join(srcDir, "go.mod"), []byte(goMod), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
@@ -411,9 +453,10 @@ func compileFixtureSource(t *testing.T, name, source, sdkVersion string) {
 
 	cmd := exec.Command("go", "build", "-mod=mod", "-o", filepath.Join(t.TempDir(), "plugin-fixture"), ".")
 	cmd.Dir = srcDir
+	cmd.Env = fixtureBuildEnv()
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("%s failed to compile against sdk %s: %v\n%s\n"+
-			"Update %s in test/smoke/fixture_compile_test.go to match the current sdk plugin API.", name, sdkVersion, err, out, name)
+			"Update %s in test/smoke/fixture_compile_test.go to match the current sdk plugin API.", name, sdk, err, out, name)
 	}
 }
 

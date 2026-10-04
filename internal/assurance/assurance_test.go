@@ -255,10 +255,9 @@ func TestReportGoldens(t *testing.T) {
 			markdown := RenderMarkdown(report, MarkdownOptions{IncludeChecks: true, IncludeTrends: true})
 			compareGolden(t, testCase.name+".summary.md", []byte(markdown))
 
-			// The report must survive a round trip through its own parser.
-			if _, err := ParseReport(encoded); err != nil {
-				t.Fatalf("parse encoded report: %v", err)
-			}
+			// The same property published reports are held to, checked here
+			// so it is exercised before the first report exists.
+			requireStableShape(t, testCase.name+".report.json", encoded)
 		})
 	}
 }
@@ -498,23 +497,62 @@ func TestParseReportRequiresClaimDescriptions(t *testing.T) {
 	}
 }
 
-// TestPublishedReportsParse is what makes the report's schema version mean
-// something. Every report committed under docs/assurance/reports was mirrored
-// by bomly.dev in the shape it had when it was published, so it has to keep
-// parsing under the version it declares. The parser rejects unknown fields, so
-// removing or renaming a field while reports of that version exist fails here,
-// and the only ways forward are to keep the field or raise the version.
+// requireStableShape fails unless a report document parses under the current
+// schema and encodes back to exactly the bytes it was read from.
 //
-// Before the first release is assessed there are no reports and nothing to
-// protect; the index is what says how many there should be, so a reports
-// directory that was emptied or moved is not mistaken for that case.
-func TestPublishedReportsParse(t *testing.T) {
+// That one property is the whole compatibility rule. A removed or renamed
+// field makes the strict parser reject the document. A newly required field
+// parses silently, as its zero value, but then appears in the re-encoding and
+// the bytes differ. An added optional field is omitted when empty, so the
+// bytes match -- which is exactly the one change allowed to keep a version.
+// It asks the encoder rather than listing fields, so it cannot fall behind
+// the struct (ADR-0044).
+func requireStableShape(t *testing.T, name string, data []byte) {
+	t.Helper()
+	report, err := ParseReport(data)
+	if err != nil {
+		t.Fatalf("%s no longer parses under the schema version it declares: %v", name, err)
+	}
+	encoded, err := report.Encode()
+	if err != nil {
+		t.Fatalf("%s: encode: %v", name, err)
+	}
+	if string(encoded) != string(data) {
+		t.Fatalf("%s does not survive a round trip through the current report shape; "+
+			"a field was added as required, or its encoding changed, without raising the schema version", name)
+	}
+}
+
+// TestPublishedReportsKeepTheirShape is what makes the report's schema version
+// mean something. Every report committed under docs/assurance/reports was
+// mirrored by bomly.dev in the shape it had when it was published, so each one
+// has to keep that shape under the version it declares.
+//
+// Every file in the directory is read, and the directory and the index have to
+// agree in both directions: a report the index does not list is still checked
+// and is reported, and a listed report that is missing fails. Before the first
+// release is assessed there are no reports and no index, and nothing to
+// protect.
+func TestPublishedReportsKeepTheirShape(t *testing.T) {
 	directory := filepath.Join(repositoryRoot, "docs", "assurance")
+	files, err := filepath.Glob(filepath.Join(directory, "reports", "*.json"))
+	if err != nil {
+		t.Fatalf("list reports: %v", err)
+	}
+	committed := map[string]struct{}{}
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatalf("read %s: %v", file, err)
+		}
+		requireStableShape(t, filepath.Base(file), data)
+		committed[strings.TrimSuffix(filepath.Base(file), ".json")] = struct{}{}
+	}
+
 	indexData, err := os.ReadFile(filepath.Join(directory, "index.json"))
 	if os.IsNotExist(err) {
-		entries, _ := filepath.Glob(filepath.Join(directory, "reports", "*.json"))
-		if len(entries) > 0 {
-			t.Fatalf("%d reports are committed but there is no index.json", len(entries))
+		if len(committed) > 0 {
+			t.Fatalf("%d reports are committed but there is no index.json", len(committed))
 		}
 		return
 	}
@@ -528,13 +566,16 @@ func TestPublishedReportsParse(t *testing.T) {
 	if len(index.Releases) == 0 {
 		t.Fatal("index.json exists but lists no releases")
 	}
+	listed := map[string]struct{}{}
 	for _, release := range index.Releases {
-		data, err := os.ReadFile(filepath.Join(directory, "reports", release.Tag+".json"))
-		if err != nil {
-			t.Fatalf("the index lists %s but its report cannot be read: %v", release.Tag, err)
+		listed[release.Tag] = struct{}{}
+		if _, ok := committed[release.Tag]; !ok {
+			t.Errorf("the index lists %s but reports/%s.json is not committed", release.Tag, release.Tag)
 		}
-		if _, err := ParseReport(data); err != nil {
-			t.Fatalf("published report %s no longer parses, so its schema version was broken: %v", release.Tag, err)
+	}
+	for tag := range committed {
+		if _, ok := listed[tag]; !ok {
+			t.Errorf("reports/%s.json is committed but the index does not list it", tag)
 		}
 	}
 }

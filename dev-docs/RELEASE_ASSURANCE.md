@@ -216,10 +216,14 @@ on bomly.dev has mirrored a document of that shape and the rules above apply
 without exception. Before any report exists there is nothing to stay
 compatible with, and the shape can still be corrected under the same version —
 which is how the per-file checksums were removed from report claims before the
-first release was assessed. `TestPublishedReportsParse` is what holds the line
-afterwards: it reads every committed report with the current parser, which
-rejects unknown fields, so a shape change that would strand a published report
-fails in `make test` and cannot be made by accident.
+first release was assessed. `TestPublishedReportsKeepTheirShape` is what holds
+the line afterwards. It reads every file in `docs/assurance/reports/` and
+requires each one to parse under the current schema and encode back to exactly
+the bytes it was read from. A removed or renamed field fails the strict parser;
+a newly required field parses as a zero value but shows up in the re-encoding;
+an added optional field is omitted when empty and so passes, which is the one
+change allowed to keep a version. The directory and the index must also agree
+in both directions.
 
 ## What the automation needs
 

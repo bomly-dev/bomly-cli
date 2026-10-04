@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -124,6 +125,13 @@ func TestSDKContractCommandStderrHiddenBelowDebug(t *testing.T) {
 	}
 }
 
+// unixPermissions reports whether the host has owner/group/other permission
+// bits to assert on. Windows does not: access there is governed by ACLs, and
+// Go reports every directory as 0777 and every writable file as 0666 whatever
+// mode it was created with. The containment half of the cache contract below
+// is checked on every platform; only the mode assertions are Unix-only.
+const unixPermissions = runtime.GOOS != "windows"
+
 func TestSDKContractFileCachePermissionsAndContainment(t *testing.T) {
 	t.Parallel()
 
@@ -138,7 +146,7 @@ func TestSDKContractFileCachePermissionsAndContainment(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if perm := info.Mode().Perm(); perm != 0o700 {
+	if perm := info.Mode().Perm(); unixPermissions && perm != 0o700 {
 		t.Fatalf("cache dir permissions = %o, want 700", perm)
 	}
 
@@ -167,7 +175,7 @@ func TestSDKContractFileCachePermissionsAndContainment(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if perm := entryInfo.Mode().Perm(); perm != 0o600 {
+	if perm := entryInfo.Mode().Perm(); unixPermissions && perm != 0o600 {
 		t.Fatalf("cache entry permissions = %o, want 600", perm)
 	}
 

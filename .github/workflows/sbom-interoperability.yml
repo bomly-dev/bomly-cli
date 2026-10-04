@@ -2,8 +2,15 @@
 # from two source documents — and validates all four with the official SPDX
 # and CycloneDX tools, pinned by checksum. The merged pair is also checked for
 # the ADR-0042 rule that a merge links its sources instead of adopting one's
-# identity. Runs weekly on its own, and as part of the post-release assessment
-# against the binary the release actually shipped.
+# identity.
+#
+# It runs where a failure can still be fixed by an ordinary change: on pull
+# requests that touch what decides SBOM output, and in the release
+# prerequisites stage before a version is tagged. It used to run after
+# publication and on a weekly schedule. The first caught an invalid merged
+# SPDX export only once the release was public, and the second had been failing
+# on it for three weeks without anyone being told -- a failed scheduled run
+# notifies no one.
 #
 # The download, generation, and validation logic lives in
 # internal/assurance/sbominterop, which records every command, exit code, and
@@ -12,18 +19,25 @@
 name: SBOM interoperability assurance
 
 on:
-  schedule:
-    - cron: "41 5 * * 1"
+  pull_request:
+    # What can change the documents Bomly writes: the pinned SDK, which owns
+    # the SBOM codec, the detector and command code around it, the inputs, and
+    # this check itself.
+    paths:
+      - go.mod
+      - go.sum
+      - internal/detectors/sbom/**
+      - internal/cli/**
+      - internal/output/**
+      - internal/assurance/sbominterop/**
+      - test/smoke/testdata/sboms/**
+      - .github/workflows/sbom-interoperability.yml
   workflow_dispatch:
+  # Called by "Release prerequisites" (assurance-prerequisites.yml).
   workflow_call:
     inputs:
       ref:
         description: Commit, branch, or tag to check out.
-        type: string
-        required: false
-        default: ""
-      release_tag:
-        description: Validate the binary published for this release tag instead of a freshly built one.
         type: string
         required: false
         default: ""
@@ -32,6 +46,19 @@ on:
         type: boolean
         required: false
         default: false
+      assurance_tag:
+        description: Release tag recorded in the check result.
+        type: string
+        required: false
+        default: ""
+
+# A newer push to a pull request supersedes the run in progress. Nothing else
+# is cancelled: when this is called by the release prerequisites stage,
+# `github.workflow` is the caller's name, so a manual run cannot share a group
+# with it and knock a gate out of a release.
+concurrency:
+  group: sbom-interoperability-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -68,28 +95,7 @@ jobs:
           java-version: "21"
 
       - name: Build the Bomly binary
-        if: inputs.release_tag == ''
         run: make build-full
-
-      # The post-release assessment validates what users downloaded, not a
-      # rebuild of it, so the released archive is verified against the published
-      # checksum list before it is used.
-      - name: Download the released binary
-        if: inputs.release_tag != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ inputs.release_tag }}
-        run: |
-          set -euo pipefail
-          version="${RELEASE_TAG#v}"
-          archive="bomly_${version}_linux_amd64.tar.gz"
-          mkdir -p "${RUNNER_TEMP}/release" bin
-          gh release download "${RELEASE_TAG}" --repo bomly-dev/bomly-cli \
-            --pattern "${archive}" --pattern SHA256SUMS --dir "${RUNNER_TEMP}/release"
-          (cd "${RUNNER_TEMP}/release" && sha256sum --check --ignore-missing SHA256SUMS)
-          tar -xzf "${RUNNER_TEMP}/release/${archive}" -C "${RUNNER_TEMP}/release" bomly
-          install -m 0755 "${RUNNER_TEMP}/release/bomly" bin/bomly
-          ./bin/bomly version
 
       - name: Generate and validate SBOMs
         id: sbom
@@ -103,7 +109,7 @@ jobs:
       - name: Record the interoperability result
         if: always()
         env:
-          BOMLY_ASSURANCE_TAG: ${{ inputs.release_tag }}
+          BOMLY_ASSURANCE_TAG: ${{ inputs.assurance_tag }}
         run: |
           set -euo pipefail
           manifest="${OUTPUT_DIR}/run-manifest.json"

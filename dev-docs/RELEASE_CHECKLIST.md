@@ -6,7 +6,7 @@ Use this checklist when publishing a tagged Bomly CLI release.
 
 - Confirm `main` is green for required checks.
 - Confirm release publishing credentials are configured in GitHub Actions.
-- `Auto Version` runs the `Release prerequisites` stage (smoke, platform stability, cross-builds, fuzz, catalog) on the commit it is about to tag and refuses to tag when it fails, so there is no separate smoke run to start by hand. To pre-flight without tagging: `gh workflow run assurance-prerequisites.yml -f ref=main`.
+- `Auto Version` runs the `Release prerequisites` stage (smoke, platform stability, cross-builds, SBOM interoperability, fuzz, catalog) on the commit it is about to tag and refuses to tag when it fails, so there is no separate smoke run to start by hand. To pre-flight without tagging: `gh workflow run assurance-prerequisites.yml -f ref=main`.
 - If the stage fails, fix the cause on `main` — for stale golden files, run `Update Smoke Goldens` and merge its PR — then start `Auto Version` again. No tag and no release exist yet.
 
 ## Release workflow
@@ -25,7 +25,7 @@ Use this checklist when publishing a tagged Bomly CLI release.
 
 ## After publishing
 
-- `Release assessment` starts automatically once the release is published: it runs the install scripts on all three operating systems, re-downloads the public files, scans real projects with the released binary, validates its SBOM output with the official tools, and records repeated-scan timings.
+- `Release assessment` starts automatically once the release is published: it runs the install scripts on all three operating systems, re-downloads the public files, scans real projects with the released binary (including an SBOM as input), and records repeated-scan timings. The official SPDX and CycloneDX validators do not run here: they check the SBOMs Bomly writes in the `Release prerequisites` stage, before the tag exists.
 - Read the report it publishes at [bomly.dev/assurance](https://bomly.dev/assurance), or the JSON it commits to `docs/assurance/reports/<tag>.json`.
 - If it opens a `Release assurance: <tag>` issue, triage it: the release is already live, so the fix is a follow-up release, not an edit to this one.
 

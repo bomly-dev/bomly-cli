@@ -54,6 +54,18 @@ jobs:
       assurance: true
       assurance_tag: ${{ inputs.assurance_tag }}
 
+  # The documents Bomly writes are checked by the official SPDX and CycloneDX
+  # validators here, before a tag exists. This ran after publication until an
+  # invalid merged SPDX export shipped in v0.28.0: nothing about the check needs
+  # a published release, and a failure found here costs a pull request.
+  sbom:
+    name: SBOM interoperability
+    uses: ./.github/workflows/sbom-interoperability.yml
+    with:
+      ref: ${{ inputs.ref || github.ref }}
+      assurance: true
+      assurance_tag: ${{ inputs.assurance_tag }}
+
   # Fuzzing is advisory: a finding is recorded in the report and does not stop a
   # release. `continue-on-error` is not allowed on a job that calls a reusable
   # workflow, so fuzz.yml itself skips its failing step when it is called in
@@ -132,7 +144,7 @@ jobs:
   verdict:
     name: Prerequisites verdict
     if: always()
-    needs: [smoke, portable, fuzz, catalog]
+    needs: [smoke, portable, sbom, fuzz, catalog]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

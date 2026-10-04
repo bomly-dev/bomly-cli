@@ -106,8 +106,22 @@
       "description": "Cross-compiles the full and lite binaries for every supported operating system and processor from the same source tree.",
       "source": {
         "workflow": "portable-assurance.yml",
-        "job": "linux-stability"
+        "job": "cross-build"
       },
+      "expected_instances": [
+        {
+          "name": "linux",
+          "platform": "linux"
+        },
+        {
+          "name": "darwin",
+          "platform": "darwin"
+        },
+        {
+          "name": "windows",
+          "platform": "windows"
+        }
+      ],
       "reproduce": [
         [
           "gh",
@@ -659,7 +673,7 @@
       "area": "stability",
       "stage": "prerequisites",
       "level": "gate",
-      "description": "Runs the full Go unit test suite twice on Linux, macOS, and Windows, so a pass is never a single lucky run.",
+      "description": "Runs the full Go unit test suite on Linux, macOS, and Windows, and a second time on Linux, so a pass is never a single lucky run.",
       "source": {
         "workflow": "portable-assurance.yml",
         "job": "portable"
@@ -687,10 +701,11 @@
         ]
       ],
       "proves": [
-        "Every unit test passes on all three supported operating systems, twice in a row, so a pass is not a one-off."
+        "Every unit test passes on all three supported operating systems, and passes again when the whole suite is run a second time on Linux, so a pass is not a one-off."
       ],
       "limitations": [
-        "Unit tests run in process against fixtures. They do not download repositories or call external services."
+        "Unit tests run in process against fixtures. They do not download repositories or call external services.",
+        "The repeat run happens on Linux only. A test that passes once but not twice for a reason specific to macOS or Windows would not be caught by it."
       ]
     },
     {

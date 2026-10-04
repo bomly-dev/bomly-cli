@@ -60,7 +60,15 @@ fi
 # The SDK's own fuzz targets (package URL canonicalization, graph/registry
 # transport JSON) moved with the sdk package to the bomly-sdk repository and
 # run there.
+#
+# The first two targets are first on purpose. Their packages pull in most of
+# the module graph, and a fuzz build instruments every dependency, so each
+# spends about six minutes compiling before it fuzzes for the first second.
+# At the end of the list that was six minutes with nothing else left to run;
+# at the start, the other targets fuzz while these compile.
 targets=(
+  "github.com/bomly-dev/bomly-cli/internal/engine FuzzConsolidateVulnerabilities"
+  "github.com/bomly-dev/bomly-cli/internal/plugin FuzzPluginPathSanitizers"
   "github.com/bomly-dev/bomly-cli/internal/assurance FuzzParseCatalog"
   "github.com/bomly-dev/bomly-cli/internal/assurance FuzzParseCheckResult"
   "github.com/bomly-dev/bomly-cli/internal/assurance FuzzParseGoTestEvents"
@@ -89,8 +97,6 @@ targets=(
   "github.com/bomly-dev/bomly-cli/internal/detectors/ruby FuzzDepGraphFromBundlerLock"
   "github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm FuzzDepGraphFromSwiftResolved"
   "github.com/bomly-dev/bomly-cli/internal/baseline FuzzLoad"
-  "github.com/bomly-dev/bomly-cli/internal/engine FuzzConsolidateVulnerabilities"
-  "github.com/bomly-dev/bomly-cli/internal/plugin FuzzPluginPathSanitizers"
 )
 
 if [ -n "${FUZZ_RESULTS_JSONL}" ]; then

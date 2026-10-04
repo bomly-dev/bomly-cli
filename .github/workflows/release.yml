@@ -100,6 +100,12 @@ jobs:
             echo "WINGET_GITHUB_TOKEN has no expiration date."
           fi
 
+  # Runs beside the build, not before it. The release prerequisites stage has
+  # already run this suite on three operating systems against the commit being
+  # tagged, and preflight checks that it passed, so making the fourteen-minute
+  # build wait five more minutes for a fourth run bought nothing. It still
+  # runs, and `publish` still needs it: a tag made with the prerequisites
+  # skipped is tested here before anything is published.
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -122,7 +128,7 @@ jobs:
         run: go vet ./...
 
   release:
-    needs: [preflight, validate]
+    needs: preflight
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -319,8 +325,10 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-          cache: true
-          cache-dependency-path: go.sum
+          # No cache. This job only runs the assurance tool, which compiles in
+          # seconds and has one small dependency. Restoring the repository's
+          # multi-gigabyte Go cache to do that took five minutes on Windows.
+          cache: false
 
       - name: Mint release token
         # Draft release assets are not publicly downloadable, so this job needs
@@ -544,7 +552,7 @@ jobs:
           exit 1
 
   publish:
-    needs: [release, attach-provenance, gate]
+    needs: [validate, release, attach-provenance, gate]
     if: |
       startsWith(github.ref, 'refs/tags/') &&
       (needs.gate.outputs.verdict == 'pass' || vars.RELEASE_ASSURANCE_ENFORCE == 'false')

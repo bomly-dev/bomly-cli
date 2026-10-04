@@ -52,9 +52,9 @@ Nothing hand-writes that JSON. Four commands produce it:
 
 ```sh
 # an ordinary shell step
-go run ./internal/assurance/cmd emit --id cross-build --exit-code "$rc" \
-  --summary "12 of 12 release targets built." \
-  --metric builds_planned=12 --metric builds_completed=12 \
+go run ./internal/assurance/cmd emit --id cross-build --instance linux --exit-code "$rc" \
+  --summary "4 of 4 linux release targets built." \
+  --metric builds_planned=4 --metric builds_completed=4 \
   --detail "linux/amd64 full=pass" --out assurance-results --step-summary
 ```
 

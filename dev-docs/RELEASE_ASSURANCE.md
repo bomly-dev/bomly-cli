@@ -216,14 +216,18 @@ on bomly.dev has mirrored a document of that shape and the rules above apply
 without exception. Before any report exists there is nothing to stay
 compatible with, and the shape can still be corrected under the same version —
 which is how the per-file checksums were removed from report claims before the
-first release was assessed. `TestPublishedReportsKeepTheirShape` is what holds
-the line afterwards. It reads every file in `docs/assurance/reports/` and
-requires each one to parse under the current schema and encode back to exactly
-the bytes it was read from. A removed or renamed field fails the strict parser;
-a newly required field parses as a zero value but shows up in the re-encoding;
-an added optional field is omitted when empty and so passes, which is the one
-change allowed to keep a version. The directory and the index must also agree
-in both directions.
+first release was assessed.
+
+Nothing checks committed reports against the current shape automatically, and
+that is deliberate. A test that did so was written and removed in the same
+pull request: each review round found another gap in it, and comparing
+published files byte for byte would have failed on a Windows checkout — in the
+portable suite, which gates a release. The rule is held by
+`TestSchemaVersionsArePinned`, by the report goldens (any change to the shape
+shows up as a golden diff in review), and by the reviewer. If a mechanical
+guard is wanted later, build it as its own change and compare the report's
+JSON schema with the one recorded at the first published release, rather than
+comparing committed bytes.
 
 ## What the automation needs
 

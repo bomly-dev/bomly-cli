@@ -40,6 +40,14 @@
       ],
       "limitations": [
         "Timings are observations from one machine, not limits."
+      ],
+      "measurements": [
+        {
+          "metric": "peak_memory_bytes",
+          "label": "Memory used by a small scan",
+          "description": "The most memory the released program used while scanning one small SBOM file, the same file every release. Lower is better. It shows the program's baseline footprint, not how much a large project needs.",
+          "better": "lower"
+        }
       ]
     },
     {
@@ -103,6 +111,14 @@
       ],
       "limitations": [
         "Golden files pin one revision of one example project per ecosystem."
+      ],
+      "measurements": [
+        {
+          "metric": "tests_total",
+          "label": "End-to-end tests run",
+          "description": "How many end-to-end tests ran against real projects before this release was tagged. Each one scans a real project with the built program and compares the result with a saved, reviewed answer. A higher number means more behavior was checked.",
+          "better": "higher"
+        }
       ]
     }
   ],

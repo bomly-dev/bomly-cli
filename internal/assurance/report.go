@@ -134,14 +134,18 @@ type Coverage struct {
 }
 
 // MetricTrend compares one metric against the previous release's report.
+// Label and Description come from the catalog's measurement declaration, so
+// the page can explain the number without knowing the check.
 type MetricTrend struct {
-	CheckID  string  `json:"check_id"`
-	Metric   string  `json:"metric"`
-	Previous float64 `json:"previous"`
-	Current  float64 `json:"current"`
-	Delta    float64 `json:"delta"`
-	DeltaPct float64 `json:"delta_pct,omitempty"`
-	Better   string  `json:"better"`
+	CheckID     string  `json:"check_id"`
+	Metric      string  `json:"metric"`
+	Label       string  `json:"label,omitempty"`
+	Description string  `json:"description,omitempty"`
+	Previous    float64 `json:"previous"`
+	Current     float64 `json:"current"`
+	Delta       float64 `json:"delta"`
+	DeltaPct    float64 `json:"delta_pct,omitempty"`
+	Better      string  `json:"better"`
 }
 
 // StatusChange records a check whose status moved between releases.

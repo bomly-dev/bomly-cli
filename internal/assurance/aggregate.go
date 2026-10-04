@@ -138,7 +138,7 @@ func BuildReport(catalog Catalog, results []CheckResult, opts BuildOptions) Repo
 	}
 	report.Coverage = buildCoverage(catalog, report, selected)
 	if opts.Previous != nil {
-		report.Trends = buildTrends(*opts.Previous, report)
+		report.Trends = buildTrends(catalog, *opts.Previous, report)
 	}
 	return report
 }

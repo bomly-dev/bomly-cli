@@ -158,7 +158,17 @@ func failingLogs(check ReportCheck) string {
 }
 
 func renderTrends(trends Trends) string {
-	if len(trends.Changed) == 0 && len(trends.Metrics) == 0 {
+	// A measurement that did not move stays in the report, so the public
+	// table keeps its rows, but it is not news in a summary. Decide what there
+	// is to say before writing the heading: a release where nothing moved
+	// would otherwise get a heading with nothing under it.
+	var moved []MetricTrend
+	for _, metric := range trends.Metrics {
+		if metric.Delta != 0 {
+			moved = append(moved, metric)
+		}
+	}
+	if len(trends.Changed) == 0 && len(moved) == 0 {
 		return ""
 	}
 	var out strings.Builder
@@ -166,17 +176,18 @@ func renderTrends(trends Trends) string {
 	for _, change := range trends.Changed {
 		fmt.Fprintf(&out, "- `%s`: %s → %s\n", change.CheckID, change.Previous, change.Current)
 	}
-	shown := 0
-	for _, metric := range trends.Metrics {
-		if shown >= 8 {
-			break
+	for _, metric := range moved {
+		label := metric.Label
+		if label == "" {
+			label = metric.Metric
 		}
-		if metric.Better == betterNeutral && metric.DeltaPct < 5 && metric.DeltaPct > -5 {
+		// A percentage of zero is undefined, and buildTrends leaves it unset;
+		// printing it would call a rise from 0 to 1 a change of +0.0%.
+		if metric.Previous == 0 {
+			fmt.Fprintf(&out, "- %s: %.2f → %.2f (%+.2f)\n", label, metric.Previous, metric.Current, metric.Delta)
 			continue
 		}
-		fmt.Fprintf(&out, "- `%s` %s: %.2f → %.2f (%+.1f%%)\n",
-			metric.CheckID, metric.Metric, metric.Previous, metric.Current, metric.DeltaPct)
-		shown++
+		fmt.Fprintf(&out, "- %s: %.2f → %.2f (%+.1f%%)\n", label, metric.Previous, metric.Current, metric.DeltaPct)
 	}
 	out.WriteString("\n")
 	return out.String()

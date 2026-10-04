@@ -92,6 +92,31 @@ type Check struct {
 	Reproduce         [][]string         `json:"reproduce,omitempty"`
 	Proves            []string           `json:"proves"`
 	Limitations       []string           `json:"limitations"`
+	// Measurements are the metrics of this check that the report compares
+	// with the previous release. A metric that is not declared here is still
+	// recorded with the check's results; it is just not compared.
+	Measurements []Measurement `json:"measurements,omitempty"`
+}
+
+// Measurement declares one metric as worth comparing between releases, in
+// words a reader who has never seen the check can follow.
+//
+// The comparison is opt-in on purpose. It used to list every metric two
+// reports shared, which put seven statistics of one 30 ms scan on the public
+// page under names like cold_ci95_upper_ms, and coloured a 70% "slowdown"
+// that was the difference between two CI machines: the same two binaries
+// measured the same on one machine. A number belongs here only when a change
+// in it says something about the release rather than about the runner.
+type Measurement struct {
+	// Metric is the metric's name in the check result.
+	Metric string `json:"metric"`
+	// Label is the short public name of the measurement.
+	Label string `json:"label"`
+	// Description says, in plain language, what is measured and how to read a
+	// change in it. The public page shows it beside the label.
+	Description string `json:"description"`
+	// Better is "lower", "higher", or "neutral".
+	Better string `json:"better"`
 }
 
 // Input names a pinned repository, fixture, container image, or service an
@@ -262,7 +287,32 @@ func validateCheck(check Check, areas map[string]struct{}) error {
 	if err := validateCommands(check.Reproduce); err != nil {
 		return err
 	}
+	if err := validateMeasurements(check.Measurements); err != nil {
+		return err
+	}
 	return validateClaims(check.Proves, check.Limitations)
+}
+
+func validateMeasurements(measurements []Measurement) error {
+	seen := make(map[string]struct{}, len(measurements))
+	for _, measurement := range measurements {
+		if strings.TrimSpace(measurement.Metric) == "" {
+			return errCatalog("a measurement must name its metric")
+		}
+		if _, exists := seen[measurement.Metric]; exists {
+			return fmt.Errorf("duplicate measurement %q", measurement.Metric)
+		}
+		seen[measurement.Metric] = struct{}{}
+		if strings.TrimSpace(measurement.Label) == "" || strings.TrimSpace(measurement.Description) == "" {
+			return fmt.Errorf("measurement %q needs a label and a description", measurement.Metric)
+		}
+		switch measurement.Better {
+		case betterLower, betterHigher, betterNeutral:
+		default:
+			return fmt.Errorf("measurement %q: better must be lower, higher, or neutral, got %q", measurement.Metric, measurement.Better)
+		}
+	}
+	return nil
 }
 
 func validateEvidence(evidence Evidence, areas map[string]struct{}, checks map[string]Check) error {

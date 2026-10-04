@@ -382,16 +382,9 @@
     "metrics": [
       {
         "check_id": "perf-samples",
-        "metric": "cold_median_ms",
-        "previous": 412,
-        "current": 705,
-        "delta": 293,
-        "delta_pct": 71.11650485436894,
-        "better": "lower"
-      },
-      {
-        "check_id": "perf-samples",
         "metric": "peak_memory_bytes",
+        "label": "Memory used by a small scan",
+        "description": "The most memory the released program used while scanning one small SBOM file, the same file every release. Lower is better. It shows the program's baseline footprint, not how much a large project needs.",
         "previous": 91234304,
         "current": 120586240,
         "delta": 29351936,
@@ -399,43 +392,10 @@
         "better": "lower"
       },
       {
-        "check_id": "perf-samples",
-        "metric": "warm_median_ms",
-        "previous": 288,
-        "current": 402,
-        "delta": 114,
-        "delta_pct": 39.58333333333333,
-        "better": "lower"
-      },
-      {
-        "check_id": "release-checksums",
-        "metric": "mismatched",
-        "previous": 0,
-        "current": 1,
-        "delta": 1,
-        "better": "neutral"
-      },
-      {
-        "check_id": "release-checksums",
-        "metric": "verified",
-        "previous": 23,
-        "current": 22,
-        "delta": -1,
-        "delta_pct": -4.3478260869565215,
-        "better": "neutral"
-      },
-      {
-        "check_id": "smoke",
-        "metric": "tests_passed",
-        "previous": 42,
-        "current": 18,
-        "delta": -24,
-        "delta_pct": -57.14285714285714,
-        "better": "higher"
-      },
-      {
         "check_id": "smoke",
         "metric": "tests_total",
+        "label": "End-to-end tests run",
+        "description": "How many end-to-end tests ran against real projects before this release was tagged. Each one scans a real project with the built program and compares the result with a saved, reviewed answer. A higher number means more behavior was checked.",
         "previous": 42,
         "current": 18,
         "delta": -24,

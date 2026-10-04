@@ -372,6 +372,7 @@ Rules:
 - Adding a check means adding a catalog entry **and** emitting its result; a declared check with no result is reported as `missing` and blocks its stage when it is a gate.
 - `proves` and `limitations` are mandatory, public, and written in plain language — they are rendered on bomly.dev/assurance.
 - Public evidence claims live in the same catalog (`evidence[]`), pin what this repository's history cannot address (a Git input by revision, a container by digest), name their fixture and expected-result files by path, and name the check that backs them. `make assurance-catalog` confirms every file they name exists. Do not add a checksum of an in-repository file to the catalog: it is a second copy of what git knows, and it can only drift.
+- The report compares a metric with the previous release only when the check declares it under `measurements` in the catalog, with a plain-language `label` and `description` (shown on the public page beside the number) and a direction. Declare one only when a change in it says something about the release rather than about the CI machine; scan timings are deliberately not declared until the timed workload is long enough to rise above runner noise.
 - The per-release report (`docs/assurance/reports/<tag>.json`) and `docs/assurance/index.json` are written by the post-release assessment and are the only data source for the public page.
 
 See [`dev-docs/RELEASE_ASSURANCE.md`](dev-docs/RELEASE_ASSURANCE.md) for the contracts and how to add a check.

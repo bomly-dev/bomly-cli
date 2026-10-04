@@ -60,6 +60,24 @@ jobs:
           cache: true
           cache-dependency-path: go.sum
 
+      # On a cache miss (a changed go.sum, an evicted cache) the suite would
+      # download every module inside its one `go test` attempt, where a slow
+      # answer from the module proxy fails the release prerequisites stage.
+      # Fetching first, with retries, keeps that out of the tests. It only
+      # helps because internal/cli pins the module cache in TestMain: before
+      # that, tests that redirect HOME did not read the cache this fills.
+      - name: Download modules
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if go mod download; then
+              exit 0
+            fi
+            echo "go mod download failed (attempt ${attempt} of 3)"
+            sleep 10
+          done
+          exit 1
+
       - name: Run the portable suite
         id: portable-tests
         continue-on-error: true

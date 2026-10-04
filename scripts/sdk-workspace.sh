@@ -17,7 +17,7 @@ cd "$root"
 # outside this checkout (an ancestor go.work, or GOWORK) can decide too.
 status() {
 	local dir version workspace
-	workspace="$(go env GOWORK)"
+	workspace="$(active_workspace)"
 	IFS='|' read -r version dir < <(go list -m -f '{{.Version}}|{{.Dir}}' github.com/bomly-dev/bomly-sdk)
 	if [ -z "$version" ]; then
 		echo "bomly-sdk: local checkout $dir (workspace $workspace)"
@@ -26,11 +26,21 @@ status() {
 	fi
 }
 
+# active_workspace prints the go.work the go command uses, or nothing. Go
+# reports GOWORK=off literally, and off means workspace mode is disabled.
+active_workspace() {
+	local workspace
+	workspace="$(go env GOWORK)"
+	if [ "$workspace" != "off" ]; then
+		echo "$workspace"
+	fi
+}
+
 # ambient fails when a workspace this script does not own still applies after
 # its own go.work is gone, since the build would keep using it.
 ambient() {
 	local workspace
-	workspace="$(go env GOWORK)"
+	workspace="$(active_workspace)"
 	if [ -n "$workspace" ]; then
 		echo "a workspace outside this checkout still applies: $workspace" >&2
 		echo "unset GOWORK or remove that file (or set GOWORK=off) to build against the go.mod pin" >&2
@@ -47,7 +57,9 @@ on)
 	fi
 	sdk="$(cd "$sdk" && pwd)"
 	rm -f go.work go.work.sum
-	GOWORK= go work init . "$sdk"
+	# Discovery off, so an ancestor go.work is neither reused nor refused as
+	# "already exists"; init then writes ./go.work.
+	GOWORK=off go work init . "$sdk"
 	status
 	;;
 off)

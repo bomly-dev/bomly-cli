@@ -145,6 +145,16 @@ func TestCatalogRejectsInvalidDocuments(t *testing.T) {
 		"undeclared instance":  func(c *Catalog) { c.Evidence[0].Instance = "go" },
 		"bad evidence level":   func(c *Catalog) { c.Evidence[0].EvidenceLevel = "vibes" },
 		"no inputs":            func(c *Catalog) { c.Evidence[0].Inputs = nil },
+		"measurement without description": func(c *Catalog) {
+			c.Checks[0].Measurements = []Measurement{{Metric: "tests_total", Label: "Tests", Better: betterHigher}}
+		},
+		"measurement with unknown direction": func(c *Catalog) {
+			c.Checks[0].Measurements = []Measurement{{Metric: "tests_total", Label: "Tests", Description: "How many ran.", Better: "more"}}
+		},
+		"duplicate measurement": func(c *Catalog) {
+			one := Measurement{Metric: "tests_total", Label: "Tests", Description: "How many ran.", Better: betterHigher}
+			c.Checks[0].Measurements = []Measurement{one, one}
+		},
 		"git without revision": func(c *Catalog) {
 			c.Evidence[0].Inputs = []Input{{Kind: "git", Location: "https://example.test/repo"}}
 		},

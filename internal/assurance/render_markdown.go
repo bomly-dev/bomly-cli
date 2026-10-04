@@ -166,17 +166,15 @@ func renderTrends(trends Trends) string {
 	for _, change := range trends.Changed {
 		fmt.Fprintf(&out, "- `%s`: %s → %s\n", change.CheckID, change.Previous, change.Current)
 	}
-	shown := 0
 	for _, metric := range trends.Metrics {
-		if shown >= 8 {
-			break
-		}
-		if metric.Better == betterNeutral && metric.DeltaPct < 5 && metric.DeltaPct > -5 {
+		if metric.Delta == 0 {
 			continue
 		}
-		fmt.Fprintf(&out, "- `%s` %s: %.2f → %.2f (%+.1f%%)\n",
-			metric.CheckID, metric.Metric, metric.Previous, metric.Current, metric.DeltaPct)
-		shown++
+		label := metric.Label
+		if label == "" {
+			label = metric.Metric
+		}
+		fmt.Fprintf(&out, "- %s: %.2f → %.2f (%+.1f%%)\n", label, metric.Previous, metric.Current, metric.DeltaPct)
 	}
 	out.WriteString("\n")
 	return out.String()

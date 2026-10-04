@@ -206,6 +206,27 @@ answering it per check invites the false conclusion that a blank cell is a gap
 when another check covered it. Adding an ecosystem to any check's instances is
 enough to have it appear.
 
+## Comparing with the previous release
+
+The report's `trends` section lists every check whose status changed and a
+short table of measurements. A metric appears in that table only when the
+check's catalog entry declares it under `measurements`, with a `label`, a
+plain-language `description` (the public page shows it as the explanation
+beside the number), and a direction (`lower`, `higher`, or `neutral`).
+Undeclared metrics are still recorded with the check's results.
+
+Declare a measurement only when a change in it says something about the
+release. Scan timings are deliberately not declared: the timed scan takes
+about 30 ms, and the difference between two CI machines is larger than that.
+The v0.28.1 report showed every timing about 70% slower than v0.28.0, while
+the two released binaries measured the same (26 to 27 ms) side by side on one
+machine. Comparing timings needs a workload long enough to rise above that
+noise first.
+
+A declared measurement whose metric is missing from either report is skipped
+without an error, so check the name against the check's emitted metrics when
+adding one.
+
 ## Changing a schema
 
 Four documents carry a schema version: the check result, the catalog, the

@@ -216,20 +216,31 @@ func TestTrendsCompareMetricsAndStatuses(t *testing.T) {
 	if current.Trends.PreviousTag != "v9.9.9" {
 		t.Fatalf("previous tag = %q", current.Trends.PreviousTag)
 	}
-	var found bool
+	// Only what the catalog declares is compared. The fixtures also record
+	// scan timings, and those must stay out: they are noise between CI
+	// machines, which is why the comparison became opt-in.
+	want := map[string]float64{"peak_memory_bytes": 120586240 - 91234304}
 	for _, metric := range current.Trends.Metrics {
-		if metric.CheckID == "perf-samples" && metric.Metric == "cold_median_ms" {
-			found = true
-			if metric.Delta != 293 {
-				t.Fatalf("cold_median_ms delta = %v, want 293", metric.Delta)
-			}
-			if metric.Better != betterLower {
-				t.Fatalf("cold_median_ms better = %q, want lower", metric.Better)
-			}
+		delta, declared := want[metric.Metric]
+		if metric.CheckID != "perf-samples" {
+			continue
 		}
+		if !declared {
+			t.Fatalf("undeclared metric %q was compared", metric.Metric)
+		}
+		if metric.Delta != delta {
+			t.Fatalf("%s delta = %v, want %v", metric.Metric, metric.Delta, delta)
+		}
+		if metric.Better != betterLower {
+			t.Fatalf("%s better = %q, want lower", metric.Metric, metric.Better)
+		}
+		if metric.Label == "" || metric.Description == "" {
+			t.Fatalf("%s carries no label or description", metric.Metric)
+		}
+		delete(want, metric.Metric)
 	}
-	if !found {
-		t.Fatal("expected a cold_median_ms trend")
+	if len(want) != 0 {
+		t.Fatalf("declared measurements were not compared: %v", want)
 	}
 	if len(current.Trends.Changed) == 0 {
 		t.Fatal("expected changed checks between the two fixtures")

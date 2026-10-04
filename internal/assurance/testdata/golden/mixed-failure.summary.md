@@ -38,9 +38,6 @@
 - `perf-samples`: pass → degraded
 - `release-checksums`: pass → fail
 - `smoke`: pass → missing
-- `perf-samples` cold_median_ms: 412.00 → 705.00 (+71.1%)
-- `perf-samples` peak_memory_bytes: 91234304.00 → 120586240.00 (+32.2%)
-- `perf-samples` warm_median_ms: 288.00 → 402.00 (+39.6%)
-- `smoke` tests_passed: 42.00 → 18.00 (-57.1%)
-- `smoke` tests_total: 42.00 → 18.00 (-57.1%)
+- Memory used by a small scan: 91234304.00 → 120586240.00 (+32.2%)
+- End-to-end tests run: 42.00 → 18.00 (-57.1%)
 

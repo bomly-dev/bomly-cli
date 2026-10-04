@@ -1,1 +1,6 @@
 **/testdata/** export-ignore
+
+# The assurance goldens and fixtures are compared byte for byte, so they are
+# checked out exactly as committed. Without this a Windows checkout rewrites
+# their line endings and every golden comparison fails there.
+internal/assurance/testdata/** -text

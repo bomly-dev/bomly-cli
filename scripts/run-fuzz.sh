@@ -9,6 +9,54 @@ FUZZTIME="${FUZZTIME:-60s}"
 # still exits non-zero when any target failed.
 FUZZ_RESULTS_JSONL="${FUZZ_RESULTS_JSONL:-}"
 
+# FUZZ_JOBS runs that many targets at once (default 1, one after another).
+# Each target is its own `go test` process, so they parallelize cleanly; the
+# release prerequisites stage uses this to keep thirty targets from taking
+# thirty times one target's budget. Every target is attempted in this mode,
+# and each one's output is printed whole when it finishes rather than
+# interleaved with its neighbours'.
+FUZZ_JOBS="${FUZZ_JOBS:-1}"
+case "${FUZZ_JOBS}" in
+  ''|*[!0-9]*|0) echo "FUZZ_JOBS must be a positive integer, got '${FUZZ_JOBS}'" >&2; exit 2 ;;
+esac
+
+# run_target fuzzes one "<package> <FuzzName>" pair, records it when a results
+# file is set, and returns the target's exit status.
+run_target() {
+  local package="${1%% *}" fuzz="${1#* }" started status=0
+  local -a workers=()
+  # Concurrent fuzzers would each start one worker per CPU and fight over
+  # them; give each an even share instead. (The array is expanded with the
+  # ${x[@]+...} form below because bash 3.2, which macOS ships, treats an
+  # empty array as unset under `set -u`.)
+  if [ "${FUZZ_JOBS}" -gt 1 ]; then
+    local cpus
+    cpus="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)"
+    workers=("-parallel=$(( cpus / FUZZ_JOBS > 0 ? cpus / FUZZ_JOBS : 1 ))")
+  fi
+  echo "==> go test ${package} -run=^$ -fuzz=^${fuzz}$ -fuzztime=${FUZZTIME}"
+  started="$(date -u +%s)"
+  go test "${package}" -run=^$ -fuzz="^${fuzz}$" -fuzztime="${FUZZTIME}" ${workers[@]+"${workers[@]}"} || status=$?
+  if [ -n "${FUZZ_RESULTS_JSONL}" ]; then
+    # One short line per append, so concurrent targets cannot tear each other.
+    printf '{"name":"%s %s","exit_code":%s,"duration_s":%s}\n' \
+      "${package##*/}" "${fuzz}" "${status}" "$(( $(date -u +%s) - started ))" \
+      >> "${FUZZ_RESULTS_JSONL}"
+  fi
+  return "${status}"
+}
+
+# Internal entry point for the parallel mode: run one target, print its output
+# in one piece, and exit with its status.
+if [ "${1:-}" = "--target" ]; then
+  output="$(mktemp)"
+  status=0
+  run_target "$2" > "${output}" 2>&1 || status=$?
+  cat "${output}"
+  rm -f "${output}"
+  exit "${status}"
+fi
+
 # The SDK's own fuzz targets (package URL canonicalization, graph/registry
 # transport JSON) moved with the sdk package to the bomly-sdk repository and
 # run there.
@@ -50,24 +98,25 @@ if [ -n "${FUZZ_RESULTS_JSONL}" ]; then
 fi
 
 failures=0
+
+if [ "${FUZZ_JOBS}" -gt 1 ]; then
+  # xargs keeps going past a failing target and exits non-zero if any failed.
+  if ! printf '%s\0' "${targets[@]}" | xargs -0 -n 1 -P "${FUZZ_JOBS}" "$0" --target; then
+    echo "one or more fuzz targets failed" >&2
+    exit 1
+  fi
+  exit 0
+fi
+
 for target in "${targets[@]}"; do
-  package="${target%% *}"
-  fuzz="${target#* }"
-  echo "==> go test ${package} -run=^$ -fuzz=^${fuzz}$ -fuzztime=${FUZZTIME}"
-  started="$(date -u +%s)"
   status=0
   if [ -n "${FUZZ_RESULTS_JSONL}" ]; then
-    go test "${package}" -run=^$ -fuzz="^${fuzz}$" -fuzztime="${FUZZTIME}" || status=$?
+    run_target "${target}" || status=$?
   else
-    go test "${package}" -run=^$ -fuzz="^${fuzz}$" -fuzztime="${FUZZTIME}"
+    run_target "${target}"
   fi
   if [ "${status}" -ne 0 ]; then
     failures=$((failures + 1))
-  fi
-  if [ -n "${FUZZ_RESULTS_JSONL}" ]; then
-    printf '{"name":"%s %s","exit_code":%s,"duration_s":%s}\n' \
-      "${package##*/}" "${fuzz}" "${status}" "$(( $(date -u +%s) - started ))" \
-      >> "${FUZZ_RESULTS_JSONL}"
   fi
 done
 

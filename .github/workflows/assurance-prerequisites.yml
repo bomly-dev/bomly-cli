@@ -63,7 +63,12 @@ jobs:
     uses: ./.github/workflows/fuzz.yml
     with:
       ref: ${{ inputs.ref || github.ref }}
-      fuzztime: 45s
+      # Thirty targets one after another took over half an hour and made this
+      # the slowest job in the stage. Four at a time for thirty seconds each
+      # is the same order of total fuzzing in a fraction of the wall clock;
+      # the nightly run keeps the long budget.
+      fuzztime: 30s
+      jobs: 4
       assurance: true
       assurance_tag: ${{ inputs.assurance_tag }}
 

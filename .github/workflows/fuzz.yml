@@ -20,6 +20,11 @@ on:
         type: string
         required: false
         default: 2m
+      jobs:
+        description: How many fuzz targets to run at once.
+        type: number
+        required: false
+        default: 1
       assurance:
         description: Upload a release assurance check result.
         type: boolean
@@ -62,6 +67,7 @@ jobs:
         env:
           FUZZ_RESULTS_JSONL: ${{ runner.temp }}/fuzz-details.jsonl
           FUZZTIME: ${{ inputs.fuzztime || '2m' }}
+          FUZZ_JOBS: ${{ inputs.jobs || 1 }}
         run: make fuzz FUZZTIME="${FUZZTIME}"
 
       - name: Record the fuzz result

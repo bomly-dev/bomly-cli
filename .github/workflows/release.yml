@@ -28,12 +28,16 @@ jobs:
     # not installed.
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      # "verified" when a passing prerequisites run was found for this commit.
+      prerequisites: ${{ steps.prerequisites.outputs.result }}
     steps:
       # Stage 1 of release assurance runs on the source tree before a tag
       # exists (see assurance-prerequisites.yml). Auto Version runs it and then
       # commits the version bump, so the tagged commit is usually the child of
       # the commit that was checked: accept either.
       - name: Require a passing release prerequisites run
+        id: prerequisites
         if: vars.RELEASE_ASSURANCE_ENFORCE != 'false'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -66,6 +70,7 @@ jobs:
           for candidate in "${tag_sha}" "${parent_sha}"; do
             if run_id="$(find_verdict_run "${candidate}")"; then
               echo "Release prerequisites passed for ${candidate} in run ${run_id}."
+              echo "result=verified" >> "${GITHUB_OUTPUT}"
               exit 0
             fi
           done
@@ -100,20 +105,26 @@ jobs:
             echo "WINGET_GITHUB_TOKEN has no expiration date."
           fi
 
-  # Runs beside the build, not before it. The release prerequisites stage has
-  # already run this suite on three operating systems against the commit being
-  # tagged, and preflight checks that it passed, so making the fourteen-minute
-  # build wait five more minutes for a fourth run bought nothing. It still
-  # runs, and `publish` still needs it: a tag made with the prerequisites
-  # skipped is tested here before anything is published.
+  # The unit suite and vet, before anything is built or published -- but only
+  # when preflight could not confirm the release prerequisites stage. That
+  # stage runs this suite on three operating systems against the commit being
+  # tagged (or its parent, which differs by the version bump alone), so when
+  # it is confirmed, a fourth run here made the build wait five minutes for
+  # nothing. When it is not confirmed (RELEASE_ASSURANCE_ENFORCE=false), this
+  # is the only test run a release gets, and it still comes first: GoReleaser
+  # opens the Homebrew, Scoop and WinGet pull requests as it builds, and those
+  # must not exist for a release whose tests failed.
   validate:
+    needs: preflight
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Check out repository
+        if: needs.preflight.outputs.prerequisites != 'verified'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Go
+        if: needs.preflight.outputs.prerequisites != 'verified'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
@@ -122,13 +133,19 @@ jobs:
             go.sum
 
       - name: Run test suite
+        if: needs.preflight.outputs.prerequisites != 'verified'
         run: make test
 
       - name: Run go vet
+        if: needs.preflight.outputs.prerequisites != 'verified'
         run: go vet ./...
 
+      - name: Already tested by the release prerequisites stage
+        if: needs.preflight.outputs.prerequisites == 'verified'
+        run: echo "The release prerequisites stage passed for this commit; the suite is not run again."
+
   release:
-    needs: preflight
+    needs: [preflight, validate]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -552,7 +569,7 @@ jobs:
           exit 1
 
   publish:
-    needs: [validate, release, attach-provenance, gate]
+    needs: [release, attach-provenance, gate]
     if: |
       startsWith(github.ref, 'refs/tags/') &&
       (needs.gate.outputs.verdict == 'pass' || vars.RELEASE_ASSURANCE_ENFORCE == 'false')

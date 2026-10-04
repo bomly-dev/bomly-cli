@@ -41,8 +41,8 @@ jobs:
       fail-fast: false
       # One run per platform. The suite used to run twice here so that a pass
       # was never a single lucky run, but the same suite already runs on every
-      # pull request, on every push to main, and again in the release
-      # workflow, so a test that only passes sometimes shows up there. The
+      # pull request and on every push to main, so a test that only passes
+      # sometimes shows up there. The
       # repeat made this the slowest job of the release prerequisites stage.
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]

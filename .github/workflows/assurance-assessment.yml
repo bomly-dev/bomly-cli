@@ -316,15 +316,6 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-  sbom:
-    name: SBOM interoperability
-    needs: resolve
-    uses: ./.github/workflows/sbom-interoperability.yml
-    with:
-      ref: ${{ needs.resolve.outputs.tag }}
-      release_tag: ${{ needs.resolve.outputs.tag }}
-      assurance: true
-
   perf-samples:
     name: Repeated scan timing
     needs: resolve
@@ -400,7 +391,7 @@ jobs:
     # always(), so a failed check still gets a published report — but only when
     # the release itself was resolved, since everything below needs its tag.
     if: always() && needs.resolve.result == 'success'
-    needs: [resolve, install-scripts, public-download, released-scan, sbom, perf-samples]
+    needs: [resolve, install-scripts, public-download, released-scan, perf-samples]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

@@ -16,7 +16,7 @@ its own minimal CI in its own repository.
 | `Portable stability assurance` | Manual dispatch, `workflow_call` | Repeated unit tests on Linux, macOS, and Windows plus cross-builds of every release binary |
 | `Fuzz`                  | Nightly schedule, dispatch, `workflow_call` | Native Go fuzzing over the `scripts/run-fuzz.sh` target list; uploads minimized failures as artifacts |
 | `CodeQL`                | Pull requests, pushes, schedule  | Static analysis for Go and JavaScript                                |
-| `SBOM interoperability assurance` | Weekly schedule, dispatch, `workflow_call` | Validates generated SPDX and CycloneDX documents with checksum-pinned official tools |
+| `SBOM interoperability assurance` | Pull requests touching SBOM output, dispatch, `workflow_call` | Validates generated SPDX and CycloneDX documents with checksum-pinned official tools |
 | `Auto Version`          | Manual dispatch                  | Runs `Release prerequisites`, then bumps the version, tags, and starts `Release` |
 | `Release`               | Release tags                     | GoReleaser build/publish with signed checksums and SLSA provenance, plus stage 2 of release assurance |
 | `Release assessment`    | `release: published`, dispatch   | Stage 3 of release assurance against the published binaries; writes the per-release report |

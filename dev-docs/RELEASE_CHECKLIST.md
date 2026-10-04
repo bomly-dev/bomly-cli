@@ -6,7 +6,7 @@ Use this checklist when publishing a tagged Bomly CLI release.
 
 - Confirm `main` is green for required checks.
 - Confirm release publishing credentials are configured in GitHub Actions.
-- `Auto Version` runs the `Release prerequisites` stage (smoke, platform stability, cross-builds, fuzz, catalog) on the commit it is about to tag and refuses to tag when it fails, so there is no separate smoke run to start by hand. To pre-flight without tagging: `gh workflow run assurance-prerequisites.yml -f ref=main`.
+- `Auto Version` runs the `Release prerequisites` stage (smoke, platform stability, cross-builds, SBOM interoperability, fuzz, catalog) on the commit it is about to tag and refuses to tag when it fails, so there is no separate smoke run to start by hand. To pre-flight without tagging: `gh workflow run assurance-prerequisites.yml -f ref=main`.
 - If the stage fails, fix the cause on `main` — for stale golden files, run `Update Smoke Goldens` and merge its PR — then start `Auto Version` again. No tag and no release exist yet.
 
 ## Release workflow

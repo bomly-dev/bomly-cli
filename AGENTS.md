@@ -361,13 +361,14 @@ Smoke tests (`test/smoke/`, `make smoke`) drive the built binary end-to-end agai
 
 Every quality check belongs to one of three release stages and is declared in `docs/assurance/catalog.json` (schema `bomly.assurance-catalog/v1`):
 
-- **prerequisites** — run on the source tree before a tag exists (smoke, portable stability, cross-builds, fuzz, catalog validation).
+- **prerequisites** — run on the source tree before a tag exists (smoke, portable stability, cross-builds, SBOM interoperability, fuzz, catalog validation).
 - **pre-release** — run inside `release.yml` against the still-draft release (asset completeness, checksums, the Sigstore/cosign signature over the checksum list, SLSA build provenance, released binaries).
-- **post-release** — run against the shipped binaries after publication (install scripts, public download, released-binary scans, SBOM interoperability, performance samples).
+- **post-release** — run against the shipped binaries after publication (install scripts, public download, released-binary scans, performance samples).
 
 Rules:
 
 - Every check writes one `bomly.assurance-check/v1` document per instance through `go run ./internal/assurance/cmd` (`emit`, `gotest`, `convert`, or `verify-release`) and uploads it as an `assurance-*` artifact. Never hand-write that JSON in a workflow.
+- Put a check in the earliest stage that has what it needs: one that only needs a built binary belongs in **prerequisites**, where a failure costs a pull request rather than a release. SBOM interoperability ran post-release until v0.28.0 shipped an invalid merged SPDX export it would have stopped.
 - Adding a check means adding a catalog entry **and** emitting its result; a declared check with no result is reported as `missing` and blocks its stage when it is a gate.
 - `proves` and `limitations` are mandatory, public, and written in plain language — they are rendered on bomly.dev/assurance.
 - Public evidence claims live in the same catalog (`evidence[]`), pin what this repository's history cannot address (a Git input by revision, a container by digest), name their fixture and expected-result files by path, and name the check that backs them. `make assurance-catalog` confirms every file they name exists. Do not add a checksum of an in-repository file to the catalog: it is a second copy of what git knows, and it can only drift.

@@ -18,12 +18,28 @@ checks are named in each catalog entry's `source`.
 
 | Stage | Runs | Workflow |
 | --- | --- | --- |
-| `prerequisites` | Before a tag exists, on the source tree | `assurance-prerequisites.yml`, which calls `smoke.yml`, `portable-assurance.yml`, and `fuzz.yml` |
+| `prerequisites` | Before a tag exists, on the source tree | `assurance-prerequisites.yml`, which calls `smoke.yml`, `portable-assurance.yml`, `sbom-interoperability.yml`, and `fuzz.yml` |
 | `pre-release` | Inside the release pipeline, against the still-draft release | `release.yml` |
-| `post-release` | After publication, against the shipped binaries | `assurance-assessment.yml` and `sbom-interoperability.yml` |
+| `post-release` | After publication, against the shipped binaries | `assurance-assessment.yml` |
 
 A stage passes when every `gate` check in it passes and no declared check is
 missing. `advisory` checks are always reported and never block.
+
+### Which stage a check belongs in
+
+Put a check in the earliest stage that has what it needs. A check that only
+needs a built binary belongs in `prerequisites`, where a failure costs a pull
+request; `pre-release` is for what needs the draft's files; `post-release` is
+for what cannot exist before publication — the public download, the install
+scripts.
+
+The SBOM interoperability check is the example of getting this wrong. It ran
+after publication, on the reasoning that it should test the binary users
+download. It needs only a build. v0.28.0 shipped a merged SPDX export the
+official validator rejects, and the check reported it once the release was
+public; the same job had also been failing on a weekly schedule for three
+weeks, which notifies no one. It now runs in `prerequisites` and on pull
+requests that touch what decides SBOM output.
 
 ## The check-result contract
 

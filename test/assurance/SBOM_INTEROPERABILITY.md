@@ -13,12 +13,14 @@ rather than adopting one of them (ADR-0042). Only a real two-source run can
 produce that document, which is why it is asserted here and not in a unit
 test.
 
-It runs three ways: on a weekly schedule, when someone starts it from GitHub
-Actions, and as part of the post-release assessment. In the post-release run it
-downloads the binary the release actually shipped, verifies it against the
-published checksum list, and validates the SBOMs that binary produces. It is
-kept separate from normal tests because it downloads the validators and takes
-longer to run. Bomly never downloads or installs these tools during normal CLI
+It runs three ways: on pull requests that change what decides SBOM output (the
+pinned SDK, the SBOM detector, the command and output code, the fixtures, or
+this check), in the release prerequisites stage before a version is tagged, and
+when someone starts it from GitHub Actions. In every case it builds Bomly from
+the commit being checked. A failure on a pull request or before a tag is fixed
+by an ordinary change; that is why it runs there and no longer after
+publication or on a schedule. It is kept separate from normal tests because it
+downloads the validators and takes longer to run. Bomly never downloads or installs these tools during normal CLI
 use.
 
 The download, generation, and validation steps live in

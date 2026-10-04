@@ -52,8 +52,9 @@ Highlights:
   provenance are verified against the release files before publication.
 - **Installation.** The published install scripts are run on all three
   operating systems against the new release.
-- **SBOM interoperability.** The SBOM documents Bomly writes are validated with
-  the official SPDX and CycloneDX tools, pinned by checksum.
+- **SBOM interoperability.** The SBOM documents Bomly writes, including one
+  merged from two source documents, are validated with the official SPDX and
+  CycloneDX tools, pinned by checksum, before a version is tagged.
 - **Speed and stability.** The same scan is repeated with a cold and a warm
   cache to record timing and confirm the output does not change.
 

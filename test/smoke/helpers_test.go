@@ -144,12 +144,19 @@ func normalizeJSON(t *testing.T, raw []byte) []byte {
 	}
 
 	// The scan record's run block names the execution: a fresh id and two
-	// timestamps per run, which are the facts a golden must not pin.
-	// Everything else in it -- the tool, the options -- is deterministic.
+	// timestamps per run, and the tool's version, which the build stamps from
+	// the latest release tag -- facts a golden must not pin, or every release
+	// would break every golden. Everything else in it -- the tool's name, the
+	// options -- is deterministic.
 	if run, ok := obj["run"].(map[string]any); ok {
 		for _, key := range []string{"id", "started_at", "completed_at"} {
 			if _, present := run[key]; present {
 				run[key] = "<normalized>"
+			}
+		}
+		if tool, ok := run["tool"].(map[string]any); ok {
+			if _, present := tool["version"]; present {
+				tool["version"] = "<normalized>"
 			}
 		}
 	}

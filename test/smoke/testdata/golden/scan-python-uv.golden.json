@@ -728,7 +728,7 @@
     "started_at": "\u003cnormalized\u003e",
     "tool": {
       "name": "bomly",
-      "version": "0.26.0"
+      "version": "\u003cnormalized\u003e"
     }
   },
   "schema_version": "bomly.scan.v1",

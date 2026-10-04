@@ -354,7 +354,7 @@ Smoke tests (`test/smoke/`, `make smoke`) drive the built binary end-to-end agai
 - A golden must never carry a host architecture. `make smoke ARGS="-update"` on an arm64 laptop writes a golden CI cannot match, so `normalizeJSON` erases the architecture and `TestGoldensCarryNoHostArchitecture` (untagged, runs in `make test`) fails if one reaches a committed golden. A new architecture-bearing shape means teaching the normalizer, not excepting the guard.
 - Register new tests in both slice matrices (`smoke.yml` and exactly one slice in `update-smoke-goldens.yml`); `go test -run` elements are unanchored regexes — use `$` anchors to keep slice ownership exact.
 - A new slice also needs an entry in the `smoke` check's `expected_instances` in `docs/assurance/catalog.json` (with its `ecosystems`, which is what puts an ecosystem on the report's coverage list). `TestCatalogSmokeInstancesMatchWorkflowMatrix` fails when the two drift.
-- Regenerating goldens invalidates the checksums the catalog's claims pin. `Update Smoke Goldens` runs `catalog-validate --refresh` and commits the catalog with them; do the same when refreshing by hand.
+- Regenerating goldens needs no catalog change. A claim names its expected-result file by path only; git already records which bytes a release had, so there is no stored checksum to fall behind. Renaming or deleting a file a claim names does fail `TestRepositoryCatalogIsValid` in `make test`.
 - `TestExamplePluginFixtureCompiles` runs in `make test` and must keep compiling against the pinned `bomly-dev/bomly-sdk` release; update the fixture source when the SDK contract changes.
 
 ## Release assurance
@@ -370,7 +370,7 @@ Rules:
 - Every check writes one `bomly.assurance-check/v1` document per instance through `go run ./internal/assurance/cmd` (`emit`, `gotest`, `convert`, or `verify-release`) and uploads it as an `assurance-*` artifact. Never hand-write that JSON in a workflow.
 - Adding a check means adding a catalog entry **and** emitting its result; a declared check with no result is reported as `missing` and blocks its stage when it is a gate.
 - `proves` and `limitations` are mandatory, public, and written in plain language — they are rendered on bomly.dev/assurance.
-- Public evidence claims live in the same catalog (`evidence[]`), keep their pinned Git revisions and checksummed artifacts, and name the check that backs them. `make assurance-catalog` re-hashes every file they reference.
+- Public evidence claims live in the same catalog (`evidence[]`), pin what this repository's history cannot address (a Git input by revision, a container by digest), name their fixture and expected-result files by path, and name the check that backs them. `make assurance-catalog` confirms every file they name exists. Do not add a checksum of an in-repository file to the catalog: it is a second copy of what git knows, and it can only drift.
 - The per-release report (`docs/assurance/reports/<tag>.json`) and `docs/assurance/index.json` are written by the post-release assessment and are the only data source for the public page.
 
 See [`dev-docs/RELEASE_ASSURANCE.md`](dev-docs/RELEASE_ASSURANCE.md) for the contracts and how to add a check.

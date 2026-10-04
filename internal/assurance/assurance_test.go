@@ -417,6 +417,18 @@ func TestMatchJobURLPicksTheRunningJobOnThisRunner(t *testing.T) {
 // published reports are read by bomly.dev, which renders a known list of
 // versions: adding an optional field keeps the version, while removing or
 // repurposing one has to raise it and be taught to the site first.
+//
+// There is deliberately no test that checks committed reports against the
+// current shape. One was written and removed in the same pull request (#492):
+// three review rounds each found another hole in it -- files the index did not
+// list, required fields that decode as zero values, the index itself, and line
+// endings on a Windows checkout -- and the last of those would have failed the
+// portable suite and blocked releases as soon as a real report was committed.
+// A guard that byte-compares published data is a release risk of its own, and
+// it was being refined instead of the change it was attached to. The rule is
+// held by this test, the report goldens, and review. If it needs a mechanical
+// guard, that is its own change: compare the report's JSON schema against the
+// one recorded at the first published release, not committed bytes.
 func TestSchemaVersionsArePinned(t *testing.T) {
 	for name, actual := range map[string]string{
 		"check":   CheckSchema,

@@ -142,11 +142,18 @@ check `missing` — that is the intended behavior: gaps are loud.
 
 Evidence claims are the public "we prove X, we do not prove Y" statements that
 used to live in `test/evidence/cases.json`. They keep the same rigor: pinned
-Git revisions, checksummed fixtures and expected-result files, explicit
-reproduction commands, and mandatory limitations. `make assurance-catalog`
-verifies every hash a claim names, so a golden file cannot drift away from the
-claim it supports, and `--refresh` rewrites them when the goldens are
-deliberately regenerated.
+Git revisions and container digests, explicit reproduction commands, and
+mandatory limitations.
+
+Fixture and expected-result files are named by path, with no checksum. A file
+in this repository is already content-addressed by git — a release tag and a
+path identify exact bytes, and the report records the commit — so a checksum
+stored in the catalog was a second, hand-kept copy of something git knows. It
+could only fall behind, and it did on every golden update: two pull requests
+that each passed CI left `main` with a catalog that failed its own gate. What
+is checked now is what can actually go wrong: `make assurance-catalog`, and
+`TestRepositoryCatalogIsValid` in `make test`, fail when a claim names a file
+that was renamed or deleted.
 
 A claim must carry a pinned input **and** a committed artifact. That is the line
 between the two layers: if a statement would only restate what its check already
@@ -203,6 +210,25 @@ versions are a contract with another repository.
 `TestSchemaVersionsArePinned` fails on any change to these strings, so raising
 one is always deliberate.
 
+A version names a shape someone already holds. For the report and index that
+starts with the first report committed to `docs/assurance/reports/`: from then
+on bomly.dev has mirrored a document of that shape and the rules above apply
+without exception. Before any report exists there is nothing to stay
+compatible with, and the shape can still be corrected under the same version —
+which is how the per-file checksums were removed from report claims before the
+first release was assessed.
+
+Nothing checks committed reports against the current shape automatically, and
+that is deliberate. A test that did so was written and removed in the same
+pull request: each review round found another gap in it, and comparing
+published files byte for byte would have failed on a Windows checkout — in the
+portable suite, which gates a release. The rule is held by
+`TestSchemaVersionsArePinned`, by the report goldens (any change to the shape
+shows up as a golden diff in review), and by the reviewer. If a mechanical
+guard is wanted later, build it as its own change and compare the report's
+JSON schema with the one recorded at the first published release, rather than
+comparing committed bytes.
+
 ## What the automation needs
 
 - The Bomly Release app needs **Issues: Read and write** on `bomly-cli` for the
@@ -214,11 +240,9 @@ one is always deliberate.
   `assurance-prerequisites.yml` would miss every stage that Auto Version
   triggered. Keep that job name stable, or update the lookup in `release.yml`
   and `assurance-assessment.yml` with it.
-- Regenerating smoke goldens changes files the evidence claims are pinned to.
-  `Update Smoke Goldens` runs `catalog-validate --refresh` and commits the
-  catalog alongside them; do the same when refreshing goldens by hand.
-  That workflow regenerates from the ref it was dispatched on, so the refresh
-  runs the same commit's tooling against that commit's goldens.
+- Regenerating smoke goldens needs no catalog change; claims name their
+  expected-result files by path only. Do not reintroduce a stored checksum of
+  an in-repository file.
 
 ## Related documents
 

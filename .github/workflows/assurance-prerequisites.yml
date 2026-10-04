@@ -63,7 +63,12 @@ jobs:
     uses: ./.github/workflows/fuzz.yml
     with:
       ref: ${{ inputs.ref || github.ref }}
-      fuzztime: 45s
+      # Thirty targets one after another took over half an hour and made this
+      # the slowest job in the stage. Four at a time for thirty seconds each
+      # is the same order of total fuzzing in a fraction of the wall clock;
+      # the nightly run keeps the long budget.
+      fuzztime: 30s
+      jobs: 4
       assurance: true
       assurance_tag: ${{ inputs.assurance_tag }}
 
@@ -98,10 +103,10 @@ jobs:
         run: |
           set -euo pipefail
           exit_code=0
-          summary="The assurance catalog is valid and every fixture and expected-result file it names still matches its recorded checksum."
+          summary="The assurance catalog is valid and every fixture and expected-result file it names exists."
           if [ "${CATALOG_OUTCOME}" != "success" ]; then
             exit_code=1
-            summary="The assurance catalog is invalid or one of the files it names has changed. Open the validation step for the exact entry."
+            summary="The assurance catalog is invalid or names a file that is not there. Open the validation step for the exact entry."
           fi
           checks="$(grep -c '"stage":' docs/assurance/catalog.json || true)"
           # --stage and --level are explicit: when the catalog is the thing

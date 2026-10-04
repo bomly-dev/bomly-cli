@@ -32,11 +32,18 @@ type Detector struct {
 // evidence detection is built from it, and position attachment walks it. They
 // had drifted into three different lists, so a project whose only lockfile sat
 // in the Xcode workspace was recognized for line numbers but not for reading.
+//
+// The entries are slash-separated on every platform. The list is published as
+// the detector's evidence patterns, so it has to read the same in the support
+// matrix and in `bomly plugin list` whatever machine produced them; built with
+// filepath.Join it came out backslash-separated on Windows. Reading a file
+// needs no conversion: every read joins an entry onto a directory with
+// filepath.Join, which rewrites the separators for the host.
 var resolvedCandidates = []string{
 	"Package.resolved",
 	".package.resolved",
-	filepath.Join(".swiftpm", "xcode", "package.xcworkspace", "xcshareddata", "swiftpm", "Package.resolved"),
-	filepath.Join("project.xcworkspace", "xcshareddata", "swiftpm", "Package.resolved"),
+	".swiftpm/xcode/package.xcworkspace/xcshareddata/swiftpm/Package.resolved",
+	"project.xcworkspace/xcshareddata/swiftpm/Package.resolved",
 }
 
 // evidencePatterns is what makes this detector applicable: any lockfile

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -167,7 +168,10 @@ func TestDetectorResolveGraph_RejectsSyftJSON(t *testing.T) {
 	if !strings.Contains(err.Error(), "syft convert") {
 		t.Fatalf("ResolveGraph() error %q does not name the conversion", err.Error())
 	}
-	if !strings.Contains(err.Error(), path) {
+	// The error quotes the path, and quoting doubles a Windows path's
+	// backslashes, so the bare path is not a substring there. Look for the
+	// path as the message spells it.
+	if !strings.Contains(err.Error(), strconv.Quote(path)) {
 		t.Fatalf("ResolveGraph() error %q missing the file path", err.Error())
 	}
 }

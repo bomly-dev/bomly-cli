@@ -354,8 +354,7 @@
       ],
       "artifacts": [
         {
-          "path": "internal/assurance/testdata/fixtures/all-pass/results/smoke.go.json",
-          "sha256": "27a48399b6669f7b6a436080e277877dc9ef3c884634ceb3c0cdcab634eb97d0"
+          "path": "internal/assurance/testdata/fixtures/all-pass/results/smoke.go.json"
         }
       ],
       "proves": [

@@ -760,7 +760,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/finding-baseline-workflow.golden.json",
-          "sha256": "0393003fb3d39f8c923325062bbb257606c96a9f60e278cad64c106527ebaef7"
+          "sha256": "84fb94c8cec1b0399259be84c5d9b252d8f4df3c15b0ac813eca2c765c363ae1"
         }
       ],
       "proves": [
@@ -803,7 +803,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/container-scan-alpine.golden.json",
-          "sha256": "b17ad417464c74d9c8705177d3b067c8d20ab63d382ee4476ad1da9e2748d8a5"
+          "sha256": "6fc075beb7e3eca64c9ca8e79c07ff0160e3ff8a3f4284b8df813ef927ce5b9e"
         }
       ],
       "proves": [
@@ -890,7 +890,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-bun.golden.json",
-          "sha256": "beae880e2ec43d1aa5c0da09bc86903ffc370638ab5b416bf521dfb60d9a8693"
+          "sha256": "e4df856333b558128b07165cc16d44a12d9981bbd42054ad2912cfb699a563a5"
         }
       ],
       "proves": [
@@ -938,7 +938,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-go.golden.json",
-          "sha256": "1352983b2aafc221b9058a82c3edd1e1f8d983b5908ecbcd01a5e0cc11233644"
+          "sha256": "267270c11e350f668c4e018c7d36e675c7412b11d37aec5725380fabb391e2a8"
         }
       ],
       "proves": [
@@ -987,7 +987,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-maven.golden.json",
-          "sha256": "96feaa39866e32319b9e0009541afb59f1b856515636ffdc72fb1a5a1b4107f4"
+          "sha256": "7093935763fe2735f42a475ad22c6af6284beb352f3bed02f87521a4f48f383d"
         }
       ],
       "proves": [
@@ -1035,7 +1035,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-npm.golden.json",
-          "sha256": "96f65ace60a7b75087bdad36bda45959aa769ac4dd2c57f13cdc8983b11ed4be"
+          "sha256": "bb19b6686664f1ce4ba3424168a417b46c89e5680e84f996c879b40281451527"
         }
       ],
       "proves": [
@@ -1083,7 +1083,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-pnpm.golden.json",
-          "sha256": "972452883100713d6cc20d1ba5739b548940288571a4bca240b96fa14bcc586e"
+          "sha256": "eb67f160516425a5828bc546589dc468d50f37525e47e4dc793a0d166bbc4286"
         }
       ],
       "proves": [
@@ -1130,7 +1130,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-python-pip.golden.json",
-          "sha256": "9a5edd634c17c6b04c51135b1c954ae509043f484dadf49c46427322f7bcc9a9"
+          "sha256": "38a550af6decc30523da724abd78acddb2e7b659df4651eba8313bd9000a9fd9"
         }
       ],
       "proves": [
@@ -1178,7 +1178,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-yarn.golden.json",
-          "sha256": "8aacecd44516a5cda5a4d84bdfbedb982095924580119d8d7cc8b5f2de6dd57e"
+          "sha256": "de649973a762167d0d474532773226c284330ee2bcaab4f6fa6dbd26867e34b2"
         }
       ],
       "proves": [
@@ -1306,7 +1306,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-go-reachability.golden.json",
-          "sha256": "0e66a3ef13f9555d326f385fac977a910ab2dbe21da5d05affef4ab03e0b7cb6"
+          "sha256": "9d70ea49a7c99e9dc2c2bee0ad4c1dc0368bbe02167386d62eb8bb793f39b5ae"
         }
       ],
       "proves": [
@@ -1355,7 +1355,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-java-maven-reachability.golden.json",
-          "sha256": "9e8f69f58dfab4ff9e0e41dec928c57468d7731ad1a981b904f0bf97d2cac5a6"
+          "sha256": "60060bf892235feef6df1e2d18e69cd1a00b6a277e8d3537a4dad4fed0a6c022"
         }
       ],
       "proves": [
@@ -1403,7 +1403,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-npm-reachability.golden.json",
-          "sha256": "2ea78dc8dc40f0aebf84442300672481c4feaa24c0b5abdf012a7da4c06874fd"
+          "sha256": "f9774f51e9e9c3a931a900c9be62b93b5810cf023f500ebf9a96f6f1fdeb2a66"
         }
       ],
       "proves": [
@@ -1450,7 +1450,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-python-pip-reachability.golden.json",
-          "sha256": "181b80b3f2807d6607ccedfa8aafc99b370a78d7161c540316b8a323765be56d"
+          "sha256": "8a40d041d23f4bc4984bb3ba00cc3919592fddcd694b45855e0fb45d5d73077b"
         }
       ],
       "proves": [
@@ -1536,7 +1536,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-sbom-cyclonedx.golden.json",
-          "sha256": "726d17483521ff675cc8610915e16f701317f36c15f70fe8cb408f1830a3ea2e"
+          "sha256": "96a1a56860eb1c28bcb0da4d01809f74a7b07e6d0bcf637f2b8e36c6ecd9208e"
         }
       ],
       "proves": [
@@ -1582,7 +1582,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-sbom-spdx.golden.json",
-          "sha256": "5197ec06425ab1715a6646b230319d25d8eb5409bf08da7a2657e571175d8eee"
+          "sha256": "a0bb88cb6bbdbbe49e02ca6e091d15953be4320dd82c1dedcff32085dfbf042a"
         }
       ],
       "proves": [

@@ -28,6 +28,11 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	if err := pinGoCaches(); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "pin Go caches: %v\n", err)
+		os.Exit(1)
+	}
+
 	dir, err := os.MkdirTemp("", "bomly-cli-testbin-*")
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "create test helper dir: %v\n", err)
@@ -44,6 +49,36 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	_ = os.RemoveAll(dir)
 	os.Exit(code)
+}
+
+// pinGoCaches fixes the Go module and build caches at their current locations
+// for the rest of the test run.
+//
+// Both default to directories under the home directory, and many tests here
+// point HOME at a temporary directory to isolate Bomly's own state. A test
+// that then builds a plugin got an empty module cache with it, and downloaded
+// the SDK and its dependencies from the module proxy inside the test. That is
+// slow everywhere and fails wherever the proxy is slow to answer: macOS
+// runners timed out on it three times, once blocking a release.
+func pinGoCaches() error {
+	output, err := exec.Command("go", "env", "GOMODCACHE", "GOCACHE").Output()
+	if err != nil {
+		return fmt.Errorf("go env: %w", err)
+	}
+	locations := strings.Split(strings.TrimSpace(string(output)), "\n")
+	if len(locations) != 2 {
+		return fmt.Errorf("go env printed %d lines, want 2", len(locations))
+	}
+	for index, name := range []string{"GOMODCACHE", "GOCACHE"} {
+		location := strings.TrimSpace(locations[index])
+		if location == "" {
+			return fmt.Errorf("go env %s is empty", name)
+		}
+		if err := os.Setenv(name, location); err != nil {
+			return fmt.Errorf("set %s: %w", name, err)
+		}
+	}
+	return nil
 }
 
 func buildSharedTestHelpers(dir string) error {

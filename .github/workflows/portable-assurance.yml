@@ -60,11 +60,12 @@ jobs:
           cache: true
           cache-dependency-path: go.sum
 
-      # Several tests build a small plugin in a temporary module, which needs
-      # the pinned modules in the module cache. Without this step the download
-      # happens inside the test, with no retry, and a slow connection to the
-      # module proxy fails the suite: macOS runners have timed out on the TLS
-      # handshake twice. Fetching here keeps the network out of the tests.
+      # On a cache miss (a changed go.sum, an evicted cache) the suite would
+      # download every module inside its one `go test` attempt, where a slow
+      # answer from the module proxy fails the release prerequisites stage.
+      # Fetching first, with retries, keeps that out of the tests. It only
+      # helps because internal/cli pins the module cache in TestMain: before
+      # that, tests that redirect HOME did not read the cache this fills.
       - name: Download modules
         shell: bash
         run: |

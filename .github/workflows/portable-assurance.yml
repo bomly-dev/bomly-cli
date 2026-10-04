@@ -60,23 +60,6 @@ jobs:
           cache: true
           cache-dependency-path: go.sum
 
-      # Several tests build a small plugin in a temporary module, which needs
-      # the pinned modules in the module cache. Without this step the download
-      # happens inside the test, with no retry, and a slow connection to the
-      # module proxy fails the suite: macOS runners have timed out on the TLS
-      # handshake twice. Fetching here keeps the network out of the tests.
-      - name: Download modules
-        shell: bash
-        run: |
-          for attempt in 1 2 3; do
-            if go mod download; then
-              exit 0
-            fi
-            echo "go mod download failed (attempt ${attempt} of 3)"
-            sleep 10
-          done
-          exit 1
-
       - name: Run the portable suite
         id: portable-tests
         continue-on-error: true

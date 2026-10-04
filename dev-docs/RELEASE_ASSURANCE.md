@@ -210,6 +210,17 @@ versions are a contract with another repository.
 `TestSchemaVersionsArePinned` fails on any change to these strings, so raising
 one is always deliberate.
 
+A version names a shape someone already holds. For the report and index that
+starts with the first report committed to `docs/assurance/reports/`: from then
+on bomly.dev has mirrored a document of that shape and the rules above apply
+without exception. Before any report exists there is nothing to stay
+compatible with, and the shape can still be corrected under the same version —
+which is how the per-file checksums were removed from report claims before the
+first release was assessed. `TestPublishedReportsParse` is what holds the line
+afterwards: it reads every committed report with the current parser, which
+rejects unknown fields, so a shape change that would strand a published report
+fails in `make test` and cannot be made by accident.
+
 ## What the automation needs
 
 - The Bomly Release app needs **Issues: Read and write** on `bomly-cli` for the

@@ -497,3 +497,44 @@ func TestParseReportRequiresClaimDescriptions(t *testing.T) {
 		t.Fatal("expected a claim with a blank description to be rejected")
 	}
 }
+
+// TestPublishedReportsParse is what makes the report's schema version mean
+// something. Every report committed under docs/assurance/reports was mirrored
+// by bomly.dev in the shape it had when it was published, so it has to keep
+// parsing under the version it declares. The parser rejects unknown fields, so
+// removing or renaming a field while reports of that version exist fails here,
+// and the only ways forward are to keep the field or raise the version.
+//
+// Before the first release is assessed there are no reports and nothing to
+// protect; the index is what says how many there should be, so a reports
+// directory that was emptied or moved is not mistaken for that case.
+func TestPublishedReportsParse(t *testing.T) {
+	directory := filepath.Join(repositoryRoot, "docs", "assurance")
+	indexData, err := os.ReadFile(filepath.Join(directory, "index.json"))
+	if os.IsNotExist(err) {
+		entries, _ := filepath.Glob(filepath.Join(directory, "reports", "*.json"))
+		if len(entries) > 0 {
+			t.Fatalf("%d reports are committed but there is no index.json", len(entries))
+		}
+		return
+	}
+	if err != nil {
+		t.Fatalf("read index: %v", err)
+	}
+	index, err := ParseIndex(indexData)
+	if err != nil {
+		t.Fatalf("the committed index no longer parses: %v", err)
+	}
+	if len(index.Releases) == 0 {
+		t.Fatal("index.json exists but lists no releases")
+	}
+	for _, release := range index.Releases {
+		data, err := os.ReadFile(filepath.Join(directory, "reports", release.Tag+".json"))
+		if err != nil {
+			t.Fatalf("the index lists %s but its report cannot be read: %v", release.Tag, err)
+		}
+		if _, err := ParseReport(data); err != nil {
+			t.Fatalf("published report %s no longer parses, so its schema version was broken: %v", release.Tag, err)
+		}
+	}
+}

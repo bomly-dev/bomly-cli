@@ -1,0 +1,4052 @@
+{
+  "schema_version": "bomly.assurance-report/v1",
+  "generated_at": "2026-10-04T21:45:24Z",
+  "release": {
+    "tag": "v0.28.2",
+    "version": "0.28.2",
+    "commit": "943a1492185e2cdd1f124fddc15f7ebae22ef932",
+    "url": "https://github.com/bomly-dev/bomly-cli/releases/tag/v0.28.2",
+    "published_at": "2026-10-04T21:43:27Z"
+  },
+  "verdict": {
+    "overall": "pass",
+    "checks": 16,
+    "passed": 16,
+    "failed": 0,
+    "degraded": 0,
+    "skipped": 0,
+    "missing": 0
+  },
+  "stages": [
+    {
+      "id": "prerequisites",
+      "title": "Release prerequisites",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 7,
+        "passed": 7,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535",
+      "check_ids": [
+        "catalog-valid",
+        "cross-build",
+        "fuzz",
+        "sbom-interoperability",
+        "smoke",
+        "unit-portable",
+        "unit-repeat-java"
+      ]
+    },
+    {
+      "id": "pre-release",
+      "title": "Final pre-release checks",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 5,
+        "passed": 5,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37235630908",
+      "check_ids": [
+        "release-assets",
+        "release-binaries",
+        "release-checksums",
+        "release-provenance",
+        "release-signature"
+      ]
+    },
+    {
+      "id": "post-release",
+      "title": "Post-release assessment",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 4,
+        "passed": 4,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37237241884",
+      "check_ids": [
+        "install-script",
+        "perf-samples",
+        "public-download",
+        "released-scan"
+      ]
+    }
+  ],
+  "areas": [
+    {
+      "id": "end-to-end",
+      "title": "Scanning real projects",
+      "description": "Running the real command line against pinned example projects and comparing the entire result with a recorded one.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 2,
+        "passed": 2,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "check_ids": [
+        "released-scan",
+        "smoke"
+      ]
+    },
+    {
+      "id": "dependency-graph",
+      "title": "Dependency graphs",
+      "description": "Working out which packages a project depends on, and how each one got there.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 0,
+        "passed": 0,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "evidence_ids": [
+        "degraded-detector-fallback",
+        "graph-bun",
+        "graph-go",
+        "graph-maven",
+        "graph-npm",
+        "graph-pnpm",
+        "graph-python",
+        "graph-yarn"
+      ]
+    },
+    {
+      "id": "policy",
+      "title": "Policy decisions",
+      "description": "Deciding what counts as a problem: licences, vulnerabilities, baselines, and packages that change where they come from.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 0,
+        "passed": 0,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "evidence_ids": [
+        "baseline-policy",
+        "license-policy",
+        "source-change-policy",
+        "vulnerability-policy"
+      ]
+    },
+    {
+      "id": "reachability",
+      "title": "Reachability",
+      "description": "Judging whether a vulnerable package is actually used by the code that depends on it.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 0,
+        "passed": 0,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "evidence_ids": [
+        "reachability-go",
+        "reachability-java",
+        "reachability-node",
+        "reachability-python"
+      ]
+    },
+    {
+      "id": "remediation",
+      "title": "Upgrade guidance",
+      "description": "The fixes Bomly recommends, worked out without changing anything in your project.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 0,
+        "passed": 0,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "evidence_ids": [
+        "remediation-read-only"
+      ]
+    },
+    {
+      "id": "diff",
+      "title": "Comparing two scans",
+      "description": "Telling what genuinely changed between two scans, and what only looks new.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 0,
+        "passed": 0,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "evidence_ids": [
+        "persisted-risk"
+      ]
+    },
+    {
+      "id": "targets",
+      "title": "Other scan targets",
+      "description": "Scanning things that are not a local source tree, such as container images.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 0,
+        "passed": 0,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "evidence_ids": [
+        "container-inventory"
+      ]
+    },
+    {
+      "id": "sbom",
+      "title": "SBOM compatibility",
+      "description": "Reading SBOM documents other tools produce, and writing ones they accept.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 1,
+        "passed": 1,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "check_ids": [
+        "sbom-interoperability"
+      ],
+      "evidence_ids": [
+        "sbom-cyclonedx-ingest",
+        "sbom-spdx-ingest"
+      ]
+    },
+    {
+      "id": "stability",
+      "title": "Running everywhere",
+      "description": "Behaving the same on Linux, macOS, and Windows, and building for every processor a release supports.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 3,
+        "passed": 3,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "check_ids": [
+        "cross-build",
+        "unit-portable",
+        "unit-repeat-java"
+      ]
+    },
+    {
+      "id": "parsers",
+      "title": "Handling broken input",
+      "description": "Reading damaged or hostile project, configuration, and SBOM files without crashing.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 1,
+        "passed": 1,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "check_ids": [
+        "fuzz"
+      ]
+    },
+    {
+      "id": "performance",
+      "title": "Speed and repeatability",
+      "description": "How long a repeated scan takes, and whether it returns the same answer every time.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 1,
+        "passed": 1,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "check_ids": [
+        "perf-samples"
+      ]
+    },
+    {
+      "id": "release-integrity",
+      "title": "What you download",
+      "description": "Whether the published files are complete, unaltered, and signed by this project's release pipeline.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 6,
+        "passed": 6,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "check_ids": [
+        "public-download",
+        "release-assets",
+        "release-binaries",
+        "release-checksums",
+        "release-provenance",
+        "release-signature"
+      ]
+    },
+    {
+      "id": "installation",
+      "title": "Installing it",
+      "description": "Whether the documented ways of installing this release actually work.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 1,
+        "passed": 1,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "check_ids": [
+        "install-script"
+      ]
+    },
+    {
+      "id": "framework",
+      "title": "This report itself",
+      "description": "The catalog and contracts the report is built from, and the check that keeps them honest.",
+      "status": "pass",
+      "verdict": {
+        "overall": "pass",
+        "checks": 1,
+        "passed": 1,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0
+      },
+      "check_ids": [
+        "catalog-valid"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "catalog-valid",
+      "title": "Assurance catalog is valid",
+      "area": "framework",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Validates this catalog and confirms every fixture and expected-result file it points at exists.",
+      "status": "pass",
+      "summary": "The assurance catalog is valid and every fixture and expected-result file it names exists.",
+      "source": {
+        "workflow": "assurance-prerequisites.yml",
+        "job": "catalog"
+      },
+      "instances": [
+        {
+          "name": "default",
+          "status": "pass",
+          "summary": "The assurance catalog is valid and every fixture and expected-result file it names exists.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111529498118",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "checks": 16
+          }
+        }
+      ],
+      "metrics": {
+        "checks": 16
+      },
+      "reproduce": [
+        [
+          "make",
+          "assurance-catalog"
+        ]
+      ],
+      "proves": [
+        "Every claim in this report points at a real check and at files that are present in this release's source."
+      ],
+      "limitations": [
+        "A valid catalog says the paperwork is consistent; the checks themselves decide whether the software works."
+      ]
+    },
+    {
+      "id": "cross-build",
+      "title": "Release binaries build for every target",
+      "area": "stability",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Cross-compiles the full and lite binaries for every supported operating system and processor from the same source tree.",
+      "status": "pass",
+      "summary": "3 instances passed.",
+      "duration_ms": 3000,
+      "source": {
+        "workflow": "portable-assurance.yml",
+        "job": "cross-build"
+      },
+      "instances": [
+        {
+          "name": "darwin",
+          "status": "pass",
+          "summary": "All 4 darwin release binaries built: full and lite on amd64 and arm64.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111529498625",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "builds_completed": 4,
+            "builds_planned": 4
+          },
+          "details": [
+            {
+              "name": "darwin/amd64 full",
+              "status": "pass"
+            },
+            {
+              "name": "darwin/amd64 lite",
+              "status": "pass"
+            },
+            {
+              "name": "darwin/arm64 full",
+              "status": "pass"
+            },
+            {
+              "name": "darwin/arm64 lite",
+              "status": "pass"
+            }
+          ]
+        },
+        {
+          "name": "linux",
+          "status": "pass",
+          "summary": "All 4 linux release binaries built: full and lite on amd64 and arm64.",
+          "duration_ms": 1000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111529498661",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "builds_completed": 4,
+            "builds_planned": 4
+          },
+          "details": [
+            {
+              "name": "linux/amd64 full",
+              "status": "pass"
+            },
+            {
+              "name": "linux/amd64 lite",
+              "status": "pass"
+            },
+            {
+              "name": "linux/arm64 full",
+              "status": "pass"
+            },
+            {
+              "name": "linux/arm64 lite",
+              "status": "pass"
+            }
+          ]
+        },
+        {
+          "name": "windows",
+          "status": "pass",
+          "summary": "All 4 windows release binaries built: full and lite on amd64 and arm64.",
+          "duration_ms": 2000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111529498514",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "builds_completed": 4,
+            "builds_planned": 4
+          },
+          "details": [
+            {
+              "name": "windows/amd64 full",
+              "status": "pass"
+            },
+            {
+              "name": "windows/amd64 lite",
+              "status": "pass"
+            },
+            {
+              "name": "windows/arm64 full",
+              "status": "pass"
+            },
+            {
+              "name": "windows/arm64 lite",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "metrics": {
+        "builds_completed": 12,
+        "builds_planned": 12
+      },
+      "reproduce": [
+        [
+          "gh",
+          "workflow",
+          "run",
+          "assurance-prerequisites.yml",
+          "-f",
+          "ref=main"
+        ]
+      ],
+      "proves": [
+        "The source tree compiles into both binaries for every Linux, macOS, and Windows target a release ships."
+      ],
+      "limitations": [
+        "A successful build is not a test: it does not run the binary or check what it produces."
+      ]
+    },
+    {
+      "id": "fuzz",
+      "title": "Parsers survive malformed input",
+      "area": "parsers",
+      "stage": "prerequisites",
+      "level": "advisory",
+      "description": "Runs every registered Go fuzz target against the parsers that read untrusted project, configuration, baseline, SBOM, and plugin data.",
+      "status": "pass",
+      "summary": "2 instances passed.",
+      "duration_ms": 2000,
+      "source": {
+        "workflow": "fuzz.yml",
+        "job": "fuzz"
+      },
+      "instances": [
+        {
+          "name": "engine-and-plugin",
+          "status": "pass",
+          "summary": "2 fuzz targets ran for 30s each against their seed corpus without finding a crash.",
+          "duration_ms": 1000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111529498596",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "targets": 2,
+            "targets_failed": 0
+          },
+          "details": [
+            {
+              "name": "plugin FuzzPluginPathSanitizers",
+              "status": "pass",
+              "duration_ms": 405000
+            },
+            {
+              "name": "engine FuzzConsolidateVulnerabilities",
+              "status": "pass",
+              "duration_ms": 405000
+            }
+          ]
+        },
+        {
+          "name": "parsers",
+          "status": "pass",
+          "summary": "28 fuzz targets ran for 30s each against their seed corpus without finding a crash.",
+          "duration_ms": 1000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111529498559",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "targets": 28,
+            "targets_failed": 0
+          },
+          "details": [
+            {
+              "name": "sbominterop FuzzEvaluateMergedLinks",
+              "status": "pass",
+              "duration_ms": 92000
+            },
+            {
+              "name": "assurance FuzzParseCatalog",
+              "status": "pass",
+              "duration_ms": 93000
+            },
+            {
+              "name": "assurance FuzzParseGoTestEvents",
+              "status": "pass",
+              "duration_ms": 94000
+            },
+            {
+              "name": "assurance FuzzParseCheckResult",
+              "status": "pass",
+              "duration_ms": 94000
+            },
+            {
+              "name": "config FuzzLoadFile",
+              "status": "pass",
+              "duration_ms": 32000
+            },
+            {
+              "name": "cargo FuzzDepGraphFromCargoLock",
+              "status": "pass",
+              "duration_ms": 32000
+            },
+            {
+              "name": "cargo FuzzDepGraphFromCargoLockWorkspace",
+              "status": "pass",
+              "duration_ms": 31000
+            },
+            {
+              "name": "cocoapods FuzzDepGraphFromPodfileLock",
+              "status": "pass",
+              "duration_ms": 32000
+            },
+            {
+              "name": "composer FuzzDepGraphFromComposerLock",
+              "status": "pass",
+              "duration_ms": 31000
+            },
+            {
+              "name": "conan FuzzDepGraphFromConanJSON",
+              "status": "pass",
+              "duration_ms": 31000
+            },
+            {
+              "name": "githubactions FuzzParseWorkflowRefs",
+              "status": "pass",
+              "duration_ms": 32000
+            },
+            {
+              "name": "gomod FuzzDepGraphFromGoList",
+              "status": "pass",
+              "duration_ms": 32000
+            },
+            {
+              "name": "mix FuzzDepGraphFromMixLock",
+              "status": "pass",
+              "duration_ms": 30000
+            },
+            {
+              "name": "gomod FuzzParseGoSumDigests",
+              "status": "pass",
+              "duration_ms": 32000
+            },
+            {
+              "name": "node FuzzPackageManagerWarnings",
+              "status": "pass",
+              "duration_ms": 33000
+            },
+            {
+              "name": "npm FuzzDepGraphFromNPMLockfile",
+              "status": "pass",
+              "duration_ms": 33000
+            },
+            {
+              "name": "yarn FuzzDepGraphFromYarnLockfile",
+              "status": "pass",
+              "duration_ms": 31000
+            },
+            {
+              "name": "pnpm FuzzDepGraphFromPNPMLockfile",
+              "status": "pass",
+              "duration_ms": 32000
+            },
+            {
+              "name": "nuget FuzzDepGraphFromNuGetLock",
+              "status": "pass",
+              "duration_ms": 31000
+            },
+            {
+              "name": "bun FuzzDepGraphFromBunLockfile",
+              "status": "pass",
+              "duration_ms": 32000
+            },
+            {
+              "name": "nuget FuzzDepGraphFromPackagesConfig",
+              "status": "pass",
+              "duration_ms": 30000
+            },
+            {
+              "name": "pub FuzzDepGraphFromPubLock",
+              "status": "pass",
+              "duration_ms": 32000
+            },
+            {
+              "name": "python FuzzDepGraphFromPoetryLock",
+              "status": "pass",
+              "duration_ms": 33000
+            },
+            {
+              "name": "python FuzzDepGraphFromUVLock",
+              "status": "pass",
+              "duration_ms": 34000
+            },
+            {
+              "name": "python FuzzDepGraphFromPipfileLock",
+              "status": "pass",
+              "duration_ms": 32000
+            },
+            {
+              "name": "ruby FuzzDepGraphFromBundlerLock",
+              "status": "pass",
+              "duration_ms": 32000
+            },
+            {
+              "name": "swiftpm FuzzDepGraphFromSwiftResolved",
+              "status": "pass",
+              "duration_ms": 31000
+            },
+            {
+              "name": "baseline FuzzLoad",
+              "status": "pass",
+              "duration_ms": 32000
+            }
+          ]
+        }
+      ],
+      "metrics": {
+        "targets": 30,
+        "targets_failed": 0
+      },
+      "reproduce": [
+        [
+          "make",
+          "fuzz",
+          "FUZZTIME=60s"
+        ]
+      ],
+      "proves": [
+        "Each registered parser handled its seed corpus and newly generated inputs without crashing during the time budget of this run."
+      ],
+      "limitations": [
+        "Fuzzing explores a limited time budget. A clean run is evidence of robustness, not proof that no malformed input can cause a failure.",
+        "Parsers that are command-backed or handled entirely by the standard library are excluded and listed in test/assurance/PARSER_FUZZING.md."
+      ]
+    },
+    {
+      "id": "install-script",
+      "title": "Install scripts install the release",
+      "area": "installation",
+      "stage": "post-release",
+      "level": "gate",
+      "description": "Runs the published install script on each operating system against this release and asks the installed binary for its version.",
+      "status": "pass",
+      "summary": "3 instances passed.",
+      "duration_ms": 3000,
+      "source": {
+        "workflow": "assurance-assessment.yml",
+        "job": "install-scripts"
+      },
+      "instances": [
+        {
+          "name": "macos",
+          "status": "pass",
+          "summary": "The published install script installed Bomly 0.28.2 on macOS and the binary reported: bomly 0.28.2",
+          "duration_ms": 1000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37237241884/job/111538736461",
+          "runner": {
+            "os": "darwin",
+            "arch": "arm64",
+            "go_version": "go1.27.0"
+          }
+        },
+        {
+          "name": "ubuntu",
+          "status": "pass",
+          "summary": "The published install script installed Bomly 0.28.2 on Linux and the binary reported: bomly 0.28.2",
+          "duration_ms": 1000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37237241884/job/111538736443",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          }
+        },
+        {
+          "name": "windows",
+          "status": "pass",
+          "summary": "The published install script installed Bomly 0.28.2 on Windows and the binary reported: bomly 0.28.2",
+          "duration_ms": 1000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37237241884/job/111538736440",
+          "runner": {
+            "os": "windows",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          }
+        }
+      ],
+      "reproduce": [
+        [
+          "sh",
+          "-c",
+          "BOMLY_VERSION=\u003ctag\u003e BOMLY_INSTALL_DIR=$PWD/bin sh scripts/install.sh"
+        ]
+      ],
+      "proves": [
+        "The documented one-line install works on Linux, macOS, and Windows for this exact release, and the installed binary reports this version."
+      ],
+      "limitations": [
+        "This installs into a temporary directory on a clean runner. It does not cover every shell, proxy, or locked-down corporate environment."
+      ]
+    },
+    {
+      "id": "perf-samples",
+      "title": "Repeated scan speed and stability",
+      "area": "performance",
+      "stage": "post-release",
+      "level": "advisory",
+      "description": "Runs the same offline scan with the released binary several times with a cold cache and several times with a warm cache, and records timing, memory, and output stability.",
+      "status": "pass",
+      "summary": "canonical-sbom-scan completed 5 samples per cache mode with identical normalized output (cold median 34 ms, warm median 34 ms).",
+      "source": {
+        "workflow": "assurance-assessment.yml",
+        "job": "perf-samples"
+      },
+      "instances": [
+        {
+          "name": "default",
+          "status": "pass",
+          "summary": "canonical-sbom-scan completed 5 samples per cache mode with identical normalized output (cold median 34 ms, warm median 34 ms).",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37237241884/job/111538736352",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "cold_ci95_upper_ms": 34.08,
+            "cold_mean_ms": 33.85,
+            "cold_median_ms": 33.95,
+            "peak_memory_bytes": 45629440,
+            "samples_per_mode": 5,
+            "warm_ci95_upper_ms": 34.6,
+            "warm_mean_ms": 33.87,
+            "warm_median_ms": 33.93
+          },
+          "details": [
+            {
+              "name": "cold cache",
+              "status": "pass",
+              "note": "5 samples, median 34 ms, mean 34 ms",
+              "duration_ms": 33.95
+            },
+            {
+              "name": "warm cache",
+              "status": "pass",
+              "note": "5 samples, median 34 ms, mean 34 ms",
+              "duration_ms": 33.93
+            }
+          ]
+        }
+      ],
+      "metrics": {
+        "cold_ci95_upper_ms": 34.08,
+        "cold_mean_ms": 33.85,
+        "cold_median_ms": 33.95,
+        "peak_memory_bytes": 45629440,
+        "samples_per_mode": 5,
+        "warm_ci95_upper_ms": 34.6,
+        "warm_mean_ms": 33.87,
+        "warm_median_ms": 33.93
+      },
+      "reproduce": [
+        [
+          "make",
+          "benchmark-samples"
+        ]
+      ],
+      "proves": [
+        "Repeated runs of the same scan produced identical normalized output, and the recorded timings show how long that scan took on this machine."
+      ],
+      "limitations": [
+        "Timing and memory are observations from one CI machine, not limits. Comparing them across releases is only meaningful because the case and the machine class stay the same."
+      ]
+    },
+    {
+      "id": "public-download",
+      "title": "Published files download and match",
+      "area": "release-integrity",
+      "stage": "post-release",
+      "level": "gate",
+      "description": "Downloads every published file from its public URL, without credentials, verifies the signature on the published checksum list, and checks each file against it.",
+      "status": "pass",
+      "summary": "All 23 published files downloaded from their public URLs without credentials and match the signed checksum list.",
+      "source": {
+        "workflow": "assurance-assessment.yml",
+        "job": "public-download"
+      },
+      "instances": [
+        {
+          "name": "default",
+          "status": "pass",
+          "summary": "All 23 published files downloaded from their public URLs without credentials and match the signed checksum list.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37237241884/job/111538736366",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "files": 23
+          }
+        }
+      ],
+      "metrics": {
+        "files": 23
+      },
+      "reproduce": [
+        [
+          "gh",
+          "release",
+          "download",
+          "\u003ctag\u003e",
+          "--repo",
+          "bomly-dev/bomly-cli"
+        ]
+      ],
+      "proves": [
+        "Every file a user downloads from the public release page is present, reachable without credentials, and matches a checksum list signed by this repository's release workflow."
+      ],
+      "limitations": [
+        "This checks availability and integrity at one moment from one network location.",
+        "It confirms the published files match the signed list; it does not re-check the provenance attestation, which is verified before publication.",
+        "Whether each archive contains a working binary is checked separately, against the draft release and by the install scripts."
+      ]
+    },
+    {
+      "id": "release-assets",
+      "title": "Every release file is attached",
+      "area": "release-integrity",
+      "stage": "pre-release",
+      "level": "gate",
+      "description": "Compares the files attached to the draft release against the full list a release is required to ship.",
+      "status": "pass",
+      "summary": "23 of 23 expected release assets are attached.",
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "instances": [
+        {
+          "name": "default",
+          "status": "pass",
+          "summary": "23 of 23 expected release assets are attached.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37235630908/job/111538315876",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "assets": 23,
+            "assets_missing": 0
+          },
+          "details": [
+            {
+              "name": "SHA256SUMS",
+              "status": "pass"
+            },
+            {
+              "name": "SHA256SUMS.sigstore.json",
+              "status": "pass"
+            },
+            {
+              "name": "bomly-lite_0.28.2_darwin_amd64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly-lite_0.28.2_darwin_arm64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly-lite_0.28.2_linux_amd64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly-lite_0.28.2_linux_arm64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly-lite_0.28.2_windows_amd64.zip",
+              "status": "pass"
+            },
+            {
+              "name": "bomly-lite_0.28.2_windows_arm64.zip",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_darwin_amd64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_darwin_arm64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_amd64.apk",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_amd64.deb",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_amd64.pkg.tar.zst",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_amd64.rpm",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_amd64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_arm64.apk",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_arm64.deb",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_arm64.pkg.tar.zst",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_arm64.rpm",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_arm64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_windows_amd64.zip",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_windows_arm64.zip",
+              "status": "pass"
+            },
+            {
+              "name": "multiple.intoto.jsonl",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "metrics": {
+        "assets": 23,
+        "assets_missing": 0
+      },
+      "reproduce": [
+        [
+          "go",
+          "run",
+          "./internal/assurance/cmd",
+          "verify-release",
+          "--dir",
+          "assets",
+          "--version",
+          "\u003cversion\u003e"
+        ]
+      ],
+      "proves": [
+        "The release carries an archive for every supported platform, both binaries, every Linux package format, the checksum list, its signature, and the provenance file."
+      ],
+      "limitations": [
+        "This counts files. Whether each archive contains a working binary is checked separately."
+      ]
+    },
+    {
+      "id": "release-binaries",
+      "title": "Released binaries report this version",
+      "area": "release-integrity",
+      "stage": "pre-release",
+      "level": "gate",
+      "description": "Extracts the archives built for each operating system and runs the binaries inside them.",
+      "status": "pass",
+      "summary": "3 instances passed.",
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "instances": [
+        {
+          "name": "darwin-arm64",
+          "status": "pass",
+          "summary": "2 of 2 darwin/arm64 binaries report version 0.28.2.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37235630908/attempts/1",
+          "runner": {
+            "os": "darwin",
+            "arch": "arm64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "binaries": 2,
+            "binaries_passed": 2
+          },
+          "details": [
+            {
+              "name": "bomly_0.28.2_darwin_arm64.tar.gz",
+              "status": "pass",
+              "note": "bomly 0.28.2"
+            },
+            {
+              "name": "bomly-lite_0.28.2_darwin_arm64.tar.gz",
+              "status": "pass",
+              "note": "bomly 0.28.2"
+            }
+          ]
+        },
+        {
+          "name": "linux-amd64",
+          "status": "pass",
+          "summary": "2 of 2 linux/amd64 binaries report version 0.28.2.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37235630908/job/111538315876",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "binaries": 2,
+            "binaries_passed": 2
+          },
+          "details": [
+            {
+              "name": "bomly_0.28.2_linux_amd64.tar.gz",
+              "status": "pass",
+              "note": "bomly 0.28.2"
+            },
+            {
+              "name": "bomly-lite_0.28.2_linux_amd64.tar.gz",
+              "status": "pass",
+              "note": "bomly 0.28.2"
+            }
+          ]
+        },
+        {
+          "name": "windows-amd64",
+          "status": "pass",
+          "summary": "2 of 2 windows/amd64 binaries report version 0.28.2.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37235630908/job/111538315737",
+          "runner": {
+            "os": "windows",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "binaries": 2,
+            "binaries_passed": 2
+          },
+          "details": [
+            {
+              "name": "bomly_0.28.2_windows_amd64.zip",
+              "status": "pass",
+              "note": "bomly 0.28.2"
+            },
+            {
+              "name": "bomly-lite_0.28.2_windows_amd64.zip",
+              "status": "pass",
+              "note": "bomly 0.28.2"
+            }
+          ]
+        }
+      ],
+      "reproduce": [
+        [
+          "go",
+          "run",
+          "./internal/assurance/cmd",
+          "verify-release",
+          "--dir",
+          "assets",
+          "--version",
+          "\u003cversion\u003e",
+          "--scope",
+          "native"
+        ]
+      ],
+      "proves": [
+        "Both the full and lite binaries start on Linux, macOS, and Windows and report the version that is being released."
+      ],
+      "limitations": [
+        "Only the architecture of the CI runner is executed for each operating system; other architectures are verified by checksum and build only."
+      ]
+    },
+    {
+      "id": "release-checksums",
+      "title": "Release files match their checksums",
+      "area": "release-integrity",
+      "stage": "pre-release",
+      "level": "gate",
+      "description": "Hashes every release file each platform downloads and compares it with the published SHA256SUMS list.",
+      "status": "pass",
+      "summary": "3 instances passed.",
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "instances": [
+        {
+          "name": "darwin-arm64",
+          "status": "pass",
+          "summary": "2 downloaded assets match SHA256SUMS, which lists 20 files.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37235630908/attempts/1",
+          "runner": {
+            "os": "darwin",
+            "arch": "arm64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "listed": 20,
+            "mismatched": 0,
+            "verified": 2
+          },
+          "details": [
+            {
+              "name": "bomly-lite_0.28.2_darwin_arm64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_darwin_arm64.tar.gz",
+              "status": "pass"
+            }
+          ]
+        },
+        {
+          "name": "linux-amd64",
+          "status": "pass",
+          "summary": "20 downloaded assets match SHA256SUMS, which lists 20 files.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37235630908/job/111538315876",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "listed": 20,
+            "mismatched": 0,
+            "verified": 20
+          },
+          "details": [
+            {
+              "name": "bomly-lite_0.28.2_darwin_amd64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly-lite_0.28.2_darwin_arm64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly-lite_0.28.2_linux_amd64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly-lite_0.28.2_linux_arm64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly-lite_0.28.2_windows_amd64.zip",
+              "status": "pass"
+            },
+            {
+              "name": "bomly-lite_0.28.2_windows_arm64.zip",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_darwin_amd64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_darwin_arm64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_amd64.apk",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_amd64.deb",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_amd64.pkg.tar.zst",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_amd64.rpm",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_amd64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_arm64.apk",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_arm64.deb",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_arm64.pkg.tar.zst",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_arm64.rpm",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_linux_arm64.tar.gz",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_windows_amd64.zip",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_windows_arm64.zip",
+              "status": "pass"
+            }
+          ]
+        },
+        {
+          "name": "windows-amd64",
+          "status": "pass",
+          "summary": "2 downloaded assets match SHA256SUMS, which lists 20 files.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37235630908/job/111538315737",
+          "runner": {
+            "os": "windows",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "listed": 20,
+            "mismatched": 0,
+            "verified": 2
+          },
+          "details": [
+            {
+              "name": "bomly-lite_0.28.2_windows_amd64.zip",
+              "status": "pass"
+            },
+            {
+              "name": "bomly_0.28.2_windows_amd64.zip",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "reproduce": [
+        [
+          "sha256sum",
+          "--check",
+          "SHA256SUMS"
+        ]
+      ],
+      "proves": [
+        "Every file the release ships hashes to exactly the value recorded in the checksum list, and the list covers every file."
+      ],
+      "limitations": [
+        "Checksums prove the files were not altered after they were built; the signature and provenance checks prove who built them."
+      ]
+    },
+    {
+      "id": "release-provenance",
+      "title": "Build provenance verifies",
+      "area": "release-integrity",
+      "stage": "pre-release",
+      "level": "gate",
+      "description": "Verifies the SLSA build provenance attached to the release with slsa-verifier.",
+      "status": "pass",
+      "summary": "SLSA build provenance verifies the linux/amd64 archives against this repository and tag.",
+      "duration_ms": 1000,
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "instances": [
+        {
+          "name": "default",
+          "status": "pass",
+          "summary": "SLSA build provenance verifies the linux/amd64 archives against this repository and tag.",
+          "duration_ms": 1000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37235630908/job/111538315876",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          }
+        }
+      ],
+      "reproduce": [
+        [
+          "slsa-verifier",
+          "verify-artifact",
+          "\u003carchive\u003e",
+          "--provenance-path",
+          "multiple.intoto.jsonl",
+          "--source-uri",
+          "github.com/bomly-dev/bomly-cli"
+        ]
+      ],
+      "proves": [
+        "The release archives were produced by this repository's tagged release workflow, as recorded in signed build provenance."
+      ],
+      "limitations": [
+        "Provenance describes how and where the files were built. It does not review what the source code does."
+      ]
+    },
+    {
+      "id": "release-signature",
+      "title": "Checksum list is signed",
+      "area": "release-integrity",
+      "stage": "pre-release",
+      "level": "gate",
+      "description": "Verifies the Sigstore signature over the release checksum list with cosign.",
+      "status": "pass",
+      "summary": "The checksum list carries a valid Sigstore signature issued to this repository's release workflow.",
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "instances": [
+        {
+          "name": "default",
+          "status": "pass",
+          "summary": "The checksum list carries a valid Sigstore signature issued to this repository's release workflow.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37235630908/job/111538315876",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          }
+        }
+      ],
+      "reproduce": [
+        [
+          "cosign",
+          "verify-blob",
+          "SHA256SUMS",
+          "--bundle",
+          "SHA256SUMS.sigstore.json",
+          "--certificate-oidc-issuer",
+          "https://token.actions.githubusercontent.com",
+          "--certificate-identity-regexp",
+          "^https://github.com/bomly-dev/bomly-cli/"
+        ]
+      ],
+      "proves": [
+        "The checksum list carries a valid Sigstore signature issued to this repository's release workflow, so the checksums themselves can be trusted."
+      ],
+      "limitations": [
+        "The signature covers the checksum list. Individual files are tied to it through their checksums."
+      ]
+    },
+    {
+      "id": "released-scan",
+      "title": "The released binary scans real projects",
+      "area": "end-to-end",
+      "stage": "post-release",
+      "level": "gate",
+      "description": "Runs scan, diff, and explain with the binary from the published release against pinned example repositories and checks the results against the same golden files the source-tree smoke tests use.",
+      "status": "pass",
+      "summary": "3 instances passed.",
+      "duration_ms": 3624,
+      "source": {
+        "workflow": "assurance-assessment.yml",
+        "job": "released-scan"
+      },
+      "instances": [
+        {
+          "name": "go",
+          "status": "pass",
+          "summary": "6 of 6 tests passed.",
+          "duration_ms": 3114,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37237241884/job/111538736473",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 6,
+            "tests_skipped": 0,
+            "tests_total": 6
+          },
+          "details": [
+            {
+              "name": "smoke.TestDiff",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestDiff/diff-go",
+              "status": "pass",
+              "duration_ms": 1100
+            },
+            {
+              "name": "smoke.TestExplain",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestExplain/explain-go",
+              "status": "pass",
+              "duration_ms": 550
+            },
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-go",
+              "status": "pass",
+              "duration_ms": 1410
+            }
+          ]
+        },
+        {
+          "name": "node",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 428,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37237241884/job/111538736426",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-npm",
+              "status": "pass",
+              "duration_ms": 420
+            }
+          ]
+        },
+        {
+          "name": "sbom",
+          "status": "pass",
+          "summary": "3 of 3 tests passed.",
+          "duration_ms": 82,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37237241884/job/111538736429",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 3,
+            "tests_skipped": 0,
+            "tests_total": 3
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-sbom-cyclonedx",
+              "status": "pass",
+              "duration_ms": 70
+            },
+            {
+              "name": "smoke.TestScan/scan-sbom-spdx",
+              "status": "pass",
+              "duration_ms": 80
+            }
+          ]
+        }
+      ],
+      "metrics": {
+        "packages": 3,
+        "tests_failed": 0,
+        "tests_passed": 11,
+        "tests_skipped": 0,
+        "tests_total": 11
+      },
+      "reproduce": [
+        [
+          "sh",
+          "-c",
+          "BOMLY_SMOKE_BINARY=$PWD/bin/bomly go test -tags smoke ./test/smoke/ -run 'TestScan$/scan-go$'"
+        ]
+      ],
+      "proves": [
+        "The binary users actually download produces the same dependency graphs as the source tree it was built from."
+      ],
+      "limitations": [
+        "A representative subset of ecosystems runs against the released binary; the full ecosystem matrix runs on the source tree before the release is tagged."
+      ]
+    },
+    {
+      "id": "sbom-interoperability",
+      "title": "Official validators accept our SBOMs",
+      "area": "sbom",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Generates SPDX 2.3 and CycloneDX 1.7 documents from the code about to be released — one pair from a single input and one pair merged from two source documents — and validates all four with checksum-pinned official SPDX and CycloneDX tools.",
+      "status": "pass",
+      "summary": "4 generated SBOM documents passed spdx-tools-java 2.0.7 and cyclonedx-cli 0.32.0, and 1 document check(s) held.",
+      "source": {
+        "workflow": "sbom-interoperability.yml",
+        "job": "validate"
+      },
+      "instances": [
+        {
+          "name": "default",
+          "status": "pass",
+          "summary": "4 generated SBOM documents passed spdx-tools-java 2.0.7 and cyclonedx-cli 0.32.0, and 1 document check(s) held.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111529498452",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "checks": 1,
+            "documents": 4,
+            "validators": 2
+          },
+          "details": [
+            {
+              "name": "bomly scan",
+              "status": "pass",
+              "note": "exit code 0",
+              "duration_ms": 28
+            },
+            {
+              "name": "bomly scan",
+              "status": "pass",
+              "note": "exit code 0",
+              "duration_ms": 29
+            },
+            {
+              "name": "bomly scan",
+              "status": "pass",
+              "note": "exit code 0",
+              "duration_ms": 35
+            },
+            {
+              "name": "bomly scan",
+              "status": "pass",
+              "note": "exit code 0",
+              "duration_ms": 37
+            },
+            {
+              "name": "java -jar",
+              "status": "pass",
+              "note": "exit code 0",
+              "duration_ms": 4286
+            },
+            {
+              "name": "cyclonedx-cli validate",
+              "status": "pass",
+              "note": "exit code 0",
+              "duration_ms": 211
+            },
+            {
+              "name": "java -jar",
+              "status": "pass",
+              "note": "exit code 0",
+              "duration_ms": 947
+            },
+            {
+              "name": "cyclonedx-cli validate",
+              "status": "pass",
+              "note": "exit code 0",
+              "duration_ms": 231
+            },
+            {
+              "name": "merged document links its sources",
+              "status": "pass",
+              "note": "merged document links 2 source(s)"
+            },
+            {
+              "name": "spdx-tools-java 2.0.7",
+              "status": "pass",
+              "note": "checksum 2dc63c3399c5"
+            },
+            {
+              "name": "cyclonedx-cli 0.32.0",
+              "status": "pass",
+              "note": "checksum 454879e6a4a4"
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "spdx-2.3-json",
+              "sha256": "c1cab6036324d5db36c299922000dc4525cc9a75b8592a3be6ed6fdf29e9ea3e",
+              "bytes": 2619
+            },
+            {
+              "name": "cyclonedx-1.7-json",
+              "sha256": "f595dd4eb321c353e040a05df7142dec2f9f96904345c71c588125190163c76a",
+              "bytes": 2371
+            },
+            {
+              "name": "spdx-2.3-json-merged",
+              "sha256": "d528f7377491764776a1db17c3402012862c095228fd0169b1d6b615dc579810",
+              "bytes": 6005
+            },
+            {
+              "name": "cyclonedx-1.7-json-merged",
+              "sha256": "d7f1c366374d8ab24217d5957e57528a3187c539f987ff1fee03c532983b952a",
+              "bytes": 3474
+            }
+          ]
+        }
+      ],
+      "metrics": {
+        "checks": 1,
+        "documents": 4,
+        "validators": 2
+      },
+      "reproduce": [
+        [
+          "go",
+          "run",
+          "./internal/assurance/sbominterop",
+          "-bomly",
+          "./bin/bomly"
+        ]
+      ],
+      "proves": [
+        "The SBOM documents this release writes are accepted by the official SPDX and CycloneDX validators, at the exact validator versions recorded in the result.",
+        "A document merged from two sources states its own identity and links both sources, rather than adopting one of them."
+      ],
+      "limitations": [
+        "Validators check that a document is well formed against its specification. They do not check that every receiving tool interprets it the same way.",
+        "The merge case uses two checked-in fixtures; it does not cover every combination of source formats.",
+        "The documents are generated by a binary built from the release commit, before it is tagged, not by the published archive. The published files are verified separately."
+      ]
+    },
+    {
+      "id": "smoke",
+      "title": "End-to-end scans of real projects",
+      "area": "end-to-end",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Runs scan, diff, and explain against pinned public repositories, one slice per ecosystem, and compares the whole result with checked-in golden files.",
+      "status": "pass",
+      "summary": "22 instances passed.",
+      "duration_ms": 445070,
+      "source": {
+        "workflow": "smoke.yml",
+        "job": "smoke"
+      },
+      "instances": [
+        {
+          "name": "container",
+          "status": "pass",
+          "summary": "9 of 9 tests passed.",
+          "duration_ms": 10732,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022844",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 9,
+            "tests_skipped": 0,
+            "tests_total": 9
+          },
+          "details": [
+            {
+              "name": "smoke.TestContainerAuditScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestContainerAuditScan/container-scan-alpine-audit",
+              "status": "pass",
+              "duration_ms": 2080
+            },
+            {
+              "name": "smoke.TestContainerDiff",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestContainerDiff/container-diff-alpine",
+              "status": "pass",
+              "duration_ms": 3820
+            },
+            {
+              "name": "smoke.TestContainerExplain",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestContainerExplain/container-explain-alpine",
+              "status": "pass",
+              "duration_ms": 700
+            },
+            {
+              "name": "smoke.TestContainerScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestContainerScan/container-scan-alpine",
+              "status": "pass",
+              "duration_ms": 690
+            },
+            {
+              "name": "smoke.TestContainerScan/container-scan-debian",
+              "status": "pass",
+              "duration_ms": 4130
+            }
+          ]
+        },
+        {
+          "name": "cpp",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 452,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022860",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-cpp-conan",
+              "status": "pass",
+              "duration_ms": 450
+            }
+          ]
+        },
+        {
+          "name": "dart",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 3168,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022795",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-pub",
+              "status": "pass",
+              "duration_ms": 3160
+            }
+          ]
+        },
+        {
+          "name": "dotnet",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 256,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022869",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-nuget",
+              "status": "pass",
+              "duration_ms": 250
+            }
+          ]
+        },
+        {
+          "name": "elixir",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 529,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022840",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-mix",
+              "status": "pass",
+              "duration_ms": 520
+            }
+          ]
+        },
+        {
+          "name": "go",
+          "status": "pass",
+          "summary": "21 of 21 tests passed.",
+          "duration_ms": 4939.999999999999,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022797",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 21,
+            "tests_skipped": 0,
+            "tests_total": 21
+          },
+          "details": [
+            {
+              "name": "smoke.TestAuditDiffAndExplain",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestAuditDiffAndExplain/diff-go-audit",
+              "status": "pass",
+              "duration_ms": 820
+            },
+            {
+              "name": "smoke.TestAuditDiffAndExplain/explain-go-enrich",
+              "status": "pass",
+              "duration_ms": 490
+            },
+            {
+              "name": "smoke.TestAuditScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestAuditScan/scan-go-audit",
+              "status": "pass",
+              "duration_ms": 1170
+            },
+            {
+              "name": "smoke.TestAuditScan/scan-go-audit-high",
+              "status": "pass",
+              "duration_ms": 1170
+            },
+            {
+              "name": "smoke.TestAuditScan/scan-go-enrich",
+              "status": "pass",
+              "duration_ms": 1170
+            },
+            {
+              "name": "smoke.TestAuditScanSARIFGolden",
+              "status": "pass",
+              "duration_ms": 300
+            },
+            {
+              "name": "smoke.TestDiff",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestDiff/diff-go",
+              "status": "pass",
+              "duration_ms": 460
+            },
+            {
+              "name": "smoke.TestExplain",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestExplain/explain-go",
+              "status": "pass",
+              "duration_ms": 300
+            },
+            {
+              "name": "smoke.TestFindingBaselineWorkflow",
+              "status": "pass",
+              "duration_ms": 500
+            },
+            {
+              "name": "smoke.TestLiteDiff",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestLiteDiff/lite-diff-go",
+              "status": "pass",
+              "duration_ms": 450
+            },
+            {
+              "name": "smoke.TestLiteExplain",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestLiteExplain/lite-explain-go",
+              "status": "pass",
+              "duration_ms": 290
+            },
+            {
+              "name": "smoke.TestLiteScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestLiteScan/lite-scan-go",
+              "status": "pass",
+              "duration_ms": 290
+            },
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-go",
+              "status": "pass",
+              "duration_ms": 310
+            }
+          ]
+        },
+        {
+          "name": "go-reachability",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 89984,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022784",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-go-reachability",
+              "status": "pass",
+              "duration_ms": 89890
+            }
+          ]
+        },
+        {
+          "name": "java",
+          "status": "pass",
+          "summary": "6 of 6 tests passed.",
+          "duration_ms": 15608,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022809",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 6,
+            "tests_skipped": 0,
+            "tests_total": 6
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-gradle",
+              "status": "pass",
+              "duration_ms": 8510
+            },
+            {
+              "name": "smoke.TestScan/scan-gradle-multimodule",
+              "status": "pass",
+              "duration_ms": 11580
+            },
+            {
+              "name": "smoke.TestScan/scan-maven",
+              "status": "pass",
+              "duration_ms": 7030
+            },
+            {
+              "name": "smoke.TestScan/scan-maven-multimodule",
+              "status": "pass",
+              "duration_ms": 15600
+            },
+            {
+              "name": "smoke.TestScan/scan-recursive-monorepo",
+              "status": "pass",
+              "duration_ms": 15590
+            }
+          ]
+        },
+        {
+          "name": "java-reachability",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 72429,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022818",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-java-maven-reachability",
+              "status": "pass",
+              "duration_ms": 72420
+            }
+          ]
+        },
+        {
+          "name": "node",
+          "status": "pass",
+          "summary": "14 of 14 tests passed.",
+          "duration_ms": 2695,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022874",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 14,
+            "tests_skipped": 0,
+            "tests_total": 14
+          },
+          "details": [
+            {
+              "name": "smoke.TestAuditScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestAuditScan/scan-npm-audit",
+              "status": "pass",
+              "duration_ms": 390
+            },
+            {
+              "name": "smoke.TestAuditScanSARIFGolden",
+              "status": "pass",
+              "duration_ms": 990
+            },
+            {
+              "name": "smoke.TestDiff",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestDiff/diff-npm",
+              "status": "pass",
+              "duration_ms": 370
+            },
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-bun",
+              "status": "pass",
+              "duration_ms": 380
+            },
+            {
+              "name": "smoke.TestScan/scan-github-actions",
+              "status": "pass",
+              "duration_ms": 400
+            },
+            {
+              "name": "smoke.TestScan/scan-npm",
+              "status": "pass",
+              "duration_ms": 430
+            },
+            {
+              "name": "smoke.TestScan/scan-npm-scope-runtime",
+              "status": "pass",
+              "duration_ms": 320
+            },
+            {
+              "name": "smoke.TestScan/scan-npm-workspaces",
+              "status": "pass",
+              "duration_ms": 360
+            },
+            {
+              "name": "smoke.TestScan/scan-pnpm",
+              "status": "pass",
+              "duration_ms": 540
+            },
+            {
+              "name": "smoke.TestScan/scan-pnpm-workspaces",
+              "status": "pass",
+              "duration_ms": 350
+            },
+            {
+              "name": "smoke.TestScan/scan-yarn",
+              "status": "pass",
+              "duration_ms": 530
+            }
+          ]
+        },
+        {
+          "name": "node-detail-policy",
+          "status": "pass",
+          "summary": "1 of 1 tests passed.",
+          "duration_ms": 1406.0000000000002,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022799",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 1,
+            "tests_skipped": 0,
+            "tests_total": 1
+          },
+          "details": [
+            {
+              "name": "smoke.TestDependencyDetailRiskPolicy",
+              "status": "pass",
+              "duration_ms": 1400
+            }
+          ]
+        },
+        {
+          "name": "node-reachability",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 86276,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022819",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-npm-reachability",
+              "status": "pass",
+              "duration_ms": 86270
+            }
+          ]
+        },
+        {
+          "name": "php",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 303,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022820",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-composer",
+              "status": "pass",
+              "duration_ms": 300
+            }
+          ]
+        },
+        {
+          "name": "plugin",
+          "status": "pass",
+          "summary": "8 of 8 tests passed.",
+          "duration_ms": 26496,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022889",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 8,
+            "tests_skipped": 0,
+            "tests_total": 8
+          },
+          "details": [
+            {
+              "name": "smoke.TestAnalyzerPluginWorkflow",
+              "status": "pass",
+              "duration_ms": 1210
+            },
+            {
+              "name": "smoke.TestLiteVersion",
+              "status": "pass",
+              "duration_ms": 60
+            },
+            {
+              "name": "smoke.TestPluginMinVersionWireCompat",
+              "status": "pass",
+              "duration_ms": 9280
+            },
+            {
+              "name": "smoke.TestPluginWorkflows",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestPluginWorkflows/archive-install-scan",
+              "status": "pass",
+              "duration_ms": 8750
+            },
+            {
+              "name": "smoke.TestPluginWorkflows/dev-install-scan",
+              "status": "pass",
+              "duration_ms": 8520
+            },
+            {
+              "name": "smoke.TestScanRecursiveDepthLimitFindsNothing",
+              "status": "pass",
+              "duration_ms": 7230
+            },
+            {
+              "name": "smoke.TestScanRecursiveNothingAtRootWithoutFlag",
+              "status": "pass",
+              "duration_ms": 6880
+            }
+          ]
+        },
+        {
+          "name": "python",
+          "status": "pass",
+          "summary": "4 of 4 tests passed.",
+          "duration_ms": 14436,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022811",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 4,
+            "tests_skipped": 0,
+            "tests_total": 4
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-python-pip",
+              "status": "pass",
+              "duration_ms": 590
+            },
+            {
+              "name": "smoke.TestScan/scan-python-pipenv",
+              "status": "pass",
+              "duration_ms": 14430
+            },
+            {
+              "name": "smoke.TestScan/scan-python-poetry",
+              "status": "pass",
+              "duration_ms": 590
+            }
+          ]
+        },
+        {
+          "name": "python-reachability",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 68414,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022831",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-python-pip-reachability",
+              "status": "pass",
+              "duration_ms": 68410
+            }
+          ]
+        },
+        {
+          "name": "ruby",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 501,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022870",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-bundler",
+              "status": "pass",
+              "duration_ms": 500
+            }
+          ]
+        },
+        {
+          "name": "rust",
+          "status": "pass",
+          "summary": "3 of 3 tests passed.",
+          "duration_ms": 794,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022879",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 3,
+            "tests_skipped": 0,
+            "tests_total": 3
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-cargo",
+              "status": "pass",
+              "duration_ms": 790
+            },
+            {
+              "name": "smoke.TestScan/scan-cargo-workspace",
+              "status": "pass",
+              "duration_ms": 510
+            }
+          ]
+        },
+        {
+          "name": "sbom",
+          "status": "pass",
+          "summary": "14 of 14 tests passed.",
+          "duration_ms": 556,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022887",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 14,
+            "tests_skipped": 0,
+            "tests_total": 14
+          },
+          "details": [
+            {
+              "name": "smoke.TestDiff",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestDiff/diff-sbom",
+              "status": "pass",
+              "duration_ms": 40
+            },
+            {
+              "name": "smoke.TestDiff/diff-sbom-detail-change",
+              "status": "pass",
+              "duration_ms": 70
+            },
+            {
+              "name": "smoke.TestLiteScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestLiteScan/lite-scan-sbom-cyclonedx",
+              "status": "pass",
+              "duration_ms": 30
+            },
+            {
+              "name": "smoke.TestLiteScan/lite-scan-sbom-spdx",
+              "status": "pass",
+              "duration_ms": 40
+            },
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-sbom-cyclonedx",
+              "status": "pass",
+              "duration_ms": 40
+            },
+            {
+              "name": "smoke.TestScan/scan-sbom-spdx",
+              "status": "pass",
+              "duration_ms": 40
+            },
+            {
+              "name": "smoke.TestScanSBOMExportGolden",
+              "status": "pass",
+              "duration_ms": 380
+            },
+            {
+              "name": "smoke.TestScanSBOMExportOrigin",
+              "status": "pass",
+              "duration_ms": 400
+            },
+            {
+              "name": "smoke.TestScanSBOMSyftJSONRejected",
+              "status": "pass",
+              "duration_ms": 70
+            },
+            {
+              "name": "smoke.TestScanSBOMSyftJSONRejected/full",
+              "status": "pass",
+              "duration_ms": 50
+            },
+            {
+              "name": "smoke.TestScanSBOMSyftJSONRejected/lite",
+              "status": "pass",
+              "duration_ms": 30
+            }
+          ]
+        },
+        {
+          "name": "scala",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 440,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022898",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-sbt",
+              "status": "pass",
+              "duration_ms": 430
+            }
+          ]
+        },
+        {
+          "name": "swift",
+          "status": "pass",
+          "summary": "3 of 3 tests passed.",
+          "duration_ms": 44042,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022816",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 3,
+            "tests_skipped": 0,
+            "tests_total": 3
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-cocoapods",
+              "status": "pass",
+              "duration_ms": 400
+            },
+            {
+              "name": "smoke.TestScan/scan-swiftpm",
+              "status": "pass",
+              "duration_ms": 44040
+            }
+          ]
+        },
+        {
+          "name": "uv",
+          "status": "pass",
+          "summary": "2 of 2 tests passed.",
+          "duration_ms": 613,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111530022867",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "packages": 1,
+            "tests_failed": 0,
+            "tests_passed": 2,
+            "tests_skipped": 0,
+            "tests_total": 2
+          },
+          "details": [
+            {
+              "name": "smoke.TestScan",
+              "status": "pass"
+            },
+            {
+              "name": "smoke.TestScan/scan-python-uv",
+              "status": "pass",
+              "duration_ms": 610
+            }
+          ]
+        }
+      ],
+      "metrics": {
+        "packages": 22,
+        "tests_failed": 0,
+        "tests_passed": 107,
+        "tests_skipped": 0,
+        "tests_total": 107
+      },
+      "reproduce": [
+        [
+          "make",
+          "smoke"
+        ]
+      ],
+      "proves": [
+        "For every supported ecosystem, the command line produces exactly the dependency graph, policy result, and output shape recorded in the golden files."
+      ],
+      "limitations": [
+        "Golden files pin one revision of one example project per ecosystem. They do not cover every project layout or every version of a package manager.",
+        "Cases that reach live advisory services can change when upstream data changes."
+      ]
+    },
+    {
+      "id": "unit-portable",
+      "title": "Unit tests pass on every platform",
+      "area": "stability",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Runs the full Go unit test suite on Linux, macOS, and Windows.",
+      "status": "pass",
+      "summary": "3 instances passed.",
+      "duration_ms": 2000,
+      "source": {
+        "workflow": "portable-assurance.yml",
+        "job": "portable"
+      },
+      "instances": [
+        {
+          "name": "macos-latest",
+          "status": "pass",
+          "summary": "The complete Go test suite passed on macOS/ARM64, with no reused results.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/attempts/1",
+          "runner": {
+            "os": "darwin",
+            "arch": "arm64",
+            "go_version": "go1.27.0"
+          }
+        },
+        {
+          "name": "ubuntu-latest",
+          "status": "pass",
+          "summary": "The complete Go test suite passed on Linux/X64, with no reused results.",
+          "duration_ms": 1000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111529498620",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          }
+        },
+        {
+          "name": "windows-latest",
+          "status": "pass",
+          "summary": "The complete Go test suite passed on Windows/X64, with no reused results.",
+          "duration_ms": 1000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111529498618",
+          "runner": {
+            "os": "windows",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          }
+        }
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./...",
+          "-count=1"
+        ]
+      ],
+      "proves": [
+        "Every unit test passes on all three supported operating systems."
+      ],
+      "limitations": [
+        "Unit tests run in process against fixtures. They do not download repositories or call external services."
+      ]
+    },
+    {
+      "id": "unit-repeat-java",
+      "title": "Java detector tests are stable",
+      "area": "stability",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Runs the Gradle, Maven, and sbt detector test suites ten times, because build-tool-backed detectors are where intermittent failures have actually appeared.",
+      "status": "pass",
+      "summary": "The Gradle, Maven, and sbt detector suites passed ten times in a row.",
+      "source": {
+        "workflow": "portable-assurance.yml",
+        "job": "linux-stability"
+      },
+      "instances": [
+        {
+          "name": "default",
+          "status": "pass",
+          "summary": "The Gradle, Maven, and sbt detector suites passed ten times in a row.",
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/37234035535/job/111529498353",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.27.0"
+          },
+          "metrics": {
+            "completed_runs": 10,
+            "planned_runs": 10
+          },
+          "details": [
+            {
+              "name": "iteration 1",
+              "status": "pass"
+            },
+            {
+              "name": "iteration 2",
+              "status": "pass"
+            },
+            {
+              "name": "iteration 3",
+              "status": "pass"
+            },
+            {
+              "name": "iteration 4",
+              "status": "pass"
+            },
+            {
+              "name": "iteration 5",
+              "status": "pass"
+            },
+            {
+              "name": "iteration 6",
+              "status": "pass"
+            },
+            {
+              "name": "iteration 7",
+              "status": "pass"
+            },
+            {
+              "name": "iteration 8",
+              "status": "pass"
+            },
+            {
+              "name": "iteration 9",
+              "status": "pass"
+            },
+            {
+              "name": "iteration 10",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "metrics": {
+        "completed_runs": 10,
+        "planned_runs": 10
+      },
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/detectors/gradle",
+          "./internal/detectors/maven",
+          "./internal/detectors/sbt",
+          "-count=10"
+        ]
+      ],
+      "proves": [
+        "The build-tool-backed Java detector suites passed ten consecutive times."
+      ],
+      "limitations": [
+        "This exercises the detectors against local fixtures with the toolchain installed on the runner."
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "baseline-policy",
+      "title": "Finding baseline lifecycle",
+      "area": "policy",
+      "description": "Records a package finding in a project baseline, then scans again and compares the whole result with a recorded one.",
+      "evidence_level": "deterministic",
+      "check_id": "smoke",
+      "instance": "go",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-go-gomod",
+          "ref": "v1.0.0",
+          "revision": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestFindingBaselineWorkflow$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/finding-baseline-workflow.golden.json"
+        }
+      ],
+      "proves": [
+        "A project baseline can keep a denied package finding visible with suppressed policy status."
+      ],
+      "limitations": [
+        "The local matcher fixture is deterministic but does not measure advisory freshness."
+      ]
+    },
+    {
+      "id": "container-inventory",
+      "title": "Container package inventory",
+      "area": "targets",
+      "description": "Scans a public container image and compares the operating-system packages found with a recorded inventory.",
+      "evidence_level": "snapshot",
+      "check_id": "smoke",
+      "instance": "container",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "container",
+          "location": "Docker Hub",
+          "ref": "alpine:3.20"
+        }
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestContainerScan/container-scan-alpine$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/container-scan-alpine.golden.json"
+        }
+      ],
+      "proves": [
+        "Bomly can inventory the operating-system packages in the checked Alpine image."
+      ],
+      "limitations": [
+        "The upstream image tag can move; the checked-in golden is a snapshot, not an immutable image claim."
+      ]
+    },
+    {
+      "id": "degraded-detector-fallback",
+      "title": "Visible detector fallback",
+      "area": "dependency-graph",
+      "description": "Forces a detector to fall back to a second technique and checks that the result says so instead of hiding it.",
+      "evidence_level": "deterministic",
+      "check_id": "unit-portable",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/engine/pipeline_fallback_test.go"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/engine",
+          "-run",
+          "TestPipeline_RunRecordsFallbackWarning|TestPipeline_Run_TypesFallbackWarningsAsDegradedCoverage",
+          "-count=1"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "internal/engine/pipeline_fallback_test.go"
+        }
+      ],
+      "proves": [
+        "A detector fallback preserves its origin and produces a typed degraded-coverage warning."
+      ],
+      "limitations": [
+        "The synthetic detector case proves orchestration behavior, not the fidelity of every concrete fallback."
+      ]
+    },
+    {
+      "id": "graph-bun",
+      "title": "Bun lockfile graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned Bun example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "node",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-bun",
+          "ref": "v1.0.0",
+          "revision": "358a2a920fe9c2f7e596c514f36df1c30c1ab185"
+        }
+      ],
+      "required_tools": [
+        "git"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-bun$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-bun.golden.json"
+        }
+      ],
+      "proves": [
+        "The native Bun detector preserves the package inventory and dependency placement represented by the pinned lockfile."
+      ],
+      "limitations": [
+        "This is one Bun lockfile shape and does not prove behavior for every historical Bun format."
+      ]
+    },
+    {
+      "id": "graph-go",
+      "title": "Go module graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned Go example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "go",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-go-gomod",
+          "ref": "v1.0.0",
+          "revision": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-go$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-go.golden.json"
+        }
+      ],
+      "proves": [
+        "The Go detector resolves a build-tool-backed module graph for the pinned repository."
+      ],
+      "limitations": [
+        "The result depends on a compatible Go toolchain and the evidence available from that toolchain."
+      ]
+    },
+    {
+      "id": "graph-maven",
+      "title": "Maven dependency graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned Maven example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "java",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-java-maven",
+          "ref": "v1.0.0",
+          "revision": "93bb3aae614e2f2c6cb65f5ea2315846f5234150"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "java",
+        "mvn"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-maven$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-maven.golden.json"
+        }
+      ],
+      "proves": [
+        "The Maven detector resolves a build-tool-backed dependency graph for the pinned repository."
+      ],
+      "limitations": [
+        "Artifact resolution depends on Maven repositories and a compatible Java and Maven installation."
+      ]
+    },
+    {
+      "id": "graph-npm",
+      "title": "npm lockfile graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned npm example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "node",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "v1.0.0",
+          "revision": "559a762aeef68b0e5c818f62dfba67abc369912f"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-npm$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-npm.golden.json"
+        }
+      ],
+      "proves": [
+        "The npm detector preserves lockfile package inventory, versions, scopes, and dependency placement."
+      ],
+      "limitations": [
+        "This case covers the lockfile versions present in one pinned repository."
+      ]
+    },
+    {
+      "id": "graph-pnpm",
+      "title": "pnpm lockfile graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned pnpm example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "node",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-pnpm",
+          "ref": "v1.0.0",
+          "revision": "f1b0959f916dfb91db70c54a75b15e5b7f3d16af"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-pnpm$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-pnpm.golden.json"
+        }
+      ],
+      "proves": [
+        "The pnpm detector preserves lockfile package inventory and dependency placement."
+      ],
+      "limitations": [
+        "This case does not cover every pnpm lockfile generation."
+      ]
+    },
+    {
+      "id": "graph-python",
+      "title": "Python requirements graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned Python example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "python",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-python-pip",
+          "revision": "fe04c758134b95dab102e1fce10275f7d18c0cf2"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "pip"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-python-pip$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-python-pip.golden.json"
+        }
+      ],
+      "proves": [
+        "The pip detector reads the pinned requirements lock and preserves the resolved Python package graph."
+      ],
+      "limitations": [
+        "Unpinned requirements and environment inspection have different fidelity and are not proven by this case."
+      ]
+    },
+    {
+      "id": "graph-yarn",
+      "title": "Yarn lockfile graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned Yarn example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "node",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-yarn",
+          "ref": "v1.0.0",
+          "revision": "c84017b43bf0f6ea74281f4174a0c89b88b8cddf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-yarn$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-yarn.golden.json"
+        }
+      ],
+      "proves": [
+        "The Yarn detector preserves package inventory and dependency placement represented by the pinned lockfile."
+      ],
+      "limitations": [
+        "This case covers one Yarn lockfile family; fallback behavior is documented separately."
+      ]
+    },
+    {
+      "id": "license-policy",
+      "title": "Complex and invalid SPDX policy",
+      "area": "policy",
+      "description": "Evaluates licence policy against a matrix of SPDX expressions, including combined, nested, exception, custom, and invalid ones.",
+      "evidence_level": "deterministic",
+      "check_id": "unit-portable",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/auditors/license/spdx_policy_matrix_test.go"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/auditors/license",
+          "-run",
+          "TestLicenseAuditorComplexSPDX|TestLicenseAuditorInvalidSPDXExpressionMatrix",
+          "-count=1"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "internal/auditors/license/spdx_policy_matrix_test.go"
+        }
+      ],
+      "proves": [
+        "The license auditor evaluates AND, OR, nested, exception, custom-reference, and invalid SPDX expressions under allow and deny policy."
+      ],
+      "limitations": [
+        "The tests prove policy evaluation after license data is present; they do not prove the accuracy of every upstream license source."
+      ]
+    },
+    {
+      "id": "persisted-risk",
+      "title": "Risk that persists across a version change",
+      "area": "diff",
+      "description": "Compares two scans across a package version change and checks how a finding that survives the change is classified.",
+      "evidence_level": "deterministic",
+      "check_id": "unit-portable",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/engine/diff/diff_test.go"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/engine/diff",
+          "-run",
+          "TestRun_SameVulnerabilityAcrossVersionBumpPersists|TestRun_SameLicenseIssueAcrossVersionBumpPersists",
+          "-count=1"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "internal/engine/diff/diff_test.go"
+        }
+      ],
+      "proves": [
+        "A vulnerability or license finding that remains across a package version change is classified as persisted instead of one resolved and one introduced finding."
+      ],
+      "limitations": [
+        "Persistence uses the canonical package-finding identity; a genuinely different advisory or rule remains a distinct finding."
+      ]
+    },
+    {
+      "id": "reachability-go",
+      "title": "Go vulnerability reachability",
+      "area": "reachability",
+      "description": "Analyses a pinned Go project and checks the reachability evidence attached to each matched vulnerability.",
+      "evidence_level": "live-service",
+      "check_id": "smoke",
+      "instance": "go-reachability",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-go-gomod",
+          "ref": "v1.0.0",
+          "revision": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-go-reachability$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-go-reachability.golden.json"
+        }
+      ],
+      "proves": [
+        "The Go analyzer attaches named analyzer, tier, status, and reason evidence to matched vulnerabilities."
+      ],
+      "limitations": [
+        "Advisories come from live services and may change; an unreachable result is not proof that a package is safe."
+      ]
+    },
+    {
+      "id": "reachability-java",
+      "title": "Java package reachability",
+      "area": "reachability",
+      "description": "Analyses a pinned Java project and checks the reachability evidence attached to each matched vulnerability.",
+      "evidence_level": "live-service",
+      "check_id": "smoke",
+      "instance": "java-reachability",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-java-maven",
+          "ref": "v1.0.0",
+          "revision": "93bb3aae614e2f2c6cb65f5ea2315846f5234150"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "java",
+        "mvn"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-java-maven-reachability$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-java-maven-reachability.golden.json"
+        }
+      ],
+      "proves": [
+        "The Java analyzer separates package-reachable and package-unreachable vulnerability evidence."
+      ],
+      "limitations": [
+        "This is package-tier evidence, not symbol-level proof, and live advisory results may change."
+      ]
+    },
+    {
+      "id": "reachability-node",
+      "title": "JavaScript package reachability",
+      "area": "reachability",
+      "description": "Analyses a pinned JavaScript project and checks the reachability evidence attached to each matched vulnerability.",
+      "evidence_level": "live-service",
+      "check_id": "smoke",
+      "instance": "node-reachability",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "v1.0.0",
+          "revision": "559a762aeef68b0e5c818f62dfba67abc369912f"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-npm-reachability$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-npm-reachability.golden.json"
+        }
+      ],
+      "proves": [
+        "The JavaScript analyzer separates package-reachable and package-unreachable vulnerability evidence."
+      ],
+      "limitations": [
+        "This is package-tier evidence, dynamic loading can reduce confidence, and live advisory results may change."
+      ]
+    },
+    {
+      "id": "reachability-python",
+      "title": "Python package reachability",
+      "area": "reachability",
+      "description": "Analyses a pinned Python project and checks the reachability evidence attached to each matched vulnerability.",
+      "evidence_level": "live-service",
+      "check_id": "smoke",
+      "instance": "python-reachability",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-python-pip",
+          "revision": "fe04c758134b95dab102e1fce10275f7d18c0cf2"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "pip"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-python-pip-reachability$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-python-pip-reachability.golden.json"
+        }
+      ],
+      "proves": [
+        "The Python analyzer separates package-reachable and package-unreachable vulnerability evidence."
+      ],
+      "limitations": [
+        "This is package-tier evidence, reflective imports can reduce confidence, and live advisory results may change."
+      ]
+    },
+    {
+      "id": "remediation-read-only",
+      "title": "Canonical read-only remediation guidance",
+      "area": "remediation",
+      "description": "Derives upgrade guidance for a set of findings and checks the fix status, versions, and per-occurrence advice it produces.",
+      "evidence_level": "deterministic",
+      "check_id": "unit-portable",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/remediation/derive_test.go"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/remediation",
+          "-run",
+          "TestDerivePackageRemediation|TestDeriveBuildsCanonicalOccurrenceSuggestions",
+          "-count=1"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "internal/remediation/derive_test.go"
+        }
+      ],
+      "proves": [
+        "One central component derives fix status, recommended versions, occurrence actions, and detector advice without applying changes."
+      ],
+      "limitations": [
+        "Suggestions are read-only evidence and are not guaranteed to work in every checkout."
+      ]
+    },
+    {
+      "id": "sbom-cyclonedx-ingest",
+      "title": "CycloneDX 1.6 ingestion",
+      "area": "sbom",
+      "description": "Reads a checked-in CycloneDX document and compares the dependency graph it produces with a recorded one.",
+      "evidence_level": "deterministic",
+      "check_id": "smoke",
+      "instance": "sbom",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "test/smoke/testdata/sboms/go.cdx.json"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-sbom-cyclonedx$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-sbom-cyclonedx.golden.json"
+        }
+      ],
+      "proves": [
+        "Bomly ingests the checked CycloneDX 1.6 dependency graph."
+      ],
+      "limitations": [
+        "The fixture covers one document shape and does not imply lossless conversion from every producer."
+      ]
+    },
+    {
+      "id": "sbom-spdx-ingest",
+      "title": "SPDX 2.3 ingestion",
+      "area": "sbom",
+      "description": "Reads a checked-in SPDX document and compares the dependency graph it produces with a recorded one.",
+      "evidence_level": "deterministic",
+      "check_id": "smoke",
+      "instance": "sbom",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "test/smoke/testdata/sboms/go.spdx.json"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-sbom-spdx$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-sbom-spdx.golden.json"
+        }
+      ],
+      "proves": [
+        "Bomly ingests the checked SPDX 2.3 dependency graph."
+      ],
+      "limitations": [
+        "The fixture covers one document shape and does not imply lossless conversion from every producer."
+      ]
+    },
+    {
+      "id": "source-change-policy",
+      "title": "Registry-to-Git source-change review",
+      "area": "policy",
+      "description": "Compares two scans of the same project where one package moved from a registry to a Git source, and checks how that is flagged.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "node-detail-policy",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "assurance/dependency-source-registry-v1",
+          "revision": "f6127099dad7f8b6fbaa7ed1ceb8e7b0d1e8c864"
+        },
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "assurance/dependency-source-git-v1",
+          "revision": "96ffda21548628ce36201741b56164ca5c4405b6"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestDependencyDetailRiskPolicy$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/audit_test.go"
+        }
+      ],
+      "proves": [
+        "Diff marks a same-version registry-to-Git move for review and the package auditor can fail it when source-change policy is enabled."
+      ],
+      "limitations": [
+        "A source change is a review signal, not proof of malicious intent, and unknown source evidence cannot be classified."
+      ]
+    },
+    {
+      "id": "vulnerability-policy",
+      "title": "Vulnerability policy constraints",
+      "area": "policy",
+      "description": "Evaluates vulnerability policy against a matrix of severities, reachability tiers, known exploitation, and advisory allowlists.",
+      "evidence_level": "deterministic",
+      "check_id": "unit-portable",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/auditors/vulnerability/policy_matrix_test.go"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/auditors/vulnerability",
+          "-run",
+          "TestAuditorSeverityReachabilityExploitabilityAndAllowlistMatrix",
+          "-count=1"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "internal/auditors/vulnerability/policy_matrix_test.go"
+        }
+      ],
+      "proves": [
+        "The vulnerability auditor composes severity, reachability, known exploitation, and advisory allowlists with the documented repeated-constraint behavior."
+      ],
+      "limitations": [
+        "Policy can only evaluate vulnerability, reachability, and exploitation evidence that is present in the registry."
+      ]
+    }
+  ],
+  "coverage": {
+    "ecosystems": [
+      {
+        "name": ".NET",
+        "status": "pass"
+      },
+      {
+        "name": "C and C++",
+        "status": "pass"
+      },
+      {
+        "name": "Container images",
+        "status": "pass"
+      },
+      {
+        "name": "Dart",
+        "status": "pass"
+      },
+      {
+        "name": "Elixir",
+        "status": "pass"
+      },
+      {
+        "name": "Go",
+        "status": "pass"
+      },
+      {
+        "name": "Java",
+        "status": "pass"
+      },
+      {
+        "name": "JavaScript",
+        "status": "pass"
+      },
+      {
+        "name": "PHP",
+        "status": "pass"
+      },
+      {
+        "name": "Plugins",
+        "status": "pass"
+      },
+      {
+        "name": "Python",
+        "status": "pass"
+      },
+      {
+        "name": "Ruby",
+        "status": "pass"
+      },
+      {
+        "name": "Rust",
+        "status": "pass"
+      },
+      {
+        "name": "SBOM documents",
+        "status": "pass"
+      },
+      {
+        "name": "Scala",
+        "status": "pass"
+      },
+      {
+        "name": "Swift",
+        "status": "pass"
+      }
+    ]
+  },
+  "trends": {
+    "previous_tag": "v0.28.1",
+    "metrics": [
+      {
+        "check_id": "fuzz",
+        "metric": "targets",
+        "label": "File readers stress-tested",
+        "description": "How many of Bomly's file readers were fed deliberately broken input to confirm they fail cleanly instead of crashing. A higher number means more kinds of input were tested.",
+        "previous": 30,
+        "current": 30,
+        "delta": 0,
+        "better": "higher"
+      },
+      {
+        "check_id": "perf-samples",
+        "metric": "peak_memory_bytes",
+        "label": "Memory used by a small scan",
+        "description": "The most memory the released program used while scanning one small SBOM file, the same file every release. Lower is better. It shows the program's baseline footprint, not how much a large project needs.",
+        "previous": 43380736,
+        "current": 45629440,
+        "delta": 2248704,
+        "delta_pct": 5.183646492304788,
+        "better": "lower"
+      },
+      {
+        "check_id": "release-assets",
+        "metric": "assets",
+        "label": "Files in the release",
+        "description": "How many files this release publishes: the programs for each operating system, the Linux packages, and the checksum, signature, and provenance files. A change means files were added or removed; it is neither good nor bad by itself.",
+        "previous": 23,
+        "current": 23,
+        "delta": 0,
+        "better": "neutral"
+      },
+      {
+        "check_id": "sbom-interoperability",
+        "metric": "documents",
+        "label": "SBOM files checked by official tools",
+        "description": "How many SBOM files written by Bomly were checked by the official SPDX and CycloneDX validation tools. A higher number means more kinds of export were checked.",
+        "previous": 4,
+        "current": 4,
+        "delta": 0,
+        "better": "higher"
+      },
+      {
+        "check_id": "smoke",
+        "metric": "tests_total",
+        "label": "End-to-end tests run",
+        "description": "How many end-to-end tests ran against real projects before this release was tagged. Each one scans a real project with the built program and compares the result with a saved, reviewed answer. A higher number means more behavior was checked.",
+        "previous": 107,
+        "current": 107,
+        "delta": 0,
+        "better": "higher"
+      }
+    ]
+  },
+  "environment": {
+    "runners": [
+      {
+        "os": "darwin",
+        "arch": "arm64",
+        "go_version": "go1.27.0"
+      },
+      {
+        "os": "linux",
+        "arch": "amd64",
+        "go_version": "go1.27.0"
+      },
+      {
+        "os": "windows",
+        "arch": "amd64",
+        "go_version": "go1.27.0"
+      }
+    ],
+    "generated_by": "assurance"
+  }
+}

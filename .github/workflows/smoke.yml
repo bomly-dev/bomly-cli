@@ -6,13 +6,16 @@ name: Smoke
 # every push.
 #
 # The gate is a commit status named `Smoke` on the pull request's head
-# commit, posted by this workflow only for an approving review: pending when
-# the run starts, then success or failure from the slices. Required by the
-# `main` ruleset, it reads "Expected -- waiting for status" until approval,
-# so nothing merges unsmoked. A job name could not serve as the gate: a
-# comment-only review also fires pull_request_review, and a job skipped by
-# its `if:` counts as passing. A push after approval dismisses the approval
-# (ruleset) and moves the head, so the new head waits for a new approval.
+# commit, posted by smoke-status.yml once an approval-triggered run
+# completes. Required by the `main` ruleset, it reads "Expected -- waiting
+# for status" until approval, so nothing merges unsmoked. A job name could
+# not serve as the gate: a comment-only review also fires
+# pull_request_review, and a job skipped by its `if:` counts as passing. The
+# status is posted from a separate workflow_run workflow because a fork pull
+# request's token is read-only here; this workflow runs the pull request's
+# code and holds no write permission. A push after approval dismisses the
+# approval (ruleset) and moves the head, so the new head waits for a new
+# approval.
 on:
   pull_request_review:
     types: [submitted]
@@ -23,8 +26,11 @@ on:
 permissions:
   contents: read
 
+# A newer approval supersedes a running one, but a comment-only review gets a
+# group of its own: it runs nothing, and sharing the group would cancel the
+# approval's run in progress.
 concurrency:
-  group: smoke-${{ github.event_name }}-${{ github.ref }}
+  group: smoke-${{ github.event_name }}-${{ github.ref }}-${{ github.event_name == 'pull_request_review' && github.event.review.state != 'approved' && github.run_id || 'run' }}
   cancel-in-progress: true
 
 jobs:
@@ -36,21 +42,7 @@ jobs:
     if: github.event_name != 'pull_request_review' || github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: read
-      statuses: write
     steps:
-      - name: Report Smoke as pending
-        if: github.event_name == 'pull_request_review'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.event.pull_request.head.sha }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          gh api "repos/${GITHUB_REPOSITORY}/statuses/${SHA}" \
-            -f state=pending -f context=Smoke -f target_url="$RUN_URL" \
-            -f description="Smoke suite running after approval"
-
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -290,32 +282,3 @@ jobs:
           echo "Use Update Smoke Goldens workflow to update golden files if the failures are due to expected changes."
           exit 1
 
-  # Posts the `Smoke` commit status the ruleset requires, from the slices'
-  # actual result. Runs only for an approving review; a cancelled run (a
-  # second approval supersedes it) reports failure and the newer run's
-  # status replaces it.
-  report:
-    name: Report Smoke status
-    needs: [build, smoke]
-    if: always() && github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
-    runs-on: ubuntu-latest
-    permissions:
-      statuses: write
-    steps:
-      - name: Report Smoke result
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.event.pull_request.head.sha }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          BUILD: ${{ needs.build.result }}
-          SMOKE: ${{ needs.smoke.result }}
-        run: |
-          state=failure
-          description="build: ${BUILD}, smoke: ${SMOKE}"
-          if [ "$BUILD" = "success" ] && [ "$SMOKE" = "success" ]; then
-            state=success
-            description="Smoke suite passed"
-          fi
-          gh api "repos/${GITHUB_REPOSITORY}/statuses/${SHA}" \
-            -f state="$state" -f context=Smoke -f target_url="$RUN_URL" \
-            -f description="$description"

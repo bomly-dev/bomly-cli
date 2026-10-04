@@ -93,7 +93,7 @@ verify:
 # through an ignored go.work, so an SDK change is tested here before it is
 # tagged; sdk-pinned returns to the released version go.mod pins.
 sdk-local:
-	scripts/sdk-workspace.sh on $(SDK)
+	scripts/sdk-workspace.sh on "$(SDK)"
 
 sdk-pinned:
 	scripts/sdk-workspace.sh off

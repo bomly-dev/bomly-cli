@@ -1,0 +1,57 @@
+name: Smoke status
+
+# Posts the `Smoke` commit status the main ruleset requires, from the result
+# of a Smoke run that an approving pull request review started.
+#
+# It is a separate workflow_run workflow so that it runs from the default
+# branch with a write token while the pull request's code runs in Smoke with
+# none: a fork pull request's token is read-only there, so Smoke itself
+# could never post the status for an external contributor. This workflow
+# checks out nothing and runs no pull request code; it reads the run's
+# result through the API and writes one status.
+on:
+  workflow_run:
+    workflows: [Smoke]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    name: Report Smoke status
+    if: github.event.workflow_run.event == 'pull_request_review'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      statuses: write
+    steps:
+      - name: Post the Smoke status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          set -euo pipefail
+          # A comment-only review also starts Smoke, which then skips every
+          # job; only a run whose build actually ran speaks for the commit.
+          build="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs" --paginate \
+            -q '.jobs[] | select(.name == "Build CLI binaries") | .conclusion')"
+          if [ "$build" = "skipped" ] || [ -z "$build" ]; then
+            echo "Run ${RUN_ID} was not started by an approval; no status posted."
+            exit 0
+          fi
+          case "$CONCLUSION" in
+          success) state=success; description="Smoke suite passed" ;;
+          cancelled | skipped)
+            # Superseded by a newer approval, whose run reports instead.
+            echo "Run ${RUN_ID} ${CONCLUSION}; no status posted."
+            exit 0
+            ;;
+          *) state=failure; description="Smoke suite ${CONCLUSION}" ;;
+          esac
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${SHA}" \
+            -f state="$state" -f context=Smoke -f target_url="$RUN_URL" \
+            -f description="$description"

@@ -13,13 +13,28 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
+# status reports what the go command actually resolves, which a workspace
+# outside this checkout (an ancestor go.work, or GOWORK) can decide too.
 status() {
-	local dir version
+	local dir version workspace
+	workspace="$(go env GOWORK)"
 	IFS='|' read -r version dir < <(go list -m -f '{{.Version}}|{{.Dir}}' github.com/bomly-dev/bomly-sdk)
-	if [ -f go.work ] && [ -z "$version" ]; then
-		echo "bomly-sdk: local checkout $dir (go.work)"
+	if [ -z "$version" ]; then
+		echo "bomly-sdk: local checkout $dir (workspace $workspace)"
 	else
-		echo "bomly-sdk: $version (go.mod pin)"
+		echo "bomly-sdk: $version (go.mod pin)${workspace:+, workspace $workspace}"
+	fi
+}
+
+# ambient fails when a workspace this script does not own still applies after
+# its own go.work is gone, since the build would keep using it.
+ambient() {
+	local workspace
+	workspace="$(go env GOWORK)"
+	if [ -n "$workspace" ]; then
+		echo "a workspace outside this checkout still applies: $workspace" >&2
+		echo "unset GOWORK or remove that file (or set GOWORK=off) to build against the go.mod pin" >&2
+		exit 1
 	fi
 }
 
@@ -32,11 +47,12 @@ on)
 	fi
 	sdk="$(cd "$sdk" && pwd)"
 	rm -f go.work go.work.sum
-	go work init . "$sdk"
+	GOWORK= go work init . "$sdk"
 	status
 	;;
 off)
 	rm -f go.work go.work.sum
+	ambient
 	status
 	;;
 status)

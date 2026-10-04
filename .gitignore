@@ -46,5 +46,3 @@ qodana.yaml
 go.work
 go.work.sum
 
-# Written by `make verify`, read by .githooks/pre-push.
-.verify-stamp

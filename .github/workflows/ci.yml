@@ -118,6 +118,16 @@ jobs:
             go mod edit -json | jq '.Replace' >&2
             exit 1
           fi
+      - name: Forbid a committed workspace
+        # `make sdk-local` writes go.work to build against a local SDK
+        # checkout; it is ignored and must never ship.
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "$(git ls-files go.work go.work.sum)" ]; then
+            echo "go.work is a local development file; remove it from the commit (make sdk-pinned)" >&2
+            exit 1
+          fi
 
   generated-docs:
     name: Generated docs drift

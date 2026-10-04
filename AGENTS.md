@@ -1,6 +1,9 @@
-# Agent Instructions — Bomly CLI
+# AGENTS.md
 
-Guidance for AI agents working in this repository.
+Guidance for AI agents working in this repository. This is the only guidance
+file: Claude Code, Codex and the other agents read it directly, and
+`TestGuidanceLivesInAgentsMD` fails if a `CLAUDE.md` or `CLAUDE.local.md`
+appears beside it, because either one hides this file from Claude Code.
 
 Bomly is a **customer-facing, security-sensitive CLI** for dependency intelligence. Audience: professional developers, security managers, and CI workflows. Expect high standards: correct behavior, clear output, full logging, and no panics.
 
@@ -17,8 +20,10 @@ make build-lite          # go build -tags "bomly_external_syft,bomly_external_gr
 make test                # go test ./...
 make smoke               # end-to-end tests driving the built binary (slow, requires network)
 make smoke ARGS="-update" # regenerate smoke golden files
-make verify              # everything that gates a push; writes .verify-stamp
-make verify SMOKE=1      # the same, including the network-driven smoke suite
+make verify              # every CI check, locally (optional; SMOKE=1 adds the smoke suite)
+make sdk-local SDK=<dir> # build against a local bomly-sdk checkout (ignored go.work)
+make sdk-pinned          # back to the released SDK go.mod pins
+make sdk-status          # which SDK the build resolves
 make lint                # golangci-lint under both build-tag sets, plus the guardcheck house-rule analyzers
 make fuzz FUZZTIME=5s    # run every registered fuzz target with a short per-target budget
 make benchmark           # run the hidden local dependency-graph benchmark
@@ -28,19 +33,50 @@ make run ARGS="scan"    # go run ./cmd/bomly <ARGS>
 make generate            # regenerate config reference, JSON schemas, schema docs, support matrix, and component docs (binary-driven)
 ```
 
-Always run `make verify` before pushing or updating a pull request; it runs formatting, lint, vet and build on both build variants, the unit suite, and the generated-docs drift check. All of it must pass before marking work done.
-`.githooks/pre-push` refuses a push unless `make verify` has passed since the
-last source change (`git config core.hooksPath .githooks`, or `make
-install-hooks`, enables it). The check is a stamp read, not a test run: a
-six-minute hook gets bypassed, and a bypassed hook enforces nothing. Smoke is
-not required by default because it needs the network and several minutes --
-run `make verify SMOKE=1` when a change touches detector output, and set
-`BOMLY_REQUIRE_SMOKE=1` to make the hook insist on it. `git push --no-verify`
-skips the gate deliberately.
+Run `make test` before pushing; `.githooks/pre-push` runs it (`make
+install-hooks` enables the hooks; pre-commit runs `fmt-check` and `lint`).
+CI owns the rest on the pull request: lint, vet and build under both build
+variants, and the generated-docs drift check. `make verify` runs all of that
+locally when you want it. All of it must pass before work is done.
+
+Do not run the smoke suite locally unless you are debugging a smoke case: it
+needs the network, every ecosystem's toolchain, and tens of minutes. CI runs
+it when a pull request is approved -- its `Smoke` commit status is required,
+so a pull request waits on it after approval -- and nightly. To refresh goldens after an intended output
+change, dispatch the golden workflow on your branch; it opens a pull
+request with the drift against it:
+
+```sh
+gh workflow run update-smoke-goldens.yml --ref <branch> -f base_ref=<branch>
+```
 
 If you change `internal/cli/config.go`, `internal/output/*`, or `internal/registry/support.go`, or bump the pinned `bomly-dev/bomly-sdk` version (its catalog or support-matrix data feeds the generated docs), also run `make generate` and commit the docs drift.
 
-`go.mod` pins released versions and must not contain `replace` directives on main (CI enforces this), so remote `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` stays supported. External component modules (`bomly-plugin-*`) are ordinary pinned dependencies bumped by Dependabot. Local cross-repo development: `go work init . ../bomly-sdk` (never commit `go.work`).
+`go.mod` pins released versions and must not contain `replace` directives on main (CI enforces this), so remote `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` stays supported. External component modules (`bomly-plugin-*`) are ordinary pinned dependencies bumped by Dependabot. Local cross-repo development uses `make sdk-local`; see "Developing with the SDK" below.
+
+### Developing with the SDK
+
+Most SDK changes exist for this repository, so test them here **before**
+the SDK tags. Several SDK tags in a row once shipped to fix what this
+repository found only after adopting each one.
+
+1. `make sdk-local SDK=<path to a bomly-sdk checkout>` (default
+   `../bomly-sdk`; a worktree path works) writes an ignored `go.work`, and
+   the build, `make test` and the plugin fixture compile check all use that
+   checkout. `make sdk-status` says which SDK is in use.
+2. Change both repositories and run `make test` here. From the SDK side,
+   `make cli-test CLI=<this checkout>` runs this repository's build, vet and
+   unit tests against the SDK checkout without touching either one, and the
+   SDK's `CLI compatibility` job does the same against `main` on every SDK
+   pull request.
+3. Push every review fix to the SDK pull request **before** it merges and
+   tags; a commit that lands after the squash is not in the tag.
+4. After the tag: `make sdk-pinned`, then `go get
+   github.com/bomly-dev/bomly-sdk@<tag> && go mod tidy && make generate`,
+   and open this repository's pull request on the released tag. Never pin a
+   commit or pseudo-version.
+
+CI fails if `go.work` is committed.
 
 ### Git Worktrees
 
@@ -385,7 +421,7 @@ Any new user-visible feature needs a smoke case under `test/smoke/` — follow t
 - `make generate` regenerates `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, `docs/SUPPORT_MATRIX.md`, and the component docs through the built binary. Run it whenever `internal/config/config.go` or `internal/output/*` change, or when the pinned SDK version (catalog / support-matrix data) is bumped.
 - Add or update a feature page under `docs/` (e.g. `docs/REACHABILITY.md`) with quick-start usage, semantics, ecosystem coverage, output shape, and limitations. Be explicit about safety caveats (e.g. "tier-3 unreachable does not mean safe").
 - `dev-docs/ARCHITECTURE.md`: update the pipeline diagram if the stage list changed; keep the public `docs/ARCHITECTURE.md` overview in sync when stages change. Add an ADR under `dev-docs/adr/` for non-obvious design choices (copy `TEMPLATE.md`, next number, index row).
-- `CLAUDE.md` and `AGENTS.md`: update the architecture tree and package-boundary list when introducing a new internal package.
+- `AGENTS.md`: update the architecture tree and package-boundary list when introducing a new internal package.
 
 ## Release
 
@@ -406,3 +442,36 @@ Nothing about a merge to `main` starts a release, and no commit prefix chooses t
 | [`docs/SUPPORT_MATRIX.md`](docs/SUPPORT_MATRIX.md)     | Ecosystem detector coverage                                                             |
 | `docs/schemas/*.json`, `docs/schemas/*.md`             | Generated JSON schemas and human-readable output docs for `scan`, `diff`, and `explain` |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                   | Development setup, conventions, testing                                                 |
+
+## AI review triage
+
+Automated reviewers (Codex, CodeRabbit) are triaged by severity, with a cap
+of **three rounds per reviewer per pull request**. A round is one batch of
+findings from one reviewer, whether or not it changed anything. The same
+section appears in bomly-sdk and bomly-cli; change both together.
+
+Severity is the reviewer's own label: Codex P0–P3; CodeRabbit Critical → P0,
+Major → P1, Minor → P2, Trivial and Nitpick → P3. An unlabeled finding is
+P0 when it is a security hole, data loss, a crash, wrong user-visible
+output, or a broken build; P1 when it is a real defect in changed code with
+a concrete failing input; P2 or P3 otherwise. Every finding is verified
+against the actual behavior before it is accepted, whatever its label.
+
+| Severity | Within the cap | After the cap |
+|---|---|---|
+| P0 | Fix | Fix, without limit — a failing check, test, or fuzz target counts as P0 |
+| P1 | Fix | Fix when small (about ten lines, no new surface); otherwise file an issue |
+| P2, P3 | Fix only inside code the PR already changes, adding no new API, test file, or doc section | Decline |
+
+**File an issue** when a finding is verified or plausible, has a concrete
+failing scenario, and is either beyond the pull request's scope or arrives
+after the cap. Name the finding, the file and line, what was claimed, and
+what still needs checking, so a fresh session can validate it.
+
+**Decline** when the finding is refuted by the actual behavior, repeats one
+already answered, is style or preference, is speculative with no failing
+input, concerns untouched code without a defect, or is P2/P3 beyond scope.
+
+Reply on every thread — fixed, filed as #N, or declined and why, noting
+when the cap was reached — and resolve the threads you answered. Never
+soften an assertion or delete a test to make a finding go away.

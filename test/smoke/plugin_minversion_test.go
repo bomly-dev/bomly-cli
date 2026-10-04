@@ -16,7 +16,7 @@ import (
 func TestPluginMinVersionWireCompat(t *testing.T) {
 	requireTool(t, "go")
 
-	plugin := buildExamplePluginWithSDK(t, minSupportedSDKVersion)
+	plugin := buildExamplePluginWithSDK(t, sdkModule{Version: minSupportedSDKVersion})
 	projectDir := createExamplePluginProject(t)
 	env := pluginWorkflowEnv(t)
 

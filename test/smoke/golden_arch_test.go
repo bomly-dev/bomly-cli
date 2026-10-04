@@ -30,7 +30,7 @@ import (
 // dpkg says amd64/arm64/ppc64el, Alpine and RPM say x86_64/aarch64, OCI and
 // Go say amd64/arm64/ppc64le.
 //
-// Delegation check (CLAUDE.md): github.com/containerd/platforms is pinned
+// Delegation check (AGENTS.md): github.com/containerd/platforms is pinned
 // (indirect) and does own the OCI platform vocabulary, including the
 // x86_64 -> amd64 and aarch64 -> arm64 aliases. It is deliberately NOT used
 // here, for three reasons:

@@ -142,7 +142,7 @@ func newScanCmd() *cobra.Command {
 			if pipeResult.Consolidated.Graphs != nil {
 				sbomEntries = pipeResult.Consolidated.Graphs.Entries
 			}
-			sbomBuildOpts := scanSBOMBuildOptions(logger, project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, coverageDegraded(pipeResult.DetectorWarnings))
+			sbomBuildOpts := scanSBOMBuildOptions(logger, commandCtx.ExecutionTarget(), project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, coverageDegraded(pipeResult.DetectorWarnings))
 
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -231,7 +231,7 @@ func scanPolicyExit(auditEnabled bool, findings []model.Finding) error {
 // scanSBOMBuildOptions assembles the SBOM projection options for a scan: the
 // document is named after the scanned project, the primary component mirrors
 // it, and optional provenance metadata comes from configuration.
-func scanSBOMBuildOptions(logger *zap.Logger, project output.ProjectDescriptor, current config.Resolved, version string, resolved []plugin.DetectionResult, registry *model.PackageRegistry, selectedScope model.Scope, degraded bool) sbom.BuildOptions {
+func scanSBOMBuildOptions(logger *zap.Logger, target plugin.ExecutionTarget, project output.ProjectDescriptor, current config.Resolved, version string, resolved []plugin.DetectionResult, registry *model.PackageRegistry, selectedScope model.Scope, degraded bool) sbom.BuildOptions {
 	opts := sbom.BuildOptions{
 		ToolNames:   sbomToolNames(resolved),
 		ToolVersion: strings.TrimSpace(version),
@@ -249,14 +249,31 @@ func scanSBOMBuildOptions(logger *zap.Logger, project output.ProjectDescriptor, 
 		},
 	}
 	if name := strings.TrimSpace(project.Name); name != "" {
-		projectVersion := strings.TrimSpace(project.TargetRef)
-		if projectVersion == "" {
-			projectVersion = gitDescribeVersion(logger, project.Path)
-		}
 		opts.DocumentName = name
-		opts.ProjectRoot = &sbom.ProjectRoot{Name: name, Version: projectVersion}
+		opts.ProjectRoot = &sbom.ProjectRoot{Name: name, Version: sbomProjectVersion(logger, target, project)}
 	}
 	return opts
+}
+
+// sbomProjectVersion picks the version the SBOM's primary component carries
+// (issue #504). The checkout the scan actually ran against -- the temporary
+// clone of a --url target, or the local --path -- is described first, so a
+// remote and a local scan of the same commit name the same version, and a
+// tag reaches the document even when the user asked for it by branch. The
+// clone's resolved commit comes next, and the ref as typed last: a branch
+// name is the weakest identity a document can carry, and a URL is a
+// location, never a checkout, so it is never handed to git.
+func sbomProjectVersion(logger *zap.Logger, target plugin.ExecutionTarget, project output.ProjectDescriptor) string {
+	switch target.Kind {
+	case plugin.ExecutionTargetGitRepository, plugin.ExecutionTargetFilesystem:
+		if version := gitDescribeVersion(logger, target.Location); version != "" {
+			return version
+		}
+	}
+	if commit := strings.TrimSpace(target.CommitSHA); commit != "" {
+		return commit
+	}
+	return strings.TrimSpace(project.TargetRef)
 }
 
 // sbomLifecyclePhase maps the execution target type onto a CycloneDX
@@ -315,9 +332,11 @@ func sbomRestatesSource(current config.Resolved, selectedScope model.Scope, degr
 	return sbomCompositionAggregate(selectedScope, degraded) == "complete" && !current.Enrich
 }
 
-// gitDescribeVersion derives a project version from Git history when the scan
-// target is a checkout with no explicit ref (local path scans). Returns ""
-// when Git or history is unavailable — the version is then simply omitted.
+// gitDescribeVersion derives a project version from the Git history of a
+// checkout: the local --path, or the temporary clone of a --url target. The
+// path must be a directory on disk, never the repository URL. Returns ""
+// when Git or history is unavailable — the caller then falls back to what
+// else it knows about the target.
 func gitDescribeVersion(logger *zap.Logger, path string) string {
 	if logger == nil {
 		logger = zap.NewNop()

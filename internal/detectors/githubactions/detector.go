@@ -82,7 +82,7 @@ func (d Detector) Descriptor() plugin.DetectorDescriptor {
 
 // ResolveGraph resolves a GitHub Actions dependency graph from workflow and action manifests.
 func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
-	graphs, err := depGraphContainerFromRepository(req.ProjectPath)
+	graphs, err := depGraphContainerFromRepository(req.ProjectPath, originHost(req.ExecutionTarget))
 	if err != nil {
 		return plugin.DetectionResult{}, err
 	}
@@ -101,15 +101,67 @@ func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (
 	}, "a workflow file is not a module; there is no module root to attribute its sites to"), nil
 }
 
+// githubHost is the host every "uses: owner/repo@ref" reference resolves
+// against when the scanned repository is not known to live elsewhere.
+const githubHost = "github.com"
+
+// originHost is the host an external reference's origin is published on,
+// or "" when none is: the GitHub instance the scanned repository lives on
+// decides where "owner/repo@ref" resolves, and only github.com is a
+// resolution Bomly can state.
+//
+// A GitHub Enterprise Server or GHE.com instance looks the repository up on
+// the instance first and, when configured, falls back to github.com for a
+// repository the instance does not hold (GitHub Connect). Which of the two
+// a reference resolved to is not knowable from the workflow file, so for a
+// repository scanned from such a host the origin is omitted rather than
+// guessed. A filesystem scan carries no host at all and is taken to be
+// github.com, which is what the package URL type already asserts.
+func originHost(target plugin.ExecutionTarget) string {
+	if target.Kind != plugin.ExecutionTargetGitRepository {
+		return githubHost
+	}
+	repository := strings.TrimSpace(target.RepositoryURL)
+	if repository == "" {
+		return githubHost
+	}
+	host := repositoryHost(repository)
+	if host == githubHost || host == "www."+githubHost {
+		return githubHost
+	}
+	return ""
+}
+
+// repositoryHost extracts the lowercase host of a clone URL, accepting the
+// URL forms a --url scan takes: a scheme URL and the scp-like
+// "user@host:path" form Git also accepts. Unparseable input yields "".
+func repositoryHost(repository string) string {
+	if parsed, err := url.Parse(repository); err == nil && parsed.Host != "" {
+		return strings.ToLower(parsed.Hostname())
+	}
+	// "git@github.com:org/repo.git": no scheme, so url.Parse reads it as
+	// a path. The host is between the "@" and the first ":".
+	if at := strings.Index(repository, "@"); at >= 0 && !strings.Contains(repository, "://") {
+		rest := repository[at+1:]
+		if colon := strings.Index(rest, ":"); colon > 0 {
+			return strings.ToLower(rest[:colon])
+		}
+	}
+	return ""
+}
+
 func depGraphFromRepository(projectPath string) (*model.Graph, error) {
-	container, err := depGraphContainerFromRepository(projectPath)
+	container, err := depGraphContainerFromRepository(projectPath, githubHost)
 	if err != nil {
 		return nil, err
 	}
 	return container.ConsolidatedGraph()
 }
 
-func depGraphContainerFromRepository(projectPath string) (*model.GraphContainer, error) {
+// depGraphContainerFromRepository resolves every workflow and action
+// manifest under projectPath. host is where external references publish
+// their origin, or "" to publish none; see originHost.
+func depGraphContainerFromRepository(projectPath, host string) (*model.GraphContainer, error) {
 	workflowFiles, actionFiles, err := discoverManifestFiles(projectPath)
 	if err != nil {
 		return nil, err
@@ -152,7 +204,7 @@ func depGraphContainerFromRepository(projectPath string) (*model.GraphContainer,
 			return nil, err
 		}
 		parent := workflowNodes[relPath]
-		if err := addReferenceEdges(depsGraph, parent, relPath, refs, workflowNodes, actionNodes); err != nil {
+		if err := addReferenceEdges(depsGraph, parent, relPath, refs, host, workflowNodes, actionNodes); err != nil {
 			return nil, err
 		}
 	}
@@ -162,7 +214,7 @@ func depGraphContainerFromRepository(projectPath string) (*model.GraphContainer,
 			return nil, err
 		}
 		parent := actionNodes[filepath.ToSlash(filepath.Dir(relManifestPath))]
-		if err := addReferenceEdges(depsGraph, parent, relManifestPath, refs, workflowNodes, actionNodes); err != nil {
+		if err := addReferenceEdges(depsGraph, parent, relManifestPath, refs, host, workflowNodes, actionNodes); err != nil {
 			return nil, err
 		}
 	}
@@ -333,9 +385,9 @@ func parseActionRefs(path string) ([]string, error) {
 	return uniqueStrings(refs), nil
 }
 
-func addReferenceEdges(depsGraph *model.Graph, parent *model.DependencyNode, callerRelPath string, refs []string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) error {
+func addReferenceEdges(depsGraph *model.Graph, parent *model.DependencyNode, callerRelPath string, refs []string, host string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) error {
 	for _, ref := range refs {
-		node, err := resolveReference(ref, callerRelPath, workflowNodes, actionNodes)
+		node, err := resolveReference(ref, callerRelPath, host, workflowNodes, actionNodes)
 		if err != nil {
 			return err
 		}
@@ -352,13 +404,13 @@ func addReferenceEdges(depsGraph *model.Graph, parent *model.DependencyNode, cal
 	return nil
 }
 
-func resolveReference(ref, callerRelPath string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) (*model.DependencyNode, error) {
+func resolveReference(ref, callerRelPath, host string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) (*model.DependencyNode, error) {
 	ref = strings.TrimSpace(ref)
 	if ref == "" || strings.HasPrefix(ref, "docker://") {
 		return nil, nil
 	}
-	if strings.HasPrefix(ref, "./") {
-		for _, candidate := range localReferenceCandidates(ref, callerRelPath) {
+	if localPath, isLocal := localReferencePath(ref); isLocal {
+		for _, candidate := range localReferenceCandidates(localPath, callerRelPath) {
 			if workflowNode, ok := workflowNodes[candidate]; ok {
 				return workflowNode, nil
 			}
@@ -375,7 +427,7 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*model
 				}
 			}
 		}
-		return localActionNode(strings.TrimPrefix(filepath.ToSlash(filepath.Clean(strings.TrimPrefix(ref, "./"))), "./"))
+		return localActionNode(strings.TrimPrefix(filepath.ToSlash(filepath.Clean(localPath)), "./"))
 	}
 
 	name, version := splitVersionRef(ref)
@@ -406,7 +458,7 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*model
 	// -- and it is recorded for every external reference, tag- or
 	// branch-pinned ones included, because the ref is what the manifest
 	// said even when it is not a commit (issue #508).
-	if origin := model.RepositoryOrigin(actionRepositoryURL(org, packageName), version); origin != nil {
+	if origin := model.RepositoryOrigin(actionRepositoryURL(host, org, packageName), version); origin != nil {
 		node.Origins = model.MergeOrigins(node.Origins, []model.DependencyOrigin{*origin})
 	}
 	// A SHA-pinned ref is also the Git object ID of the pinned commit, and a
@@ -421,21 +473,37 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*model
 	return node, nil
 }
 
+// localReferencePath reports whether a "uses:" value names a path inside
+// the scanned repository, and returns that path without its marker. Two
+// spellings mean this: "./path", which resolves against the checked-out
+// tree, and "$/path", the self-repository form that resolves against the
+// workflow's own repository at the running commit. Neither names another
+// repository, so neither gets an external identity or an origin.
+func localReferencePath(ref string) (string, bool) {
+	for _, marker := range []string{"./", "$/"} {
+		if strings.HasPrefix(ref, marker) {
+			return strings.TrimPrefix(ref, marker), true
+		}
+	}
+	return "", false
+}
+
 // actionRepositoryURL is the repository a "uses: owner/repo[/path]@ref"
-// reference is fetched from. GitHub resolves every such reference against
-// github.com, and the repository is always the first two segments: in
-// "github/codeql-action/upload-sarif" the third segment is a directory
-// inside github/codeql-action, and a reusable workflow's
+// reference is fetched from on host, or "" when host is empty or the
+// reference does not name an owner and a repository; RepositoryOrigin
+// declines to publish either. The repository is always the first two
+// segments: in "github/codeql-action/upload-sarif" the third segment is a
+// directory inside github/codeql-action, and a reusable workflow's
 // ".github/workflows/<file>.yml" is a path inside its repository the same
-// way. Returns "" when the reference does not name an owner and a
-// repository, which RepositoryOrigin then declines to publish.
-func actionRepositoryURL(org, name string) string {
+// way.
+func actionRepositoryURL(host, org, name string) string {
 	repository, _, _ := strings.Cut(strings.TrimSpace(name), "/")
 	org = strings.TrimSpace(org)
-	if org == "" || repository == "" {
+	host = strings.TrimSpace(host)
+	if host == "" || org == "" || repository == "" {
 		return ""
 	}
-	location := url.URL{Scheme: "https", Host: "github.com", Path: "/" + org + "/" + repository}
+	location := url.URL{Scheme: "https", Host: host, Path: "/" + org + "/" + repository}
 	return location.String()
 }
 
@@ -452,8 +520,11 @@ func isGitCommitSHA(value string) bool {
 	return true
 }
 
-func localReferenceCandidates(ref, callerRelPath string) []string {
-	trimmed := strings.TrimPrefix(strings.TrimSpace(ref), "./")
+// localReferenceCandidates lists where a local reference's path (already
+// stripped of its "./" or "$/" marker) may point: the repository root, and
+// the caller's own directory.
+func localReferenceCandidates(localPath, callerRelPath string) []string {
+	trimmed := strings.TrimSpace(localPath)
 	repoRelative := filepath.ToSlash(filepath.Clean(trimmed))
 	callerRelative := filepath.ToSlash(filepath.Clean(filepath.Join(filepath.Dir(callerRelPath), trimmed)))
 	return uniqueStrings([]string{repoRelative, callerRelative})

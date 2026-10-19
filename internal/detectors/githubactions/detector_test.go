@@ -247,6 +247,7 @@ func TestDepGraphOrigins(t *testing.T) {
 		"      - uses: actions/cache@v4\n" +
 		"      - uses: github/codeql-action/upload-sarif@" + pinned + "\n" +
 		"      - uses: ./.github/actions/local-setup\n" +
+		"      - uses: $/.github/actions/local-setup\n" +
 		"  provenance:\n    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0\n")
 	if err := os.WriteFile(filepath.Join(workflowDir, "ci.yml"), workflow, 0o644); err != nil {
 		t.Fatalf("write workflow: %v", err)
@@ -262,6 +263,11 @@ func TestDepGraphOrigins(t *testing.T) {
 	found := map[string][]model.DependencyOrigin{}
 	g.WalkDependencyNodes(func(node *model.DependencyNode) bool {
 		found[node.Name] = node.Origins
+		// "$/path" is the workflow's own repository, never an owner named
+		// "$": the pre-fix parse published https://github.com/$/.github.
+		if node.Org == "$" {
+			t.Errorf("self-repository reference produced an external node %q with origins %#v", node.NodeID(), node.Origins)
+		}
 		return true
 	})
 
@@ -287,18 +293,87 @@ func TestDepGraphOrigins(t *testing.T) {
 	}
 }
 
+// The host decides whether an origin is a statement or a guess: github.com
+// is where a workflow's references resolve unless the repository lives on
+// an enterprise instance, which looks itself up first and may fall back to
+// github.com -- a choice the workflow file does not record.
+func TestOriginHost(t *testing.T) {
+	cases := []struct {
+		name   string
+		target plugin.ExecutionTarget
+		want   string
+	}{
+		{name: "filesystem", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/src"}, want: githubHost},
+		{name: "git repository without url", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository}, want: githubHost},
+		{name: "github.com https", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "https://github.com/org/repo"}, want: githubHost},
+		{name: "github.com scp-like", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "git@github.com:org/repo.git"}, want: githubHost},
+		{name: "github.com upper case with www", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "https://WWW.GitHub.com/org/repo"}, want: githubHost},
+		{name: "enterprise server", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "https://ghe.example.com/org/repo"}, want: ""},
+		{name: "ghe.com", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "https://acme.ghe.com/org/repo"}, want: ""},
+		{name: "enterprise scp-like", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "git@ghe.example.com:org/repo.git"}, want: ""},
+		{name: "unparseable url", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "::not a url"}, want: ""},
+	}
+	for _, tc := range cases {
+		if got := originHost(tc.target); got != tc.want {
+			t.Errorf("%s: originHost(%+v) = %q, want %q", tc.name, tc.target, got, tc.want)
+		}
+	}
+}
+
+// ResolveGraph is where the execution target meets the references: a
+// repository cloned from an enterprise host exports no origin at all, and
+// one from github.com exports the repository and ref.
+func TestResolveGraphOriginsFollowTheTargetHost(t *testing.T) {
+	originsOf := func(t *testing.T, target plugin.ExecutionTarget) map[string][]model.DependencyOrigin {
+		t.Helper()
+		result, err := Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{
+			ProjectPath:     "testdata/project",
+			PackageManager:  model.PackageManagerGitHubActions,
+			Ecosystem:       model.EcosystemGitHub,
+			ExecutionTarget: target,
+		})
+		if err != nil {
+			t.Fatalf("ResolveGraph() error = %v", err)
+		}
+		g, err := result.ConsolidatedGraph()
+		if err != nil {
+			t.Fatalf("ConsolidatedGraph() error = %v", err)
+		}
+		found := map[string][]model.DependencyOrigin{}
+		g.WalkDependencyNodes(func(node *model.DependencyNode) bool {
+			found[node.Org+"/"+node.Name] = node.Origins
+			return true
+		})
+		return found
+	}
+
+	enterprise := originsOf(t, plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, Location: "testdata/project", RepositoryURL: "https://ghe.example.com/org/repo"})
+	for id, origins := range enterprise {
+		if len(origins) != 0 {
+			t.Errorf("enterprise-hosted scan published an origin for %q: %#v", id, origins)
+		}
+	}
+
+	public := originsOf(t, plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, Location: "testdata/project", RepositoryURL: "https://github.com/org/repo"})
+	checkout := public["actions/checkout"]
+	if len(checkout) != 1 || checkout[0] != (model.DependencyOrigin{Repository: "https://github.com/actions/checkout", Revision: "v4"}) {
+		t.Errorf("github.com-hosted scan origins for actions/checkout = %#v", checkout)
+	}
+}
+
 func TestActionRepositoryURL(t *testing.T) {
-	cases := map[[2]string]string{
-		{"actions", "checkout"}:                  "https://github.com/actions/checkout",
-		{"github", "codeql-action/upload-sarif"}: "https://github.com/github/codeql-action",
-		{"slsa-framework", "slsa-github-generator/.github/workflows/generator_generic_slsa3.yml"}: "https://github.com/slsa-framework/slsa-github-generator",
-		{"", "checkout"}:         "",
-		{"actions", ""}:          "",
-		{"actions", "/checkout"}: "",
+	cases := map[[3]string]string{
+		{githubHost, "actions", "checkout"}:                                                                   "https://github.com/actions/checkout",
+		{githubHost, "github", "codeql-action/upload-sarif"}:                                                  "https://github.com/github/codeql-action",
+		{githubHost, "slsa-framework", "slsa-github-generator/.github/workflows/generator_generic_slsa3.yml"}: "https://github.com/slsa-framework/slsa-github-generator",
+		{githubHost, "", "checkout"}:                                                                          "",
+		{githubHost, "actions", ""}:                                                                           "",
+		{githubHost, "actions", "/checkout"}:                                                                  "",
+		{"", "actions", "checkout"}:                                                                           "",
 	}
 	for input, want := range cases {
-		if got := actionRepositoryURL(input[0], input[1]); got != want {
-			t.Errorf("actionRepositoryURL(%q, %q) = %q, want %q", input[0], input[1], got, want)
+		if got := actionRepositoryURL(input[0], input[1], input[2]); got != want {
+			t.Errorf("actionRepositoryURL(%q, %q, %q) = %q, want %q", input[0], input[1], input[2], got, want)
 		}
 	}
 }

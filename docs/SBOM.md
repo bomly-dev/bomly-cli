@@ -255,7 +255,12 @@ What each ecosystem yields:
   A SHA-pinned step additionally keeps the commit as a `SHA-1` hash: a Git
   object ID is a SHA-1, so that is its honest algorithm label, and the origin
   beside it says the value is a commit rather than a content digest. Local
-  workflows and actions are files in the scanned tree and report nothing.
+  references (`./path` and the self-repository form `$/path`) are files in
+  the scanned tree and report nothing. The host is github.com; a repository
+  scanned with `--url` from a GitHub Enterprise Server or GHE.com host
+  reports no origin, because such an instance resolves a reference on the
+  instance first and may fall back to github.com, and the workflow file does
+  not say which one answered.
 - **cargo, Bundler, SwiftPM, pub** — the repository and resolved commit for
   git dependencies and source-control pins. SwiftPM and pub report the same
   origin whether the build tool ran or Bomly read the committed file: the tools

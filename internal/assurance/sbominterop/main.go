@@ -219,8 +219,12 @@ func run(bomlyPath, outputDir, inputPath, mergeA, mergeB string) error {
 	// A merged document states its own identity and names the documents it
 	// was built from, rather than adopting one source's identity (ADR-0042).
 	// Only a real two-source run can produce this, which is why it is asserted
-	// here and not in a unit test. Both formats are checked: each has its own
-	// identity slot and its own way of naming a source.
+	// here and not in a unit test. Both formats are checked, and both verdicts
+	// are recorded before either fails the run: each format has its own
+	// identity slot and its own way of naming a source, and the manifest is
+	// the evidence for the catalog's per-format claim, on a failure most of
+	// all.
+	var linkFailures []string
 	for _, target := range []struct {
 		format mergedFormat
 		path   string
@@ -234,8 +238,11 @@ func run(bomlyPath, outputDir, inputPath, mergeA, mergeB string) error {
 		}
 		manifest.Checks = append(manifest.Checks, linkCheck)
 		if !linkCheck.Passed {
-			return writeFailure(outputDir, &manifest, errors.New(linkCheck.Detail))
+			linkFailures = append(linkFailures, fmt.Sprintf("%s: %s", target.format, linkCheck.Detail))
 		}
+	}
+	if len(linkFailures) > 0 {
+		return writeFailure(outputDir, &manifest, errors.New(strings.Join(linkFailures, "; ")))
 	}
 
 	commands := [][]string{

@@ -1714,7 +1714,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -1755,9 +1755,9 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
@@ -1793,7 +1793,7 @@
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -2603,7 +2603,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -2644,14 +2644,14 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -3983,7 +3983,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -4024,14 +4024,14 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -4605,7 +4605,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -4646,14 +4646,14 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -5981,7 +5981,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -6022,14 +6022,14 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -6169,7 +6169,7 @@
           "depends_on": [
             "pkg:deb/debian/dpkg@1.21.23?arch=\u003carch\u003e\u0026distro=debian-12.15",
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/grep@3.8-5?arch=\u003carch\u003e\u0026distro=debian-12.15",
           "licenses": [
@@ -6512,7 +6512,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -6553,14 +6553,14 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -7200,7 +7200,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -7241,14 +7241,14 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -8567,7 +8567,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -8608,14 +8608,14 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -9035,7 +9035,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -9076,14 +9076,14 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -10008,7 +10008,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -10049,14 +10049,14 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -10538,7 +10538,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -10579,14 +10579,14 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -10906,7 +10906,7 @@
           "depends_on": [
             "pkg:deb/debian/debconf@1.5.82?arch=all\u0026distro=debian-12.15"
           ],
-          "id": "pkg:deb/debian/tzdata@2026c-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
+          "id": "pkg:deb/debian/tzdata@2026b-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
           "licenses": [
             {
               "type": "declared",
@@ -10956,9 +10956,9 @@
             }
           ],
           "name": "debian:tzdata",
-          "package_ref": "pkg:deb/debian/tzdata@2026c-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
-          "purl": "pkg:deb/debian/tzdata@2026c-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
-          "version": "2026c-0+deb12u1"
+          "package_ref": "pkg:deb/debian/tzdata@2026b-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
+          "purl": "pkg:deb/debian/tzdata@2026b-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
+          "version": "2026b-0+deb12u1"
         }
       ],
       "detector": "syft-detector",
@@ -11829,7 +11829,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
           "licenses": [
             {
               "type": "declared",
@@ -11870,14 +11870,14 @@
             }
           ],
           "name": "debian:libpcre2-8-0",
-          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
-          "version": "10.42-1+deb12u2"
+          "package_ref": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+          "version": "10.42-1+deb12u1"
         },
         {
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
-            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
+            "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2"
           ],
           "id": "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libselinux%403.4-1",
           "licenses": [
@@ -15286,19 +15286,19 @@
     },
     {
       "cpes": [
-        "cpe:2.3:a:libpcre2-8-0:libpcre2-8-0:10.42-1\\+deb12u2:*:*:*:*:*:*:*",
-        "cpe:2.3:a:libpcre2-8-0:libpcre2_8_0:10.42-1\\+deb12u2:*:*:*:*:*:*:*",
-        "cpe:2.3:a:libpcre2-8:libpcre2-8-0:10.42-1\\+deb12u2:*:*:*:*:*:*:*",
-        "cpe:2.3:a:libpcre2-8:libpcre2_8_0:10.42-1\\+deb12u2:*:*:*:*:*:*:*",
-        "cpe:2.3:a:libpcre2:libpcre2-8-0:10.42-1\\+deb12u2:*:*:*:*:*:*:*",
-        "cpe:2.3:a:libpcre2:libpcre2_8_0:10.42-1\\+deb12u2:*:*:*:*:*:*:*",
-        "cpe:2.3:a:libpcre2_8:libpcre2-8-0:10.42-1\\+deb12u2:*:*:*:*:*:*:*",
-        "cpe:2.3:a:libpcre2_8:libpcre2_8_0:10.42-1\\+deb12u2:*:*:*:*:*:*:*",
-        "cpe:2.3:a:libpcre2_8_0:libpcre2-8-0:10.42-1\\+deb12u2:*:*:*:*:*:*:*",
-        "cpe:2.3:a:libpcre2_8_0:libpcre2_8_0:10.42-1\\+deb12u2:*:*:*:*:*:*:*"
+        "cpe:2.3:a:libpcre2-8-0:libpcre2-8-0:10.42-1\\+deb12u1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libpcre2-8-0:libpcre2_8_0:10.42-1\\+deb12u1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libpcre2-8:libpcre2-8-0:10.42-1\\+deb12u1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libpcre2-8:libpcre2_8_0:10.42-1\\+deb12u1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libpcre2:libpcre2-8-0:10.42-1\\+deb12u1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libpcre2:libpcre2_8_0:10.42-1\\+deb12u1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libpcre2_8:libpcre2-8-0:10.42-1\\+deb12u1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libpcre2_8:libpcre2_8_0:10.42-1\\+deb12u1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libpcre2_8_0:libpcre2-8-0:10.42-1\\+deb12u1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libpcre2_8_0:libpcre2_8_0:10.42-1\\+deb12u1:*:*:*:*:*:*:*"
       ],
       "ecosystem": "dpkg",
-      "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+      "id": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
       "licenses": [
         {
           "type": "declared",
@@ -15327,9 +15327,9 @@
       "name": "libpcre2-8-0",
       "org": "debian",
       "package_manager": "dpkg",
-      "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
+      "purl": "pkg:deb/debian/libpcre2-8-0@10.42-1%2Bdeb12u1?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=pcre2",
       "type": "deb",
-      "version": "10.42-1+deb12u2",
+      "version": "10.42-1+deb12u1",
       "vulnerabilities": []
     },
     {
@@ -16631,10 +16631,10 @@
     },
     {
       "cpes": [
-        "cpe:2.3:a:tzdata:tzdata:2026c-0\\+deb12u1:*:*:*:*:*:*:*"
+        "cpe:2.3:a:tzdata:tzdata:2026b-0\\+deb12u1:*:*:*:*:*:*:*"
       ],
       "ecosystem": "dpkg",
-      "id": "pkg:deb/debian/tzdata@2026c-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
+      "id": "pkg:deb/debian/tzdata@2026b-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
       "licenses": [
         {
           "type": "declared",
@@ -16644,9 +16644,9 @@
       "name": "tzdata",
       "org": "debian",
       "package_manager": "dpkg",
-      "purl": "pkg:deb/debian/tzdata@2026c-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
+      "purl": "pkg:deb/debian/tzdata@2026b-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "2026c-0+deb12u1",
+      "version": "2026b-0+deb12u1",
       "vulnerabilities": []
     },
     {

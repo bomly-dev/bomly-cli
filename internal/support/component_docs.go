@@ -1022,7 +1022,9 @@ func matcherRunsByDefault(name string) bool {
 
 // matcherDefaultSetMarkdown renders the sentence in the matcher guide that
 // names the built-in matchers --enrich runs without a --matchers selection,
-// and the ones that stay opt-in, from the composition.
+// and the ones that stay opt-in, from the composition. Installed external
+// plugins are registered default-enabled too (internal/plugin), so the
+// sentence says the list is the built-in set, not the whole run.
 func matcherDefaultSetMarkdown() string {
 	var enabled, optIn []string
 	for _, entry := range composition.Entries() {
@@ -1037,7 +1039,7 @@ func matcherDefaultSetMarkdown() string {
 	}
 	sort.Strings(enabled)
 	sort.Strings(optIn)
-	text := "With no `--matchers` selection, `--enrich` runs " + codeList(enabled) + "."
+	text := "With no `--matchers` selection, `--enrich` runs the built-in matchers " + codeList(enabled) + ", plus any installed external matcher plugin you have enabled."
 	switch len(optIn) {
 	case 0:
 	case 1:

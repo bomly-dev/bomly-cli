@@ -32,7 +32,7 @@ Pass `--enrich` to run all default network matchers:
 bomly scan --enrich
 ```
 
-With no `--matchers` selection, `--enrich` runs `depsdev-license-matcher`, `grype`. `osv`, `scorecard` are opt-in: add one with `--matchers +<name>`. Vulnerabilities come from Grype's database
+With no `--matchers` selection, `--enrich` runs the built-in matchers `depsdev-license-matcher`, `grype`, plus any installed external matcher plugin you have enabled. `osv`, `scorecard` are opt-in: add one with `--matchers +<name>`. Vulnerabilities come from Grype's database
 by default; OSV and Grype can run together, and advisories both return are
 merged by identity and reported once.
 

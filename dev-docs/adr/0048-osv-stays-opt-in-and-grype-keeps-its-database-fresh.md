@@ -61,11 +61,12 @@ answers "did OSV run?" without reading the report.
 
 ## Consequences
 
-- A plain `--enrich` run contacts Grype's database service not only on first
-  use but also, at most every two hours, to check for a newer database. The
-  network documentation says so. Users who pin a database, or run without
-  network access, set `db_auto_update: false` and accept the staleness
-  warning.
+- Once the refreshed plugin is pinned, a plain `--enrich` run contacts
+  Grype's database service not only on first use but also, at most every two
+  hours, to check for a newer database; the network documentation changes
+  with that pin bump, and until then says "on first use", which is what the
+  pinned version does. Users who pin a database, or run without network
+  access, will set `db_auto_update: false` and accept the staleness warning.
 - The CLI consumes the plugin as a pinned module, so the refresh lands in two
   steps: the plugin release first, then a CLI change that bumps the pin and
   exposes the `matchers.grype.*` keys. Until then the full binary keeps the

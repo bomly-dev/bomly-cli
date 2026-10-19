@@ -32,6 +32,14 @@ Pass `--enrich` to run all default network matchers:
 bomly scan --enrich
 ```
 
+With no `--matchers` selection, `--enrich` runs `depsdev-license-matcher`, `grype`, `osv`. `scorecard` is opt-in: add it with `--matchers +scorecard`.
+
+Two vulnerability matchers run by default on purpose. Grype answers from a
+local database that is downloaded on first use, and a run does not check how
+old that database is; OSV is queried live (through a 24h cache), so a plain
+`--enrich` run never depends on a local database alone for the advisories it
+reports. Advisories both sources return are merged by identity and reported once.
+
 Use `--matchers` to restrict or extend the set with the standard [selector grammar](COMMANDS.md#selector-grammar):
 
 ```bash

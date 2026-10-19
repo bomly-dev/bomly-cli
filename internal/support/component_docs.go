@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/composition"
 	rootdetectors "github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"go.uber.org/zap"
@@ -269,6 +270,14 @@ Pass `+"`--enrich`"+` to run all default network matchers:
 `+"```bash"+`
 bomly scan --enrich
 `+"```"+`
+
+`+matcherDefaultSetMarkdown()+`
+
+Two vulnerability matchers run by default on purpose. Grype answers from a
+local database that is downloaded on first use, and a run does not check how
+old that database is; OSV is queried live (through a 24h cache), so a plain
+`+"`--enrich`"+` run never depends on a local database alone for the advisories it
+reports. Advisories both sources return are merged by identity and reported once.
 
 Use `+"`--matchers`"+` to restrict or extend the set with the standard [selector grammar](COMMANDS.md#selector-grammar):
 
@@ -999,13 +1008,45 @@ func humanAuditorTitle(name string) string {
 	}
 }
 
+// matcherRunsByDefault reports whether the composition enables the named
+// built-in matcher without an explicit --matchers selection. It reads the
+// composition rather than keeping its own list: the two drifted once, and the
+// generated page then described a default set the binary did not run.
 func matcherRunsByDefault(name string) bool {
-	switch name {
-	case "grype", "depsdev-license-matcher":
-		return true
-	default:
-		return false
+	for _, entry := range composition.Entries() {
+		if entry.Kind == plugin.PluginKindMatcher && entry.Name == name {
+			return entry.DefaultEnabled
+		}
 	}
+	return false
+}
+
+// matcherDefaultSetMarkdown renders the sentence in the matcher guide that
+// names the built-in matchers --enrich runs without a --matchers selection,
+// and the ones that stay opt-in, from the composition.
+func matcherDefaultSetMarkdown() string {
+	var enabled, optIn []string
+	for _, entry := range composition.Entries() {
+		if entry.Kind != plugin.PluginKindMatcher {
+			continue
+		}
+		if entry.DefaultEnabled {
+			enabled = append(enabled, entry.Name)
+		} else {
+			optIn = append(optIn, entry.Name)
+		}
+	}
+	sort.Strings(enabled)
+	sort.Strings(optIn)
+	text := "With no `--matchers` selection, `--enrich` runs " + codeList(enabled) + "."
+	switch len(optIn) {
+	case 0:
+	case 1:
+		text += " " + codeList(optIn) + " is opt-in: add it with `--matchers +" + optIn[0] + "`."
+	default:
+		text += " " + codeList(optIn) + " are opt-in: add one with `--matchers +<name>`."
+	}
+	return text
 }
 
 type matcherDocBehavior struct {

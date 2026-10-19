@@ -6,11 +6,13 @@ After a successful OSV match, the matcher also queries the [CISA Known Exploited
 
 ## When it runs
 
-`osv` requires `--enrich`. It does not run by default.
+`osv` requires `--enrich`. A plain scan never contacts OSV. With `--enrich` and no `--matchers` selection, `osv` is in the default matcher set next to `grype`, so every enriched run consults the live advisory feed and does not depend on Grype's local database alone. Advisories both matchers return are merged by identity and reported once.
 
 ```bash
 bomly scan --enrich
 ```
+
+To run Grype alone, remove OSV from the default set with `--matchers -osv`.
 
 ## Network
 

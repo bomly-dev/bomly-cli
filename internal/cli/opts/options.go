@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -327,6 +328,7 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		AnalyzerFilter:  analyzerFilter,
 		EcosystemFilter: ecosystemFilter,
 	})
+	logMatcherSelection(logger, resolved.Enrich, scanRegistry, filteredRegistry)
 
 	subprojects, err := PlanSubprojects(filteredRegistry, Request{
 		Registry:             scanRegistry,
@@ -687,4 +689,31 @@ func (o *Options) registerInstalledPluginDescriptors(ctx context.Context, reg *e
 	}
 	launchCtx := o.PluginLaunchContext(ctx)
 	return plugin.RegisterRuntimePlugins(launchCtx, reg, "")
+}
+
+// logMatcherSelection records, at INFO, which registered matchers an enriched
+// run selected and which it left out, so a -v log answers "did OSV run?"
+// without reading the report. Nothing else says so: a registered matcher the
+// selection leaves out raises no warning (bomly-dev/bomly-cli#340 is the typed
+// channel that would carry one), which is how an enriched run with a single,
+// stale vulnerability source went unnoticed (bomly-dev/bomly-cli#510).
+func logMatcherSelection(logger *zap.Logger, enrich bool, all, selected *engine.Registry) {
+	if logger == nil || !enrich || all == nil || selected == nil {
+		return
+	}
+	selectedNames := make([]string, 0)
+	for _, descriptor := range selected.MatcherDescriptors() {
+		selectedNames = append(selectedNames, descriptor.Name)
+	}
+	notSelected := make([]string, 0)
+	for _, descriptor := range all.MatcherDescriptors() {
+		if !slices.Contains(selectedNames, descriptor.Name) {
+			notSelected = append(notSelected, descriptor.Name)
+		}
+	}
+	slices.Sort(selectedNames)
+	slices.Sort(notSelected)
+	logger.Info("enrichment: matcher selection",
+		zap.Strings("selected", selectedNames),
+		zap.Strings("not_selected", notSelected))
 }

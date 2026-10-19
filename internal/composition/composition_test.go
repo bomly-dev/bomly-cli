@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -128,5 +129,31 @@ func TestOriginRejectsNativeOutsideEmbeddedExecution(t *testing.T) {
 	bespoke := Entry{Name: "x", Implementation: "bespoke"}
 	if _, err := bespoke.Origin(sdkplugin.ExecutionEmbedded); err == nil {
 		t.Fatal("unknown implementation must be rejected")
+	}
+}
+
+// TestGrypeMatcherSettings covers the resolved-configuration path into the
+// Grype matcher's database refresh knobs: the string switch and the two
+// durations, with empty and malformed values leaving the matcher's defaults.
+func TestGrypeMatcherSettings(t *testing.T) {
+	configured := grypeMatcher(Deps{GrypeDBAutoUpdate: "false", GrypeDBMaxAge: "48h", GrypeDBUpdateCheckInterval: "30m"})
+	if !configured.DisableDBUpdate {
+		t.Fatal("db_auto_update=false should disable the update check")
+	}
+	if configured.DBMaxAge != 48*time.Hour || configured.DBUpdateCheckInterval != 30*time.Minute {
+		t.Fatalf("durations = %s / %s, want 48h / 30m", configured.DBMaxAge, configured.DBUpdateCheckInterval)
+	}
+
+	defaults := grypeMatcher(Deps{})
+	if defaults.DisableDBUpdate || defaults.DBMaxAge != 0 || defaults.DBUpdateCheckInterval != 0 {
+		t.Fatalf("unset settings must leave the matcher defaults, got %+v", defaults)
+	}
+
+	malformed := grypeMatcher(Deps{GrypeDBAutoUpdate: "maybe", GrypeDBMaxAge: "five days", GrypeDBUpdateCheckInterval: "-1h"})
+	if malformed.DisableDBUpdate || malformed.DBMaxAge != 0 || malformed.DBUpdateCheckInterval != 0 {
+		t.Fatalf("malformed settings must leave the matcher defaults, got %+v", malformed)
+	}
+	if malformed.Logger == nil {
+		t.Fatal("the matcher must always carry a logger")
 	}
 }

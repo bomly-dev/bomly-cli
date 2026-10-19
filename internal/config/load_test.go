@@ -127,6 +127,10 @@ matchers:
     api_base: https://scorecard.example
     cache_dir: cache/scorecard
     cache_ttl: 4h
+  grype:
+    db_auto_update: false
+    db_max_age: 48h
+    db_update_check_interval: 30m
 `), 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
@@ -164,6 +168,9 @@ matchers:
 	}
 	if resolved.OsvAPIBase != "https://osv.example" || resolved.OsvCacheTTL != "1h" || resolved.KEVCacheTTL != "2h" || resolved.ScorecardAPIBase != "https://scorecard.example" || resolved.ScorecardCacheTTL != "4h" {
 		t.Fatalf("matcher config = %#v", resolved)
+	}
+	if resolved.GrypeDBAutoUpdate != "false" || resolved.GrypeDBMaxAge != "48h" || resolved.GrypeDBUpdateCheckInterval != "30m" {
+		t.Fatalf("grype matcher config = %#v", resolved)
 	}
 }
 

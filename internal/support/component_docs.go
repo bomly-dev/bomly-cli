@@ -872,7 +872,10 @@ func renderMatcherMarkdown(descriptor plugin.MatcherDescriptor) string {
 	b.WriteString("| Property | Value |\n")
 	b.WriteString("| --- | --- |\n")
 	_, _ = fmt.Fprintf(&b, "| Matcher name | `%s` |\n", descriptor.Name)
-	_, _ = fmt.Fprintf(&b, "| Runs by default | %s |\n", yesNo(matcherRunsByDefault(descriptor.Name) && !behavior.RequiresEnrich))
+	// Every built-in matcher requires --enrich, so "runs on a plain scan" is
+	// always No and says nothing. The cell answers the question a reader has
+	// once they pass --enrich: is this matcher selected without --matchers?
+	_, _ = fmt.Fprintf(&b, "| In the default `--enrich` set | %s |\n", yesNo(matcherRunsByDefault(descriptor.Name)))
 	_, _ = fmt.Fprintf(&b, "| Requires enrichment | %s |\n", yesNo(behavior.RequiresEnrich))
 	_, _ = fmt.Fprintf(&b, "| Uses network | %s |\n", yesNo(behavior.UsesNetwork))
 	_, _ = fmt.Fprintf(&b, "| Cache behavior | %s |\n", behavior.Cache)

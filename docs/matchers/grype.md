@@ -7,7 +7,7 @@ Uses Grype vulnerability matching against the resolved dependency graph.
 | Property | Value |
 | --- | --- |
 | Matcher name | `grype` |
-| Runs by default | No |
+| In the default `--enrich` set | Yes |
 | Requires enrichment | Yes |
 | Uses network | No |
 | Cache behavior | Relies on Grype's local vulnerability database behavior. |

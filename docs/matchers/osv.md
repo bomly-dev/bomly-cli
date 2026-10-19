@@ -7,7 +7,7 @@ Looks up package vulnerabilities in OSV and annotates matching packages.
 | Property | Value |
 | --- | --- |
 | Matcher name | `osv` |
-| Runs by default | No |
+| In the default `--enrich` set | Yes |
 | Requires enrichment | Yes |
 | Uses network | Yes |
 | Cache behavior | Uses Bomly's matcher cache; cache failures are warnings, not scan failures. |

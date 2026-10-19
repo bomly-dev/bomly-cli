@@ -129,6 +129,12 @@
       "vulnerabilities": []
     },
     {
+      "detected_origins": [
+        {
+          "repository": "https://github.com/actions/checkout",
+          "revision": "v1"
+        }
+      ],
       "ecosystem": "github-actions",
       "id": "pkg:githubactions/actions/checkout@v1",
       "language": "yaml",

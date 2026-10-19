@@ -105,7 +105,7 @@ jobs:
 
       - name: Upload check result
         if: always() && inputs.assurance
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: assurance-portable-${{ matrix.os }}
           path: assurance-results
@@ -188,7 +188,7 @@ jobs:
 
       - name: Upload check results
         if: always() && inputs.assurance
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: assurance-linux-stability
           path: assurance-results
@@ -298,7 +298,7 @@ jobs:
 
       - name: Upload check result
         if: always() && inputs.assurance
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: assurance-cross-build-${{ matrix.target_os }}
           path: assurance-results

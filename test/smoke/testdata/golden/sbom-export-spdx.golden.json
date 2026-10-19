@@ -1,6 +1,7 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
+    "comment": "bomly:lifecycle=pre-build;document_version=1",
     "created": "\u003ctimestamp\u003e",
     "creators": [
       "Tool: bomly-cli-\u003cversion\u003e",

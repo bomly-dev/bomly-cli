@@ -247,6 +247,15 @@ What each ecosystem yields:
   record only an integrity hash report nothing.
 - **uv, poetry, pipenv, pip** — a repository plus the commit that was locked,
   or a direct archive URL, depending on the recorded source type.
+- **GitHub Actions** — the repository named by the first two segments of a
+  `uses:` reference (`https://github.com/actions/checkout`, also for a
+  sub-directory action such as `github/codeql-action/upload-sarif` and for a
+  reusable workflow), at the ref written after `@`: a commit when the step is
+  SHA-pinned, otherwise the tag or branch exactly as the workflow wrote it.
+  A SHA-pinned step additionally keeps the commit as a `SHA-1` hash: a Git
+  object ID is a SHA-1, so that is its honest algorithm label, and the origin
+  beside it says the value is a commit rather than a content digest. Local
+  workflows and actions are files in the scanned tree and report nothing.
 - **cargo, Bundler, SwiftPM, pub** — the repository and resolved commit for
   git dependencies and source-control pins. SwiftPM and pub report the same
   origin whether the build tool ran or Bomly read the committed file: the tools

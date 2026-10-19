@@ -228,6 +228,81 @@ func TestDepGraphDigests(t *testing.T) {
 	}
 }
 
+// Every external reference publishes where it resolves from, so an SBOM
+// consumer can tell a commit ID from a content digest (issue #508): the
+// repository is the first two path segments and the revision is the ref the
+// manifest wrote, whether or not that ref is a commit. Local references name
+// files in the scanned tree and resolve from nowhere.
+func TestDepGraphOrigins(t *testing.T) {
+	projectDir := t.TempDir()
+	workflowDir := filepath.Join(projectDir, ".github", "workflows")
+	actionDir := filepath.Join(projectDir, ".github", "actions", "local-setup")
+	for _, dir := range []string{workflowDir, actionDir} {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatalf("create %s: %v", dir, err)
+		}
+	}
+	pinned := "11bd71901bbe5b1630ceea73d27597364c9af683"
+	workflow := []byte("jobs:\n  build:\n    steps:\n      - uses: actions/checkout@" + pinned + "\n" +
+		"      - uses: actions/cache@v4\n" +
+		"      - uses: github/codeql-action/upload-sarif@" + pinned + "\n" +
+		"      - uses: ./.github/actions/local-setup\n" +
+		"  provenance:\n    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0\n")
+	if err := os.WriteFile(filepath.Join(workflowDir, "ci.yml"), workflow, 0o644); err != nil {
+		t.Fatalf("write workflow: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(actionDir, "action.yml"), []byte("runs:\n  using: composite\n  steps: []\n"), 0o644); err != nil {
+		t.Fatalf("write action manifest: %v", err)
+	}
+
+	g, err := depGraphFromRepository(projectDir)
+	if err != nil {
+		t.Fatalf("depGraphFromRepository() error = %v", err)
+	}
+	found := map[string][]model.DependencyOrigin{}
+	g.WalkDependencyNodes(func(node *model.DependencyNode) bool {
+		found[node.Name] = node.Origins
+		return true
+	})
+
+	want := map[string]model.DependencyOrigin{
+		"checkout":                   {Repository: "https://github.com/actions/checkout", Revision: pinned},
+		"cache":                      {Repository: "https://github.com/actions/cache", Revision: "v4"},
+		"codeql-action/upload-sarif": {Repository: "https://github.com/github/codeql-action", Revision: pinned},
+		"slsa-github-generator/.github/workflows/generator_generic_slsa3.yml": {Repository: "https://github.com/slsa-framework/slsa-github-generator", Revision: "v2.1.0"},
+	}
+	for name, origin := range want {
+		got, ok := found[name]
+		if !ok {
+			t.Fatalf("node %q not found; graph has %v", name, found)
+		}
+		if len(got) != 1 || got[0] != origin {
+			t.Errorf("origins of %q = %#v, want [%#v]", name, got, origin)
+		}
+	}
+	for _, local := range []string{".github/workflows/ci.yml", ".github/actions/local-setup"} {
+		if got := found[local]; len(got) != 0 {
+			t.Errorf("local reference %q must carry no origin, got %#v", local, got)
+		}
+	}
+}
+
+func TestActionRepositoryURL(t *testing.T) {
+	cases := map[[2]string]string{
+		{"actions", "checkout"}:                  "https://github.com/actions/checkout",
+		{"github", "codeql-action/upload-sarif"}: "https://github.com/github/codeql-action",
+		{"slsa-framework", "slsa-github-generator/.github/workflows/generator_generic_slsa3.yml"}: "https://github.com/slsa-framework/slsa-github-generator",
+		{"", "checkout"}:         "",
+		{"actions", ""}:          "",
+		{"actions", "/checkout"}: "",
+	}
+	for input, want := range cases {
+		if got := actionRepositoryURL(input[0], input[1]); got != want {
+			t.Errorf("actionRepositoryURL(%q, %q) = %q, want %q", input[0], input[1], got, want)
+		}
+	}
+}
+
 func TestIsGitCommitSHA(t *testing.T) {
 	if !isGitCommitSHA("11bd71901bbe5b1630ceea73d27597364c9af683") {
 		t.Fatal("expected 40-hex value to be recognized as a commit SHA")

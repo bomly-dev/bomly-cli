@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -398,12 +399,44 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*model
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}
 	node.Scopes = model.ScopesOf(model.ScopeRuntime)
-	// A SHA-pinned ref is the content-addressed identity of the action's
-	// source tree; record it so SBOM consumers can verify the pin.
+	// Where the reference resolves from: the repository the first two path
+	// segments name, at the ref written after "@". This is the identity the
+	// formats keep for version-controlled sources -- the SPDX 2.3 download
+	// location in its "git+<url>@<revision>" form, a CycloneDX vcs reference
+	// -- and it is recorded for every external reference, tag- or
+	// branch-pinned ones included, because the ref is what the manifest
+	// said even when it is not a commit (issue #508).
+	if origin := model.RepositoryOrigin(actionRepositoryURL(org, packageName), version); origin != nil {
+		node.Origins = model.MergeOrigins(node.Origins, []model.DependencyOrigin{*origin})
+	}
+	// A SHA-pinned ref is also the Git object ID of the pinned commit, and a
+	// Git object ID is a SHA-1, so it is published as one: the CycloneDX
+	// hashes[].alg and SPDX checksum vocabularies both have that member, and
+	// relabelling it would misstate what was computed. It stays beside the
+	// origin rather than replacing it, since a consumer that verifies pins
+	// reads the hash and one that follows sources reads the locator.
 	if isGitCommitSHA(version) {
 		node.Digests = []model.Digest{{Algorithm: model.DigestAlgorithmSHA1, Value: strings.ToLower(version)}}
 	}
 	return node, nil
+}
+
+// actionRepositoryURL is the repository a "uses: owner/repo[/path]@ref"
+// reference is fetched from. GitHub resolves every such reference against
+// github.com, and the repository is always the first two segments: in
+// "github/codeql-action/upload-sarif" the third segment is a directory
+// inside github/codeql-action, and a reusable workflow's
+// ".github/workflows/<file>.yml" is a path inside its repository the same
+// way. Returns "" when the reference does not name an owner and a
+// repository, which RepositoryOrigin then declines to publish.
+func actionRepositoryURL(org, name string) string {
+	repository, _, _ := strings.Cut(strings.TrimSpace(name), "/")
+	org = strings.TrimSpace(org)
+	if org == "" || repository == "" {
+		return ""
+	}
+	location := url.URL{Scheme: "https", Host: "github.com", Path: "/" + org + "/" + repository}
+	return location.String()
 }
 
 // isGitCommitSHA reports whether value is a full 40-hex-character Git object ID.

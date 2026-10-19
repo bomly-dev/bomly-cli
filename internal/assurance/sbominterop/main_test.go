@@ -85,29 +85,67 @@ func writeTestArchive(t *testing.T, entries map[string]string) string {
 func TestEvaluateMergedLinks(t *testing.T) {
 	wanted := map[string]struct{}{"https://a.example/ns": {}, "https://b.example/ns": {}}
 	for name, testCase := range map[string]struct {
+		format   mergedFormat
 		document string
 		passed   bool
 		contains string
 	}{
-		"links both sources": {
+		"cyclonedx links both sources": {
+			format:   mergedCycloneDX,
 			document: `{"serialNumber":"urn:uuid:3f2b","externalReferences":[{"type":"bom","url":"https://a.example/ns"},{"type":"bom","url":"https://b.example/ns"},{"type":"website","url":"https://c.example"}]}`,
 			passed:   true, contains: "links 2 source(s)",
 		},
-		"misses one source": {
+		"cyclonedx misses one source": {
+			format:   mergedCycloneDX,
 			document: `{"serialNumber":"urn:uuid:3f2b","externalReferences":[{"type":"bom","url":"https://a.example/ns"}]}`,
 			contains: "does not link its sources: https://b.example/ns",
 		},
-		"only non-bom references": {
+		"cyclonedx only non-bom references": {
+			format:   mergedCycloneDX,
 			document: `{"serialNumber":"urn:uuid:3f2b","externalReferences":[{"type":"website","url":"https://a.example/ns"}]}`,
 			contains: "does not link its sources",
 		},
-		"adopted a source's identity": {
+		"cyclonedx adopted a source's identity": {
+			format:   mergedCycloneDX,
 			document: `{"serialNumber":"https://a.example/ns","externalReferences":[{"type":"bom","url":"https://a.example/ns"},{"type":"bom","url":"https://b.example/ns"}]}`,
 			contains: "adopted a source's identity",
 		},
+		// bomly-dev/bomly-cli#497: serialNumber is optional in CycloneDX, so
+		// the official validator accepts its absence, and an empty identity is
+		// never one of the sources'. The check has to ask for it explicitly.
+		"cyclonedx has no serialNumber": {
+			format:   mergedCycloneDX,
+			document: `{"externalReferences":[{"type":"bom","url":"https://a.example/ns"},{"type":"bom","url":"https://b.example/ns"}]}`,
+			contains: "has no serialNumber of its own",
+		},
+		"cyclonedx has a blank serialNumber": {
+			format:   mergedCycloneDX,
+			document: `{"serialNumber":"  ","externalReferences":[{"type":"bom","url":"https://a.example/ns"},{"type":"bom","url":"https://b.example/ns"}]}`,
+			contains: "has no serialNumber of its own",
+		},
+		"spdx links both sources": {
+			format:   mergedSPDX,
+			document: `{"documentNamespace":"https://bomly.dev/spdx/3f2b","externalDocumentRefs":[{"externalDocumentId":"DocumentRef-a","spdxDocument":"https://a.example/ns","checksum":{"algorithm":"SHA1","checksumValue":"0"}},{"externalDocumentId":"DocumentRef-b","spdxDocument":"https://b.example/ns","checksum":{"algorithm":"SHA1","checksumValue":"0"}}]}`,
+			passed:   true, contains: "links 2 source(s)",
+		},
+		"spdx misses one source": {
+			format:   mergedSPDX,
+			document: `{"documentNamespace":"https://bomly.dev/spdx/3f2b","externalDocumentRefs":[{"spdxDocument":"https://a.example/ns"}]}`,
+			contains: "does not link its sources: https://b.example/ns",
+		},
+		"spdx adopted a source's identity": {
+			format:   mergedSPDX,
+			document: `{"documentNamespace":"https://b.example/ns","externalDocumentRefs":[{"spdxDocument":"https://a.example/ns"},{"spdxDocument":"https://b.example/ns"}]}`,
+			contains: "adopted a source's identity: https://b.example/ns",
+		},
+		"spdx has no documentNamespace": {
+			format:   mergedSPDX,
+			document: `{"externalDocumentRefs":[{"spdxDocument":"https://a.example/ns"},{"spdxDocument":"https://b.example/ns"}]}`,
+			contains: "has no documentNamespace of its own",
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			verdict, err := evaluateMergedLinks([]byte(testCase.document), wanted)
+			verdict, err := evaluateMergedLinks(testCase.format, []byte(testCase.document), wanted)
 			if err != nil {
 				t.Fatalf("evaluate: %v", err)
 			}
@@ -119,11 +157,33 @@ func TestEvaluateMergedLinks(t *testing.T) {
 			}
 		})
 	}
-	if _, err := evaluateMergedLinks([]byte("{"), wanted); err == nil {
-		t.Fatal("expected malformed JSON to be reported")
+	for _, format := range []mergedFormat{mergedCycloneDX, mergedSPDX} {
+		if _, err := evaluateMergedLinks(format, []byte("{"), wanted); err == nil {
+			t.Fatalf("%s: expected malformed JSON to be reported", format)
+		}
+	}
+	if _, err := evaluateMergedLinks("tab-separated", []byte("{}"), wanted); err == nil {
+		t.Fatal("expected an unknown format to be reported")
 	}
 	if _, err := spdxNamespace([]byte(`{"spdxVersion":"SPDX-2.3"}`)); err == nil {
 		t.Fatal("expected a document without documentNamespace to be reported")
+	}
+	if _, err := spdxNamespace([]byte(`{"documentNamespace":" "}`)); err == nil {
+		t.Fatal("expected a document with a blank documentNamespace to be reported")
+	}
+}
+
+// TestMergedDocumentIdentityIsCheckedBeforeLinks pins the order of the merge
+// rule: a document with no identity of its own is reported for that, not for
+// whichever link it also happens to miss, so the detail names the actual gap.
+func TestMergedDocumentIdentityIsCheckedBeforeLinks(t *testing.T) {
+	wanted := map[string]struct{}{"https://a.example/ns": {}}
+	verdict, err := evaluateMergedLinks(mergedCycloneDX, []byte(`{"externalReferences":[]}`), wanted)
+	if err != nil {
+		t.Fatalf("evaluate: %v", err)
+	}
+	if verdict.passed || !strings.Contains(verdict.detail, "has no serialNumber of its own") {
+		t.Fatalf("verdict = %+v, want the missing identity reported first", verdict)
 	}
 }
 
@@ -132,7 +192,12 @@ func TestEvaluateMergedLinks(t *testing.T) {
 func FuzzEvaluateMergedLinks(f *testing.F) {
 	f.Add([]byte(`{"serialNumber":"urn:uuid:1","externalReferences":[{"type":"bom","url":"https://a.example/ns"}]}`))
 	f.Add([]byte(`{"externalReferences":[{"type":"bom"}]}`))
+	f.Add([]byte(`{"externalReferences":[{"type":"bom","url":"https://a.example/ns"}]}`))
+	f.Add([]byte(`{"serialNumber":"","externalReferences":[{"type":"bom","url":"https://a.example/ns"}]}`))
 	f.Add([]byte(`{"serialNumber":"https://a.example/ns"}`))
+	f.Add([]byte(`{"documentNamespace":"https://bomly.dev/spdx/1","externalDocumentRefs":[{"spdxDocument":"https://a.example/ns"}]}`))
+	f.Add([]byte(`{"externalDocumentRefs":[{"spdxDocument":"https://a.example/ns"}]}`))
+	f.Add([]byte(`{"documentNamespace":"https://a.example/ns"}`))
 	f.Add([]byte(`{`))
 	f.Add([]byte(`[]`))
 	f.Fuzz(func(t *testing.T, data []byte) {
@@ -140,10 +205,15 @@ func FuzzEvaluateMergedLinks(f *testing.F) {
 			t.Skip("input exceeds the shared fuzz bound")
 		}
 		wanted := map[string]struct{}{"https://a.example/ns": {}}
-		first, firstErr := evaluateMergedLinks(data, wanted)
-		second, secondErr := evaluateMergedLinks(data, wanted)
-		if (firstErr == nil) != (secondErr == nil) || first != second {
-			t.Fatalf("non-deterministic: %+v/%v then %+v/%v", first, firstErr, second, secondErr)
+		for _, format := range []mergedFormat{mergedCycloneDX, mergedSPDX} {
+			first, firstErr := evaluateMergedLinks(format, data, wanted)
+			second, secondErr := evaluateMergedLinks(format, data, wanted)
+			if (firstErr == nil) != (secondErr == nil) || first != second {
+				t.Fatalf("%s non-deterministic: %+v/%v then %+v/%v", format, first, firstErr, second, secondErr)
+			}
+			if firstErr == nil && first.passed && strings.TrimSpace(first.detail) == "" {
+				t.Fatalf("%s passed without a detail", format)
+			}
 		}
 		_, nsErr := spdxNamespace(data)
 		_, nsErr2 := spdxNamespace(data)

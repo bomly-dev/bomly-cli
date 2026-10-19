@@ -219,14 +219,30 @@ func run(bomlyPath, outputDir, inputPath, mergeA, mergeB string) error {
 	// A merged document states its own identity and names the documents it
 	// was built from, rather than adopting one source's identity (ADR-0042).
 	// Only a real two-source run can produce this, which is why it is asserted
-	// here and not in a unit test.
-	linkCheck, err := checkMergedDocumentLinks(merged[1].path, mergeA, mergeB)
-	if err != nil {
-		return writeFailure(outputDir, &manifest, err)
+	// here and not in a unit test. Both formats are checked, and both verdicts
+	// are recorded before either fails the run: each format has its own
+	// identity slot and its own way of naming a source, and the manifest is
+	// the evidence for the catalog's per-format claim, on a failure most of
+	// all.
+	var linkFailures []string
+	for _, target := range []struct {
+		format mergedFormat
+		path   string
+	}{
+		{format: mergedSPDX, path: merged[0].path},
+		{format: mergedCycloneDX, path: merged[1].path},
+	} {
+		linkCheck, err := checkMergedDocumentLinks(target.format, target.path, mergeA, mergeB)
+		if err != nil {
+			return writeFailure(outputDir, &manifest, err)
+		}
+		manifest.Checks = append(manifest.Checks, linkCheck)
+		if !linkCheck.Passed {
+			linkFailures = append(linkFailures, fmt.Sprintf("%s: %s", target.format, linkCheck.Detail))
+		}
 	}
-	manifest.Checks = append(manifest.Checks, linkCheck)
-	if !linkCheck.Passed {
-		return writeFailure(outputDir, &manifest, errors.New(linkCheck.Detail))
+	if len(linkFailures) > 0 {
+		return writeFailure(outputDir, &manifest, errors.New(strings.Join(linkFailures, "; ")))
 	}
 
 	commands := [][]string{
@@ -371,15 +387,17 @@ func stageMergeTree(tree, sourceA, sourceB string) error {
 	return nil
 }
 
-// checkMergedDocumentLinks asserts the ADR-0042 merge rule on a generated
-// CycloneDX document: every source's SPDX documentNamespace appears as a
-// `bom` external reference, and the merged serial number is not one of them.
+// checkMergedDocumentLinks asserts the ADR-0042 merge contract on one merged
+// document: it states an identity of its own, that identity is not one of the
+// sources', and every source's SPDX documentNamespace is named as a link --
+// a `bom` external reference in CycloneDX, an externalDocumentRefs entry in
+// SPDX.
 //
 // The fields are read with plain JSON decoding on purpose. The SDK's codec is
 // the thing under test here; verifying its output through its own reader would
 // inherit whatever it got wrong.
-func checkMergedDocumentLinks(mergedPath string, sources ...string) (checkInfo, error) {
-	check := checkInfo{Name: "merged document links its sources"}
+func checkMergedDocumentLinks(format mergedFormat, mergedPath string, sources ...string) (checkInfo, error) {
+	check := checkInfo{Name: fmt.Sprintf("merged %s document links its sources", format)}
 	wanted := map[string]struct{}{}
 	for _, source := range sources {
 		data, err := system.ReadFileLimit(source, maxDocumentBytes)
@@ -396,7 +414,7 @@ func checkMergedDocumentLinks(mergedPath string, sources ...string) (checkInfo, 
 	if err != nil {
 		return check, fmt.Errorf("read merged document: %w", err)
 	}
-	verdict, err := evaluateMergedLinks(data, wanted)
+	verdict, err := evaluateMergedLinks(format, data, wanted)
 	if err != nil {
 		return check, fmt.Errorf("merged document: %w", err)
 	}
@@ -404,17 +422,52 @@ func checkMergedDocumentLinks(mergedPath string, sources ...string) (checkInfo, 
 	return check, nil
 }
 
+// mergedFormat names the format a merged document is read as.
+type mergedFormat string
+
+const (
+	mergedSPDX      mergedFormat = "spdx"
+	mergedCycloneDX mergedFormat = "cyclonedx"
+)
+
 type linkVerdict struct {
 	passed bool
 	detail string
 }
 
+// mergedDocument is the format-neutral view of a merged document: the one
+// identity it publishes and the documents it names as its sources. Both
+// formats are reduced to this shape so the merge rule is judged once.
+type mergedDocument struct {
+	// identitySlot names the field the identity was read from, for the detail.
+	identitySlot string
+	identity     string
+	linked       map[string]struct{}
+}
+
 // evaluateMergedLinks is the pure half of the link check, so it can be tested
 // and fuzzed without generating documents.
-func evaluateMergedLinks(merged []byte, wanted map[string]struct{}) (linkVerdict, error) {
+func evaluateMergedLinks(format mergedFormat, merged []byte, wanted map[string]struct{}) (linkVerdict, error) {
 	if len(merged) > maxDocumentBytes {
 		return linkVerdict{}, fmt.Errorf("document is %d bytes, limit is %d", len(merged), maxDocumentBytes)
 	}
+	var document mergedDocument
+	var err error
+	switch format {
+	case mergedCycloneDX:
+		document, err = decodeMergedCycloneDX(merged)
+	case mergedSPDX:
+		document, err = decodeMergedSPDX(merged)
+	default:
+		return linkVerdict{}, fmt.Errorf("unknown merged document format %q", format)
+	}
+	if err != nil {
+		return linkVerdict{}, err
+	}
+	return judgeMergedDocument(document, wanted), nil
+}
+
+func decodeMergedCycloneDX(merged []byte) (mergedDocument, error) {
 	var document struct {
 		SerialNumber       string `json:"serialNumber"`
 		ExternalReferences []struct {
@@ -423,7 +476,7 @@ func evaluateMergedLinks(merged []byte, wanted map[string]struct{}) (linkVerdict
 		} `json:"externalReferences"`
 	}
 	if err := json.Unmarshal(merged, &document); err != nil {
-		return linkVerdict{}, fmt.Errorf("decode CycloneDX document: %w", err)
+		return mergedDocument{}, fmt.Errorf("decode CycloneDX document: %w", err)
 	}
 	linked := map[string]struct{}{}
 	for _, reference := range document.ExternalReferences {
@@ -431,20 +484,53 @@ func evaluateMergedLinks(merged []byte, wanted map[string]struct{}) (linkVerdict
 			linked[reference.URL] = struct{}{}
 		}
 	}
+	return mergedDocument{identitySlot: "serialNumber", identity: document.SerialNumber, linked: linked}, nil
+}
+
+func decodeMergedSPDX(merged []byte) (mergedDocument, error) {
+	var document struct {
+		DocumentNamespace    string `json:"documentNamespace"`
+		ExternalDocumentRefs []struct {
+			SPDXDocument string `json:"spdxDocument"`
+		} `json:"externalDocumentRefs"`
+	}
+	if err := json.Unmarshal(merged, &document); err != nil {
+		return mergedDocument{}, fmt.Errorf("decode SPDX document: %w", err)
+	}
+	linked := map[string]struct{}{}
+	for _, reference := range document.ExternalDocumentRefs {
+		linked[reference.SPDXDocument] = struct{}{}
+	}
+	return mergedDocument{identitySlot: "documentNamespace", identity: document.DocumentNamespace, linked: linked}, nil
+}
+
+// judgeMergedDocument applies ADR-0042's merge rule: a merge of two or more
+// sources mints its own identity and names each source.
+//
+// The identity is checked first, and for presence before adoption. Both
+// identity slots are optional in their specifications -- the official
+// validators accept a CycloneDX document with no serialNumber -- so a merged
+// document that stopped minting one would pass every other check in this
+// run. The adoption test alone cannot catch it: an empty identity is never
+// one of the sources' (bomly-dev/bomly-cli#497).
+func judgeMergedDocument(document mergedDocument, wanted map[string]struct{}) linkVerdict {
+	if strings.TrimSpace(document.identity) == "" {
+		return linkVerdict{detail: fmt.Sprintf("merged document has no %s of its own", document.identitySlot)}
+	}
+	if _, adopted := wanted[document.identity]; adopted {
+		return linkVerdict{detail: "merged document adopted a source's identity: " + document.identity}
+	}
 	var missing []string
 	for namespace := range wanted {
-		if _, ok := linked[namespace]; !ok {
+		if _, ok := document.linked[namespace]; !ok {
 			missing = append(missing, namespace)
 		}
 	}
 	if len(missing) > 0 {
 		sort.Strings(missing)
-		return linkVerdict{detail: "merged document does not link its sources: " + strings.Join(missing, ", ")}, nil
+		return linkVerdict{detail: "merged document does not link its sources: " + strings.Join(missing, ", ")}
 	}
-	if _, adopted := wanted[document.SerialNumber]; adopted {
-		return linkVerdict{detail: "merged document adopted a source's identity: " + document.SerialNumber}, nil
-	}
-	return linkVerdict{passed: true, detail: fmt.Sprintf("merged document links %d source(s)", len(linked))}, nil
+	return linkVerdict{passed: true, detail: fmt.Sprintf("merged document links %d source(s)", len(document.linked))}
 }
 
 func spdxNamespace(data []byte) (string, error) {
@@ -457,7 +543,7 @@ func spdxNamespace(data []byte) (string, error) {
 	if err := json.Unmarshal(data, &document); err != nil {
 		return "", fmt.Errorf("decode SPDX document: %w", err)
 	}
-	if document.DocumentNamespace == "" {
+	if strings.TrimSpace(document.DocumentNamespace) == "" {
 		return "", errors.New("SPDX document has no documentNamespace")
 	}
 	return document.DocumentNamespace, nil

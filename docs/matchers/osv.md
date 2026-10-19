@@ -32,7 +32,7 @@ After a successful OSV match, the matcher also queries the [CISA Known Exploited
 bomly scan --enrich
 ```
 
-To run Grype alone, remove OSV from the default set with `--matchers -osv`.
+To keep Grype as the only vulnerability matcher, remove OSV from the default set with `--matchers -osv`; the deps.dev license matcher still runs. `--matchers grype` runs Grype and nothing else.
 
 ## Network
 

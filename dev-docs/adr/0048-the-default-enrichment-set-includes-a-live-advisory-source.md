@@ -53,7 +53,8 @@ run?" without reading the report.
 - Every `--enrich` run now queries `api.osv.dev` and downloads the CISA KEV
   catalog (6h cache). The network and privacy documentation already listed
   both as `--enrich` traffic; the behavior now matches it. Users who want
-  Grype alone pass `--matchers -osv`.
+  Grype as their only vulnerability matcher pass `--matchers -osv`; the
+  license matcher still runs. `--matchers grype` runs Grype and nothing else.
 - Smoke goldens for cases that enrich without pinning `--matchers` (the four
   reachability scans) gain OSV advisories and must be regenerated with the
   golden workflow.

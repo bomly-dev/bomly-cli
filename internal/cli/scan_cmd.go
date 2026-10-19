@@ -143,6 +143,7 @@ func newScanCmd() *cobra.Command {
 				sbomEntries = pipeResult.Consolidated.Graphs.Entries
 			}
 			sbomBuildOpts := scanSBOMBuildOptions(logger, commandCtx.ExecutionTarget(), project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, coverageDegraded(pipeResult.DetectorWarnings))
+			encodeSBOM := newScanSBOMEncoder(selectedGraph, sbomEntries, sbomBuildOpts)
 
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -150,9 +151,9 @@ func newScanCmd() *cobra.Command {
 				for _, spec := range outputSpecs {
 					switch {
 					case spec.IsSBOM():
-						rawDocument, err := sbom.MarshalGraphEntriesJSON(selectedGraph, sbomEntries, spec.Target, sbomBuildOpts, sbom.EncodeOptions{Pretty: true})
+						rawDocument, err := encodeSBOM(spec.Label, spec.Target)
 						if err != nil {
-							return fmt.Errorf("marshal %s sbom: %w", spec.Label, err)
+							return err
 						}
 						if err := render.WriteOutputDocument(stdout, spec, rawDocument); err != nil {
 							return err
@@ -174,9 +175,9 @@ func newScanCmd() *cobra.Command {
 				if !ok {
 					return exit.InvalidInputError("output format %q is not supported by scan", graphOutputFormat)
 				}
-				rawDocument, err := sbom.MarshalGraphEntriesJSON(selectedGraph, sbomEntries, target, sbomBuildOpts, sbom.EncodeOptions{Pretty: true})
+				rawDocument, err := encodeSBOM(string(graphOutputFormat), target)
 				if err != nil {
-					return fmt.Errorf("marshal %s sbom: %w", graphOutputFormat, err)
+					return err
 				}
 				prog.Success("Wrote output")
 				if err := render.WriteOutputDocument(streams.reportWriter(), render.OutputSpec{Format: graphOutputFormat, Label: string(graphOutputFormat)}, rawDocument); err != nil {
@@ -226,6 +227,34 @@ func scanPolicyExit(auditEnabled bool, findings []model.Finding) error {
 		}
 	}
 	return nil
+}
+
+// newScanSBOMEncoder returns the function that encodes this scan's SBOM
+// document for one output target, labelled for the error message.
+//
+// The document is built once, on the first call, and every target is encoded
+// from that one document: a build mints the document's identity, and a scan
+// written as both SPDX and CycloneDX is one document, so its SPDX
+// documentNamespace and CycloneDX serialNumber must carry one UUID
+// (bomly-dev/bomly-sdk#109). Building per target gave each export its own.
+// The build waits for the first SBOM output so a scan that writes none pays
+// nothing for it.
+func newScanSBOMEncoder(g *model.Graph, entries []model.GraphEntry, opts sbom.BuildOptions) func(label string, target sbom.Target) ([]byte, error) {
+	var doc *sbom.Document
+	return func(label string, target sbom.Target) ([]byte, error) {
+		if doc == nil {
+			built, err := sbom.FromGraphEntries(g, entries, opts)
+			if err != nil {
+				return nil, fmt.Errorf("marshal %s sbom: %w", label, err)
+			}
+			doc = built
+		}
+		raw, err := sbom.MarshalJSON(doc, target, sbom.EncodeOptions{Pretty: true})
+		if err != nil {
+			return nil, fmt.Errorf("marshal %s sbom: %w", label, err)
+		}
+		return raw, nil
+	}
 }
 
 // scanSBOMBuildOptions assembles the SBOM projection options for a scan: the

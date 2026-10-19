@@ -1911,6 +1911,24 @@ func TestRoot_ScanCommand_WritesMultipleSBOMFormatsToFiles(t *testing.T) {
 	if got := cdxDoc["bomFormat"]; got != "CycloneDX" {
 		t.Fatalf("expected CycloneDX document, got %#v", cdxDoc)
 	}
+
+	// One scan is one document: both exports carry the same UUID, the
+	// CycloneDX serialNumber's after "urn:uuid:" and the SPDX
+	// documentNamespace's after Bomly's namespace prefix
+	// (bomly-dev/bomly-sdk#109). A document built per format minted two.
+	serial, _ := cdxDoc["serialNumber"].(string)
+	serialUUID, ok := strings.CutPrefix(serial, "urn:uuid:")
+	if !ok || serialUUID == "" {
+		t.Fatalf("expected an urn:uuid CycloneDX serialNumber, got %q", serial)
+	}
+	namespace, _ := spdxDoc["documentNamespace"].(string)
+	namespaceUUID, ok := strings.CutPrefix(namespace, "https://bomly.dev/spdx/")
+	if !ok || namespaceUUID == "" {
+		t.Fatalf("expected a Bomly-form SPDX documentNamespace, got %q", namespace)
+	}
+	if namespaceUUID != serialUUID {
+		t.Fatalf("SPDX documentNamespace %q and CycloneDX serialNumber %q name different documents", namespace, serial)
+	}
 }
 
 func TestRoot_ScanCommand_InteractiveRejectsSBOMOutput(t *testing.T) {

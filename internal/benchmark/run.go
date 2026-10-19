@@ -454,12 +454,21 @@ func writeBomlySBOMs(caseDir string, result NativeScanResult, artifacts map[stri
 			toolNames = append(toolNames, "bomly-detector:"+name)
 		}
 	}
+	// One document, encoded once per format: both exports of one benchmark
+	// scan then carry the same UUID, as the CLI's own exports do.
+	var doc *sbom.Document
 	for _, artifact := range sortedBomlyArtifacts(artifacts) {
 		target, err := bomlySBOMTarget(artifact.Format)
 		if err != nil {
 			return err
 		}
-		raw, err := sbom.MarshalDepGraphJSON(result.Graph, target, sbom.BuildOptions{ToolNames: toolNames}, sbom.EncodeOptions{Pretty: true})
+		if doc == nil {
+			doc, err = sbom.FromDepGraph(result.Graph, sbom.BuildOptions{ToolNames: toolNames})
+			if err != nil {
+				return fmt.Errorf("build Bomly SBOM: %w", err)
+			}
+		}
+		raw, err := sbom.MarshalJSON(doc, target, sbom.EncodeOptions{Pretty: true})
 		if err != nil {
 			return fmt.Errorf("marshal Bomly %s SBOM: %w", artifact.Format, err)
 		}

@@ -37,7 +37,7 @@ Run alongside `osv` for the highest coverage: the two databases overlap heavily 
 
 ## Network
 
-Grype reads from a local vulnerability database that it syncs on first use and refreshes on a schedule.
+Grype reads from a local vulnerability database. The full `bomly` binary downloads it on first use and keeps that copy; `bomly-lite` leaves the download, and any refresh, to the external `grype` command.
 
 | Mode | DB sync source | DB location |
 | --- | --- | --- |

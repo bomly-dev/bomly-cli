@@ -58,7 +58,7 @@
               "id": "what-data-leaves-my-machine",
               "question": "What data leaves my machine when I run Bomly?",
               "toc": "What data leaves my machine?",
-              "answer": "By default, nothing. Bomly has no telemetry, no usage tracking, and no crash reporting. Network enrichment is opt-in: when you pass `--enrich`, Bomly queries public data sources such as OSV, CISA KEV, and deps.dev for vulnerability and license data. One detail to know: detectors that use a build tool, such as Maven or Gradle, may resolve packages from the package registry, because that is how those build tools work.",
+              "answer": "By default, nothing. Bomly has no telemetry, no usage tracking, and no crash reporting. Network enrichment is opt-in: when you pass `--enrich`, Bomly matches vulnerabilities against Grype's database, downloaded from Anchore's database service on first use, and queries deps.dev for license data. OSV and the CISA KEV catalog are queried only when you select the `osv` matcher, and OpenSSF Scorecard only when you select `scorecard`. One detail to know: detectors that use a build tool, such as Maven or Gradle, may resolve packages from the package registry, because that is how those build tools work.",
               "links": [
                 {
                   "label": "Privacy",

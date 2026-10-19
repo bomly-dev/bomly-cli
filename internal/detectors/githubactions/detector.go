@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -81,7 +82,7 @@ func (d Detector) Descriptor() plugin.DetectorDescriptor {
 
 // ResolveGraph resolves a GitHub Actions dependency graph from workflow and action manifests.
 func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
-	graphs, err := depGraphContainerFromRepository(req.ProjectPath)
+	graphs, err := depGraphContainerFromRepository(req.ProjectPath, originHost(req.ExecutionTarget))
 	if err != nil {
 		return plugin.DetectionResult{}, err
 	}
@@ -100,15 +101,79 @@ func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (
 	}, "a workflow file is not a module; there is no module root to attribute its sites to"), nil
 }
 
+// githubHost is the host every "uses: owner/repo@ref" reference resolves
+// against when the scanned repository is not known to live elsewhere.
+const githubHost = "github.com"
+
+// originHost is the host an external reference's origin is published on,
+// or "" when none is: the GitHub instance the scanned repository lives on
+// decides where "owner/repo@ref" resolves, and only github.com is a
+// resolution Bomly can state.
+//
+// A GitHub Enterprise Server or GHE.com instance looks the repository up on
+// the instance first and, when configured, falls back to github.com for a
+// repository the instance does not hold (GitHub Connect). Which of the two
+// a reference resolved to is not knowable from the workflow file, so for a
+// repository scanned from such a host the origin is omitted rather than
+// guessed. A filesystem scan carries no host at all and is taken to be
+// github.com, which is what the package URL type already asserts.
+func originHost(target plugin.ExecutionTarget) string {
+	if target.Kind != plugin.ExecutionTargetGitRepository {
+		return githubHost
+	}
+	repository := strings.TrimSpace(target.RepositoryURL)
+	if repository == "" {
+		return githubHost
+	}
+	host := repositoryHost(repository)
+	if host == githubHost || host == "www."+githubHost {
+		return githubHost
+	}
+	return ""
+}
+
+// repositoryHost extracts the lowercase host of a clone URL, accepting the
+// two forms --url hands to git clone unchanged: a scheme URL, and Git's
+// scp-like "[user@]host:path" form, whose user is optional. Anything else
+// yields "".
+func repositoryHost(repository string) string {
+	if strings.Contains(repository, "://") {
+		parsed, err := url.Parse(repository)
+		if err != nil || parsed.Host == "" {
+			return ""
+		}
+		return strings.ToLower(parsed.Hostname())
+	}
+	// No scheme, so the form is scp-like and split by hand: url.Parse reads
+	// "github.com:owner/repo.git" as a URL whose scheme is "github.com" and
+	// fails outright on "git@github.com:owner/repo.git".
+	host, _, found := strings.Cut(repository, ":")
+	if !found {
+		return ""
+	}
+	if at := strings.LastIndex(host, "@"); at >= 0 {
+		host = host[at+1:]
+	}
+	if host == "" || strings.ContainsAny(host, "/\\ ") {
+		return ""
+	}
+	return strings.ToLower(host)
+}
+
+// depGraphFromRepository resolves the repository's manifests into one
+// consolidated graph, publishing origins on github.com.
 func depGraphFromRepository(projectPath string) (*model.Graph, error) {
-	container, err := depGraphContainerFromRepository(projectPath)
+	container, err := depGraphContainerFromRepository(projectPath, githubHost)
 	if err != nil {
 		return nil, err
 	}
 	return container.ConsolidatedGraph()
 }
 
-func depGraphContainerFromRepository(projectPath string) (*model.GraphContainer, error) {
+// depGraphContainerFromRepository resolves every workflow and action
+// manifest under projectPath. host is where external references publish
+// their origin, or "" to publish none; see originHost.
+func depGraphContainerFromRepository(projectPath, host string) (*model.GraphContainer, error) {
 	workflowFiles, actionFiles, err := discoverManifestFiles(projectPath)
 	if err != nil {
 		return nil, err
@@ -151,7 +216,7 @@ func depGraphContainerFromRepository(projectPath string) (*model.GraphContainer,
 			return nil, err
 		}
 		parent := workflowNodes[relPath]
-		if err := addReferenceEdges(depsGraph, parent, relPath, refs, workflowNodes, actionNodes); err != nil {
+		if err := addReferenceEdges(depsGraph, parent, relPath, refs, host, workflowNodes, actionNodes); err != nil {
 			return nil, err
 		}
 	}
@@ -161,7 +226,7 @@ func depGraphContainerFromRepository(projectPath string) (*model.GraphContainer,
 			return nil, err
 		}
 		parent := actionNodes[filepath.ToSlash(filepath.Dir(relManifestPath))]
-		if err := addReferenceEdges(depsGraph, parent, relManifestPath, refs, workflowNodes, actionNodes); err != nil {
+		if err := addReferenceEdges(depsGraph, parent, relManifestPath, refs, host, workflowNodes, actionNodes); err != nil {
 			return nil, err
 		}
 	}
@@ -332,9 +397,12 @@ func parseActionRefs(path string) ([]string, error) {
 	return uniqueStrings(refs), nil
 }
 
-func addReferenceEdges(depsGraph *model.Graph, parent *model.DependencyNode, callerRelPath string, refs []string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) error {
+// addReferenceEdges resolves each "uses:" reference a manifest makes and
+// links the manifest's node to the node the reference names; see
+// resolveReference for what each reference becomes.
+func addReferenceEdges(depsGraph *model.Graph, parent *model.DependencyNode, callerRelPath string, refs []string, host string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) error {
 	for _, ref := range refs {
-		node, err := resolveReference(ref, callerRelPath, workflowNodes, actionNodes)
+		node, err := resolveReference(ref, callerRelPath, host, workflowNodes, actionNodes)
 		if err != nil {
 			return err
 		}
@@ -351,13 +419,19 @@ func addReferenceEdges(depsGraph *model.Graph, parent *model.DependencyNode, cal
 	return nil
 }
 
-func resolveReference(ref, callerRelPath string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) (*model.DependencyNode, error) {
+// resolveReference turns one "uses:" value into the node it depends on: a
+// Docker image reference is not a GitHub Actions dependency and yields nil,
+// a local reference resolves to the workflow or action node already built
+// for that path, and an external "owner/repo[/path]@ref" reference becomes
+// a dependency node carrying its origin on host (none when host is empty)
+// and, for a SHA-pinned ref, the commit as a SHA-1 digest.
+func resolveReference(ref, callerRelPath, host string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) (*model.DependencyNode, error) {
 	ref = strings.TrimSpace(ref)
 	if ref == "" || strings.HasPrefix(ref, "docker://") {
 		return nil, nil
 	}
-	if strings.HasPrefix(ref, "./") {
-		for _, candidate := range localReferenceCandidates(ref, callerRelPath) {
+	if localPath, rootOnly, isLocal := localReferencePath(ref); isLocal {
+		for _, candidate := range localReferenceCandidates(localPath, callerRelPath, rootOnly) {
 			if workflowNode, ok := workflowNodes[candidate]; ok {
 				return workflowNode, nil
 			}
@@ -374,7 +448,7 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*model
 				}
 			}
 		}
-		return localActionNode(strings.TrimPrefix(filepath.ToSlash(filepath.Clean(strings.TrimPrefix(ref, "./"))), "./"))
+		return localActionNode(strings.TrimPrefix(filepath.ToSlash(filepath.Clean(localPath)), "./"))
 	}
 
 	name, version := splitVersionRef(ref)
@@ -398,12 +472,64 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*model
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}
 	node.Scopes = model.ScopesOf(model.ScopeRuntime)
-	// A SHA-pinned ref is the content-addressed identity of the action's
-	// source tree; record it so SBOM consumers can verify the pin.
+	// Where the reference resolves from: the repository the first two path
+	// segments name, at the ref written after "@". This is the identity the
+	// formats keep for version-controlled sources -- the SPDX 2.3 download
+	// location in its "git+<url>@<revision>" form, a CycloneDX vcs reference
+	// -- and it is recorded for every external reference, tag- or
+	// branch-pinned ones included, because the ref is what the manifest
+	// said even when it is not a commit (issue #508).
+	if origin := model.RepositoryOrigin(actionRepositoryURL(host, org, packageName), version); origin != nil {
+		node.Origins = model.MergeOrigins(node.Origins, []model.DependencyOrigin{*origin})
+	}
+	// A SHA-pinned ref is also the Git object ID of the pinned commit, and a
+	// Git object ID is a SHA-1, so it is published as one: the CycloneDX
+	// hashes[].alg and SPDX checksum vocabularies both have that member, and
+	// relabelling it would misstate what was computed. It stays beside the
+	// origin rather than replacing it, since a consumer that verifies pins
+	// reads the hash and one that follows sources reads the locator.
 	if isGitCommitSHA(version) {
 		node.Digests = []model.Digest{{Algorithm: model.DigestAlgorithmSHA1, Value: strings.ToLower(version)}}
 	}
 	return node, nil
+}
+
+// localReferencePath reports whether a "uses:" value names a path inside
+// the scanned repository, and returns that path without its marker. Two
+// spellings mean this: "./path", which resolves against the checked-out
+// tree, and "$/path", the self-repository form that resolves against the
+// workflow's own repository at the running commit. Neither names another
+// repository, so neither gets an external identity or an origin. rootOnly
+// is true for the "$/" form, which GitHub defines against the repository
+// root alone; the caller-relative reading the "./" form is also given is
+// not part of its definition.
+func localReferencePath(ref string) (path string, rootOnly bool, isLocal bool) {
+	switch {
+	case strings.HasPrefix(ref, "$/"):
+		return strings.TrimPrefix(ref, "$/"), true, true
+	case strings.HasPrefix(ref, "./"):
+		return strings.TrimPrefix(ref, "./"), false, true
+	}
+	return "", false, false
+}
+
+// actionRepositoryURL is the repository a "uses: owner/repo[/path]@ref"
+// reference is fetched from on host, or "" when host is empty or the
+// reference does not name an owner and a repository; RepositoryOrigin
+// declines to publish either. The repository is always the first two
+// segments: in "github/codeql-action/upload-sarif" the third segment is a
+// directory inside github/codeql-action, and a reusable workflow's
+// ".github/workflows/<file>.yml" is a path inside its repository the same
+// way.
+func actionRepositoryURL(host, org, name string) string {
+	repository, _, _ := strings.Cut(strings.TrimSpace(name), "/")
+	org = strings.TrimSpace(org)
+	host = strings.TrimSpace(host)
+	if host == "" || org == "" || repository == "" {
+		return ""
+	}
+	location := url.URL{Scheme: "https", Host: host, Path: "/" + org + "/" + repository}
+	return location.String()
 }
 
 // isGitCommitSHA reports whether value is a full 40-hex-character Git object ID.
@@ -419,9 +545,15 @@ func isGitCommitSHA(value string) bool {
 	return true
 }
 
-func localReferenceCandidates(ref, callerRelPath string) []string {
-	trimmed := strings.TrimPrefix(strings.TrimSpace(ref), "./")
+// localReferenceCandidates lists where a local reference's path (already
+// stripped of its "./" or "$/" marker) may point: the repository root, and,
+// unless rootOnly, the caller's own directory.
+func localReferenceCandidates(localPath, callerRelPath string, rootOnly bool) []string {
+	trimmed := strings.TrimSpace(localPath)
 	repoRelative := filepath.ToSlash(filepath.Clean(trimmed))
+	if rootOnly {
+		return []string{repoRelative}
+	}
 	callerRelative := filepath.ToSlash(filepath.Clean(filepath.Join(filepath.Dir(callerRelPath), trimmed)))
 	return uniqueStrings([]string{repoRelative, callerRelative})
 }

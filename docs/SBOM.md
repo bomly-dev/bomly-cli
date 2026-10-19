@@ -233,11 +233,11 @@ A detector reports one of two things, or nothing at all:
 | What the lockfile records | SPDX 2.3 | CycloneDX |
 |---|---|---|
 | The exact file the package was fetched from | `downloadLocation` | `distribution` external reference |
-| The repository it was resolved from, and the commit when the lockfile pinned one | `downloadLocation` as `git+<url>`, with `@<revision>` when pinned; `sourceInfo` when a download location is already taken by an artifact | `vcs` external reference (URL only) |
+| The repository it was resolved from, and the revision when the manifest names one: a commit, or for GitHub Actions the tag or branch exactly as written | `downloadLocation` as `git+<url>`, with `@<revision>` when present; `sourceInfo` when a download location is already taken by an artifact | `vcs` external reference (URL only) |
 | Neither | `NOASSERTION` | no reference |
 
-CycloneDX external references have no field for a revision, so the commit a
-detector resolved appears only in the SPDX form.
+CycloneDX external references have no field for a revision, so the revision a
+detector reported appears only in the SPDX form.
 
 What each ecosystem yields:
 
@@ -247,6 +247,20 @@ What each ecosystem yields:
   record only an integrity hash report nothing.
 - **uv, poetry, pipenv, pip** — a repository plus the commit that was locked,
   or a direct archive URL, depending on the recorded source type.
+- **GitHub Actions** — the repository named by the first two segments of a
+  `uses:` reference (`https://github.com/actions/checkout`, also for a
+  sub-directory action such as `github/codeql-action/upload-sarif` and for a
+  reusable workflow), at the ref written after `@`: a commit when the step is
+  SHA-pinned, otherwise the tag or branch exactly as the workflow wrote it.
+  A SHA-pinned step additionally keeps the commit as a `SHA-1` hash: a Git
+  object ID is a SHA-1, so that is its honest algorithm label, and the origin
+  beside it says the value is a commit rather than a content digest. Local
+  references (`./path` and the self-repository form `$/path`) are files in
+  the scanned tree and report nothing. The host is github.com; a repository
+  scanned with `--url` from a GitHub Enterprise Server or GHE.com host
+  reports no origin, because such an instance resolves a reference on the
+  instance first and may fall back to github.com, and the workflow file does
+  not say which one answered.
 - **cargo, Bundler, SwiftPM, pub** — the repository and resolved commit for
   git dependencies and source-control pins. SwiftPM and pub report the same
   origin whether the build tool ran or Bomly read the committed file: the tools

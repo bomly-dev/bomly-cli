@@ -6,7 +6,7 @@ In the full `bomly` binary, Grype is linked in as a library and runs in-process.
 
 ## When it runs
 
-`grype` requires `--enrich`. It does not run by default.
+`grype` requires `--enrich`. A plain scan never runs it. With `--enrich` and no `--matchers` selection, `grype` is in the default matcher set next to `osv`; `--matchers grype` runs Grype and nothing else.
 
 ```bash
 bomly scan --enrich --matchers grype     # Grype only

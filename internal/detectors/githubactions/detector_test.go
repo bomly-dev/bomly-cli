@@ -307,10 +307,14 @@ func TestOriginHost(t *testing.T) {
 		{name: "git repository without url", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository}, want: githubHost},
 		{name: "github.com https", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "https://github.com/org/repo"}, want: githubHost},
 		{name: "github.com scp-like", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "git@github.com:org/repo.git"}, want: githubHost},
+		{name: "github.com scp-like without user", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "github.com:org/repo.git"}, want: githubHost},
+		{name: "github.com ssh scheme", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "ssh://git@github.com/org/repo.git"}, want: githubHost},
 		{name: "github.com upper case with www", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "https://WWW.GitHub.com/org/repo"}, want: githubHost},
 		{name: "enterprise server", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "https://ghe.example.com/org/repo"}, want: ""},
 		{name: "ghe.com", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "https://acme.ghe.com/org/repo"}, want: ""},
 		{name: "enterprise scp-like", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "git@ghe.example.com:org/repo.git"}, want: ""},
+		{name: "enterprise scp-like without user", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "ghe.example.com:org/repo.git"}, want: ""},
+		{name: "bare path", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "org/repo"}, want: ""},
 		{name: "unparseable url", target: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "::not a url"}, want: ""},
 	}
 	for _, tc := range cases {
@@ -358,6 +362,57 @@ func TestResolveGraphOriginsFollowTheTargetHost(t *testing.T) {
 	checkout := public["actions/checkout"]
 	if len(checkout) != 1 || checkout[0] != (model.DependencyOrigin{Repository: "https://github.com/actions/checkout", Revision: "v4"}) {
 		t.Errorf("github.com-hosted scan origins for actions/checkout = %#v", checkout)
+	}
+}
+
+// "$/path" is defined against the repository root alone. "./path" also
+// gets a caller-relative reading, and that reading must not leak into the
+// self-repository form: "$/inner" from .github/actions/outer is not the
+// nested .github/actions/outer/inner, even when only the nested one exists.
+func TestSelfRepositoryReferenceResolvesFromRootOnly(t *testing.T) {
+	projectDir := t.TempDir()
+	outerDir := filepath.Join(projectDir, ".github", "actions", "outer")
+	nestedDir := filepath.Join(outerDir, "inner")
+	for _, dir := range []string{filepath.Join(projectDir, ".github", "workflows"), nestedDir} {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatalf("create %s: %v", dir, err)
+		}
+	}
+	files := map[string]string{
+		filepath.Join(projectDir, ".github", "workflows", "ci.yml"): "jobs:\n  build:\n    steps:\n      - uses: ./.github/actions/outer\n",
+		filepath.Join(outerDir, "action.yml"):                       "runs:\n  using: composite\n  steps:\n    - uses: $/inner\n    - uses: ./inner\n",
+		filepath.Join(nestedDir, "action.yml"):                      "runs:\n  using: composite\n  steps: []\n",
+	}
+	for path, content := range files {
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatalf("write %s: %v", path, err)
+		}
+	}
+
+	g, err := depGraphFromRepository(projectDir)
+	if err != nil {
+		t.Fatalf("depGraphFromRepository() error = %v", err)
+	}
+	outer, err := localActionNode(".github/actions/outer")
+	if err != nil {
+		t.Fatalf("localActionNode() error = %v", err)
+	}
+	depsNodes, err := g.DirectDependencies(outer.NodeID())
+	if err != nil {
+		t.Fatalf("DirectDependencies() error = %v", err)
+	}
+	names := map[string]bool{}
+	for _, dep := range model.DependencyNodesOf(depsNodes) {
+		names[dep.Name] = true
+	}
+	// "./inner" keeps its caller-relative reading and finds the nested action.
+	if !names[".github/actions/outer/inner"] {
+		t.Errorf("./inner should resolve caller-relative to the nested action; got %v", names)
+	}
+	// "$/inner" names <root>/inner, which does not exist, so it stays an
+	// unresolved local reference rather than borrowing the nested action.
+	if !names["inner"] {
+		t.Errorf("$/inner should resolve against the repository root only; got %v", names)
 	}
 }
 

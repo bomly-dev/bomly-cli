@@ -133,21 +133,31 @@ func originHost(target plugin.ExecutionTarget) string {
 }
 
 // repositoryHost extracts the lowercase host of a clone URL, accepting the
-// URL forms a --url scan takes: a scheme URL and the scp-like
-// "user@host:path" form Git also accepts. Unparseable input yields "".
+// two forms --url hands to git clone unchanged: a scheme URL, and Git's
+// scp-like "[user@]host:path" form, whose user is optional. Anything else
+// yields "".
 func repositoryHost(repository string) string {
-	if parsed, err := url.Parse(repository); err == nil && parsed.Host != "" {
+	if strings.Contains(repository, "://") {
+		parsed, err := url.Parse(repository)
+		if err != nil || parsed.Host == "" {
+			return ""
+		}
 		return strings.ToLower(parsed.Hostname())
 	}
-	// "git@github.com:org/repo.git": no scheme, so url.Parse reads it as
-	// a path. The host is between the "@" and the first ":".
-	if at := strings.Index(repository, "@"); at >= 0 && !strings.Contains(repository, "://") {
-		rest := repository[at+1:]
-		if colon := strings.Index(rest, ":"); colon > 0 {
-			return strings.ToLower(rest[:colon])
-		}
+	// No scheme, so the form is scp-like and split by hand: url.Parse reads
+	// "github.com:owner/repo.git" as a URL whose scheme is "github.com" and
+	// fails outright on "git@github.com:owner/repo.git".
+	host, _, found := strings.Cut(repository, ":")
+	if !found {
+		return ""
 	}
-	return ""
+	if at := strings.LastIndex(host, "@"); at >= 0 {
+		host = host[at+1:]
+	}
+	if host == "" || strings.ContainsAny(host, "/\\ ") {
+		return ""
+	}
+	return strings.ToLower(host)
 }
 
 // depGraphFromRepository resolves the repository's manifests into one
@@ -420,8 +430,8 @@ func resolveReference(ref, callerRelPath, host string, workflowNodes map[string]
 	if ref == "" || strings.HasPrefix(ref, "docker://") {
 		return nil, nil
 	}
-	if localPath, isLocal := localReferencePath(ref); isLocal {
-		for _, candidate := range localReferenceCandidates(localPath, callerRelPath) {
+	if localPath, rootOnly, isLocal := localReferencePath(ref); isLocal {
+		for _, candidate := range localReferenceCandidates(localPath, callerRelPath, rootOnly) {
 			if workflowNode, ok := workflowNodes[candidate]; ok {
 				return workflowNode, nil
 			}
@@ -489,14 +499,18 @@ func resolveReference(ref, callerRelPath, host string, workflowNodes map[string]
 // spellings mean this: "./path", which resolves against the checked-out
 // tree, and "$/path", the self-repository form that resolves against the
 // workflow's own repository at the running commit. Neither names another
-// repository, so neither gets an external identity or an origin.
-func localReferencePath(ref string) (string, bool) {
-	for _, marker := range []string{"./", "$/"} {
-		if strings.HasPrefix(ref, marker) {
-			return strings.TrimPrefix(ref, marker), true
-		}
+// repository, so neither gets an external identity or an origin. rootOnly
+// is true for the "$/" form, which GitHub defines against the repository
+// root alone; the caller-relative reading the "./" form is also given is
+// not part of its definition.
+func localReferencePath(ref string) (path string, rootOnly bool, isLocal bool) {
+	switch {
+	case strings.HasPrefix(ref, "$/"):
+		return strings.TrimPrefix(ref, "$/"), true, true
+	case strings.HasPrefix(ref, "./"):
+		return strings.TrimPrefix(ref, "./"), false, true
 	}
-	return "", false
+	return "", false, false
 }
 
 // actionRepositoryURL is the repository a "uses: owner/repo[/path]@ref"
@@ -532,11 +546,14 @@ func isGitCommitSHA(value string) bool {
 }
 
 // localReferenceCandidates lists where a local reference's path (already
-// stripped of its "./" or "$/" marker) may point: the repository root, and
-// the caller's own directory.
-func localReferenceCandidates(localPath, callerRelPath string) []string {
+// stripped of its "./" or "$/" marker) may point: the repository root, and,
+// unless rootOnly, the caller's own directory.
+func localReferenceCandidates(localPath, callerRelPath string, rootOnly bool) []string {
 	trimmed := strings.TrimSpace(localPath)
 	repoRelative := filepath.ToSlash(filepath.Clean(trimmed))
+	if rootOnly {
+		return []string{repoRelative}
+	}
 	callerRelative := filepath.ToSlash(filepath.Clean(filepath.Join(filepath.Dir(callerRelPath), trimmed)))
 	return uniqueStrings([]string{repoRelative, callerRelative})
 }

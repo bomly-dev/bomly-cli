@@ -4305,7 +4305,7 @@
     ],
     "analyzer_stats": {
       "jsreach": {
-        "reachable": 25,
+        "reachable": 26,
         "unreachable": 31
       }
     },
@@ -4354,6 +4354,22 @@
       "version": "1.1.1",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "1.1.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "cvss": [
             {
@@ -4362,7 +4378,21 @@
               "version": "\u003cnormalized\u003e"
             }
           ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-22"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "fix_available": [
             {
@@ -4377,8 +4407,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-cgjv-rghq-qhgp",
+          "modified": "2021-08-17T22:22:48Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2019-09-11T23:00:57Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -4409,8 +4441,12 @@
               "url": "\u003cnormalized\u003e"
             }
           ],
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -4486,6 +4522,64 @@
       "version": "3.0.0",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.0.0"
+                    },
+                    {
+                      "fixed": "6.0.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "5.0.0"
+                    },
+                    {
+                      "fixed": "5.0.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.1.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.0.1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -4506,6 +4600,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1333",
+              "CWE-697"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -4528,8 +4629,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-93q8-gq69-wqmw",
+          "modified": "2026-09-10T03:49:08.570265604Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2021-09-20T20:20:09Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -4558,8 +4661,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -4607,6 +4714,64 @@
       "version": "4.1.0",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.0.0"
+                    },
+                    {
+                      "fixed": "6.0.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "5.0.0"
+                    },
+                    {
+                      "fixed": "5.0.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.1.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.0.1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -4627,6 +4792,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1333",
+              "CWE-697"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -4649,8 +4821,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-93q8-gq69-wqmw",
+          "modified": "2026-09-10T03:49:08.570265604Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2021-09-20T20:20:09Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -4679,8 +4853,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -4812,6 +4990,36 @@
       "version": "2.6.3",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.2.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "2.0.0"
+                    },
+                    {
+                      "fixed": "2.6.4"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -4832,6 +5040,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -4854,8 +5068,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-fwr7-v2mv-hh25",
+          "modified": "2024-06-24T21:23:09Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2022-04-07T00:00:17Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -4884,8 +5100,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -4989,6 +5209,50 @@
       "version": "1.1.11",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "5.0.7"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "1.1.16"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "2.0.0"
+                    },
+                    {
+                      "fixed": "2.1.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -5009,6 +5273,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400",
+              "CWE-407"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -5031,8 +5302,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-3jxr-9vmj-r5cp",
+          "modified": "2026-09-10T03:51:10.092354944Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-07-20T20:51:09Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5061,11 +5334,73 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "5.0.10"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.0.7"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "2.0.0"
+                    },
+                    {
+                      "fixed": "2.1.5"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "1.1.19"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -5086,6 +5421,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400",
+              "CWE-674"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -5108,8 +5450,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-6j4f-fj2g-mc7p",
+          "modified": "2026-09-30T00:00:03.836613572Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-09-29T23:44:58Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5138,11 +5482,73 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "5.0.5"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.0.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "2.0.0"
+                    },
+                    {
+                      "fixed": "2.0.3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "1.1.13"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -5163,6 +5569,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -5185,8 +5597,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-f886-m6hf-6m8v",
+          "modified": "2026-09-10T03:51:00.342356761Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-03-26T18:29:42Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5215,11 +5629,73 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "5.0.8"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.0.3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "2.0.0"
+                    },
+                    {
+                      "fixed": "2.1.3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "1.1.17"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -5240,6 +5716,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400",
+              "CWE-770"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -5262,8 +5745,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-mh99-v99m-4gvg",
+          "modified": "2026-09-10T03:50:12.282849322Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-07-24T21:53:14Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5292,11 +5777,73 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "5.0.12"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.0.9"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "2.0.0"
+                    },
+                    {
+                      "fixed": "2.1.7"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "1.1.21"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -5317,6 +5864,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400",
+              "CWE-407"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -5339,8 +5893,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-q2hr-2g5m-vwhr",
+          "modified": "2026-09-30T00:00:03.849541183Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-09-29T23:45:39Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5369,11 +5925,73 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "5.0.11"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.0.8"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "2.0.0"
+                    },
+                    {
+                      "fixed": "2.1.6"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "1.1.20"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -5394,6 +6012,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400",
+              "CWE-674"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -5416,8 +6041,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-qhr7-859c-m2p7",
+          "modified": "2026-09-30T00:00:04.402763332Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-09-29T23:45:17Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5446,11 +6073,73 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "1.1.18"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "2.0.0"
+                    },
+                    {
+                      "fixed": "2.1.4"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.0.6"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "5.0.9"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -5471,6 +6160,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400",
+              "CWE-770"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -5493,8 +6189,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-rgw5-rvv9-x895",
+          "modified": "2026-09-10T03:51:14.535270857Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-08-03T16:35:32Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5523,11 +6221,79 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "2.0.0"
+                    },
+                    {
+                      "fixed": "2.0.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "1.0.0"
+                    },
+                    {
+                      "fixed": "1.1.12"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.0.1"
+                    }
+                  ]
+                }
+              ],
+              "versions": [
+                "3.0.0"
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.0.1"
+                    }
+                  ]
+                }
+              ],
+              "versions": [
+                "4.0.0"
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -5548,6 +6314,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400"
+            ],
+            "severity": "LOW"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -5570,8 +6342,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-v6h2-p8h4-qcjw",
+          "modified": "2026-09-10T03:50:25.501161917Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2025-06-09T21:30:51Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5600,8 +6374,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -5647,6 +6425,22 @@
       "version": "3.0.2",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.0.3"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -5667,6 +6461,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1050",
+              "CWE-400"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -5689,8 +6490,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-grv7-fg5c-xmjg",
+          "modified": "2026-09-10T03:50:00.374713008Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2024-05-14T18:30:54Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5719,11 +6522,31 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "last_affected": "3.0.3"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -5744,6 +6567,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-674"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -5755,8 +6584,10 @@
           ],
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-vfj7-8cjw-p6xm",
+          "modified": "2026-10-02T22:45:04.328737432Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-09-18T18:31:41Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -5785,8 +6616,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -6106,6 +6941,64 @@
       "version": "3.2.6",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "2.6.9"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.1.0"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.2.0"
+                    },
+                    {
+                      "fixed": "3.2.7"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.3.1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -6126,6 +7019,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400"
+            ],
+            "severity": "LOW"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -6148,8 +7047,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-gxpj-cx7g-858c",
+          "modified": "2026-09-10T03:47:07.070123052Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2018-08-09T20:18:07Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -6178,8 +7079,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -6274,6 +7179,40 @@
       "version": "0.2.5",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "last_affected": "0.3.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "last_affected": "0.3.0"
+                    }
+                  ]
+                }
+              ],
+              "versions": [
+                "0.2.5",
+                "0.3.0"
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -6285,7 +7224,21 @@
               "version": "\u003cnormalized\u003e"
             }
           ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-248"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -6297,8 +7250,10 @@
           ],
           "fix_state": "\u003cnormalized\u003e",
           "id": "GHSA-wm7h-9275-46v2",
+          "modified": "2024-02-16T08:15:24.975936Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2022-05-21T00:00:25Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -6327,8 +7282,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -6376,6 +7335,64 @@
       "version": "3.5.0",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.0.0"
+                    },
+                    {
+                      "fixed": "8.0.3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "5.0.0"
+                    },
+                    {
+                      "fixed": "5.2.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.0.4"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.5.1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -6396,6 +7413,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1333",
+              "CWE-400"
+            ],
+            "severity": "LOW"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -6418,8 +7442,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-73rr-hh4g-fpgx",
+          "modified": "2026-09-10T03:50:32.703687207Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-01-14T21:34:12Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -6448,8 +7474,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -6861,6 +7891,22 @@
       "version": "5.1.1",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "5.1.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -6881,6 +7927,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -6903,8 +7955,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-ww39-953v-wcq6",
+          "modified": "2025-01-14T08:57:10.357296Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2021-06-07T21:56:34Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -6933,8 +7987,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -7637,6 +8695,36 @@
       "version": "3.13.0",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.3.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.15.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -7657,6 +8745,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400",
+              "CWE-407"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -7679,8 +8774,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-2883-xcg3-v3hh",
+          "modified": "2026-09-08T21:30:05.575808098Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-09-08T21:24:51Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7712,11 +8809,45 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.15.0"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.3.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -7737,6 +8868,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400",
+              "CWE-407"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -7759,8 +8897,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-52cp-r559-cp3m",
+          "modified": "2026-09-10T03:50:12.263307536Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-07-20T21:19:09Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7792,11 +8932,45 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.3.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.15.1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "cvss": [
             {
@@ -7805,7 +8979,21 @@
               "version": "\u003cnormalized\u003e"
             }
           ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-407"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "fix_available": [
             {
@@ -7820,8 +9008,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-5p4m-2wfm-xmqj",
+          "modified": "2026-09-10T03:50:53.407436483Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-08-06T20:27:32Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7852,13 +9042,47 @@
               "url": "\u003cnormalized\u003e"
             }
           ],
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.13.1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-94"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "fix_available": [
             {
@@ -7873,8 +9097,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-8j8c-7jfh-h6hx",
+          "modified": "2020-08-31T18:36:43Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2019-06-04T20:14:07Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7907,9 +9133,40 @@
           ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.2.0"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.15.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -7930,6 +9187,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-407"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -7952,8 +9215,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-h67p-54hq-rp68",
+          "modified": "2026-09-10T03:50:49.729923880Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-06-15T17:15:07Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -7985,11 +9250,45 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.1.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.14.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -8010,6 +9309,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -8032,8 +9337,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-mh29-5h37-fv8m",
+          "modified": "2026-09-10T03:50:58.469126910Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2025-11-14T14:29:48Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8065,8 +9372,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -8114,6 +9425,36 @@
       "version": "3.13.1",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.3.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.15.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -8134,6 +9475,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400",
+              "CWE-407"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -8156,8 +9504,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-2883-xcg3-v3hh",
+          "modified": "2026-09-08T21:30:05.575808098Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-09-08T21:24:51Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8189,11 +9539,45 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.15.0"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.3.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -8214,6 +9598,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400",
+              "CWE-407"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -8236,8 +9627,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-52cp-r559-cp3m",
+          "modified": "2026-09-10T03:50:12.263307536Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-07-20T21:19:09Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8269,11 +9662,45 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.3.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.15.1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "cvss": [
             {
@@ -8282,7 +9709,21 @@
               "version": "\u003cnormalized\u003e"
             }
           ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-407"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "fix_available": [
             {
@@ -8297,8 +9738,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-5p4m-2wfm-xmqj",
+          "modified": "2026-09-10T03:50:53.407436483Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-08-06T20:27:32Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8329,11 +9772,45 @@
               "url": "\u003cnormalized\u003e"
             }
           ],
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.2.0"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.15.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -8354,6 +9831,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-407"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -8376,8 +9859,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-h67p-54hq-rp68",
+          "modified": "2026-09-10T03:50:49.729923880Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-06-15T17:15:07Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8409,11 +9894,45 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.1.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.14.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -8434,6 +9953,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -8456,8 +9981,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-mh29-5h37-fv8m",
+          "modified": "2026-09-10T03:50:58.469126910Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2025-11-14T14:29:48Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8489,8 +10016,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -8733,6 +10264,72 @@
       "version": "4.17.15",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.17.21"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "last_affected": "4.5.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.17.21"
+                    }
+                  ]
+                }
+              ],
+              "versions": [
+                "4.0.0",
+                "4.11.2",
+                "4.12.0",
+                "4.13.1",
+                "4.14.1",
+                "4.15.0",
+                "4.16.1",
+                "4.16.3",
+                "4.16.4",
+                "4.16.6",
+                "4.17.10",
+                "4.17.11",
+                "4.17.14",
+                "4.17.15",
+                "4.17.2",
+                "4.17.4",
+                "4.17.5",
+                "4.3.0",
+                "4.5.1",
+                "4.6.1"
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -8753,6 +10350,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1333",
+              "CWE-400"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -8775,8 +10379,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-29mw-wpgm-hmr9",
+          "modified": "2025-09-29T21:12:31.102523Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2022-01-06T20:30:46Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8808,11 +10414,130 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "4.17.21"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "last_affected": "4.5.0"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "last_affected": "1.0.0"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "4.17.21"
+                    }
+                  ]
+                }
+              ],
+              "versions": [
+                "0.10.0",
+                "0.7.0",
+                "0.8.1",
+                "0.8.2",
+                "0.9.0",
+                "0.9.1",
+                "0.9.2",
+                "1.0.0.rc.1",
+                "1.0.0.rc.2",
+                "1.0.0.rc.3",
+                "1.0.1",
+                "1.1.0",
+                "1.1.1",
+                "1.2.0",
+                "1.2.1",
+                "1.3.1",
+                "2.0.0",
+                "2.1.0",
+                "2.2.0",
+                "2.2.1",
+                "2.3.0",
+                "2.4.0",
+                "2.4.1",
+                "3.1.0",
+                "3.10.0",
+                "3.10.1",
+                "3.2.0",
+                "3.3.0",
+                "3.3.1",
+                "3.3.1.1",
+                "3.4.0",
+                "3.5.0",
+                "3.6.0",
+                "3.7.0",
+                "3.9.3",
+                "4.0.0",
+                "4.11.2",
+                "4.12.0",
+                "4.13.1",
+                "4.14.1",
+                "4.15.0",
+                "4.16.1",
+                "4.16.3",
+                "4.16.4",
+                "4.16.6",
+                "4.17.10",
+                "4.17.11",
+                "4.17.14",
+                "4.17.15",
+                "4.17.2",
+                "4.17.4",
+                "4.17.5",
+                "4.3.0",
+                "4.5.1",
+                "4.6.1"
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -8833,6 +10558,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-77",
+              "CWE-94"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -8855,8 +10587,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-35jh-r3h4-6jhm",
+          "modified": "2026-10-17T02:55:38.085813876Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2021-05-06T16:05:51Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8888,11 +10622,45 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "4.18.0"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.18.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -8913,6 +10681,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -8935,8 +10709,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-f23m-r3pf-42rh",
+          "modified": "2026-10-17T02:56:13.084362346Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-04-01T23:50:27Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -8968,11 +10744,141 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.7.0"
+                    },
+                    {
+                      "fixed": "4.17.19"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.7.0"
+                    },
+                    {
+                      "fixed": "4.17.20"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "last_affected": "4.4.0"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.7.0"
+                    },
+                    {
+                      "last_affected": "4.3.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "last_affected": "4.3.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "last_affected": "4.10.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.7.0"
+                    },
+                    {
+                      "fixed": "4.17.19"
+                    }
+                  ]
+                }
+              ],
+              "versions": [
+                "3.10.0",
+                "3.10.1",
+                "3.7.0",
+                "3.9.3",
+                "4.0.0",
+                "4.11.2",
+                "4.12.0",
+                "4.13.1",
+                "4.14.1",
+                "4.15.0",
+                "4.16.1",
+                "4.16.3",
+                "4.16.4",
+                "4.16.6",
+                "4.17.10",
+                "4.17.11",
+                "4.17.14",
+                "4.17.15",
+                "4.17.2",
+                "4.17.4",
+                "4.17.5",
+                "4.3.0",
+                "4.5.1",
+                "4.6.1"
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -8993,6 +10899,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321",
+              "CWE-770"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -9015,8 +10928,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-p6mc-m468-83gw",
+          "modified": "2025-08-12T21:56:17.174859Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2020-07-15T19:15:48Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9048,11 +10963,31 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.18.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -9073,6 +11008,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-94"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -9095,8 +11036,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-r5fr-rjxr-66jc",
+          "modified": "2026-10-17T02:56:15.633068434Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-04-01T23:51:12Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9128,11 +11071,45 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.17.23"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "last_affected": "4.5.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -9153,6 +11130,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -9175,8 +11158,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-xxjr-mmjv-4gpg",
+          "modified": "2026-10-17T02:55:54.229635593Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-01-21T23:01:22Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9208,8 +11193,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -9284,6 +11273,22 @@
       "version": "0.3.19",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "4.0.10"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -9304,6 +11309,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1333"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -9326,8 +11337,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-5v2h-r2cx-5xgj",
+          "modified": "2026-09-10T03:49:10.576912241Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2022-01-14T21:04:46Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9359,11 +11372,31 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "4.0.10"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -9384,6 +11417,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1333",
+              "CWE-400"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -9406,8 +11446,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-rrrm-qjm4-v8hf",
+          "modified": "2026-09-10T03:49:11.241428213Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2022-01-14T21:04:41Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9439,11 +11481,31 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0.3.14"
+                    },
+                    {
+                      "fixed": "0.6.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "cvss": [
             {
@@ -9452,7 +11514,21 @@
               "version": "\u003cnormalized\u003e"
             }
           ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-400"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "fix_available": [
             {
@@ -9467,8 +11543,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-xf5p-87ch-gxw2",
+          "modified": "2022-08-02T17:43:57Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2019-06-05T14:10:03Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9499,8 +11577,12 @@
               "url": "\u003cnormalized\u003e"
             }
           ],
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -9548,6 +11630,120 @@
       "version": "3.0.4",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "10.0.0"
+                    },
+                    {
+                      "fixed": "10.2.3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "9.0.0"
+                    },
+                    {
+                      "fixed": "9.0.7"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "8.0.0"
+                    },
+                    {
+                      "fixed": "8.0.6"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "7.0.0"
+                    },
+                    {
+                      "fixed": "7.4.8"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.0.0"
+                    },
+                    {
+                      "fixed": "6.2.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "5.0.0"
+                    },
+                    {
+                      "fixed": "5.1.8"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.2.5"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.1.4"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -9568,6 +11764,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1333"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -9590,8 +11792,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-23c5-xmqv-rm74",
+          "modified": "2026-09-10T03:50:59.274637421Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-02-26T22:07:15Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9620,11 +11824,129 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "10.0.0"
+                    },
+                    {
+                      "fixed": "10.2.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "9.0.0"
+                    },
+                    {
+                      "fixed": "9.0.6"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "8.0.0"
+                    },
+                    {
+                      "fixed": "8.0.5"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "7.0.0"
+                    },
+                    {
+                      "fixed": "7.4.7"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.0.0"
+                    },
+                    {
+                      "fixed": "6.2.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "5.0.0"
+                    },
+                    {
+                      "fixed": "5.1.7"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.2.4"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.1.3"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -9645,6 +11967,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1333"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -9667,8 +11995,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-3ppc-4f35-3m26",
+          "modified": "2026-09-10T03:50:33.812431744Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-02-18T22:38:11Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9697,11 +12027,129 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "10.0.0"
+                    },
+                    {
+                      "fixed": "10.2.3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "9.0.0"
+                    },
+                    {
+                      "fixed": "9.0.7"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "8.0.0"
+                    },
+                    {
+                      "fixed": "8.0.6"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "7.0.0"
+                    },
+                    {
+                      "fixed": "7.4.8"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.0.0"
+                    },
+                    {
+                      "fixed": "6.2.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "5.0.0"
+                    },
+                    {
+                      "fixed": "5.1.8"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.2.5"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.1.3"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -9722,6 +12170,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-407"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -9744,8 +12198,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-7r86-cg39-jmmj",
+          "modified": "2026-09-10T03:50:34.376990726Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-02-26T22:10:18Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9774,11 +12230,31 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.0.5"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -9799,6 +12275,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1333",
+              "CWE-400"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -9821,8 +12304,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-f8q6-p94x-37v3",
+          "modified": "2026-09-10T03:49:46.410416632Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2022-10-18T12:00:32Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9851,8 +12336,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -9900,6 +12389,36 @@
       "version": "0.0.10",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "0.2.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "1.0.0"
+                    },
+                    {
+                      "fixed": "1.2.3"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -9920,6 +12439,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -9942,8 +12467,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-vh95-rmgr-6w4m",
+          "modified": "2026-03-13T22:11:31.390433Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2020-04-03T21:48:32Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -9975,11 +12502,45 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "1.0.0"
+                    },
+                    {
+                      "fixed": "1.2.6"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "0.2.4"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -10000,6 +12561,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321"
+            ],
+            "severity": "CRITICAL"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -10022,8 +12589,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-xvch-5gv4-984h",
+          "modified": "2026-03-13T22:11:59.523514Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2022-03-18T00:01:09Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -10055,8 +12624,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -10104,6 +12677,36 @@
       "version": "1.2.5",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "1.0.0"
+                    },
+                    {
+                      "fixed": "1.2.6"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "0.2.4"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -10124,6 +12727,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321"
+            ],
+            "severity": "CRITICAL"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -10146,8 +12755,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-xvch-5gv4-984h",
+          "modified": "2026-03-13T22:11:59.523514Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2022-03-18T00:01:09Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -10176,8 +12787,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -10729,6 +13344,50 @@
       "version": "2.2.2",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.0.4"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.0.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "2.3.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -10749,6 +13408,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -10771,8 +13436,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-3v7f-55p6-f55p",
+          "modified": "2026-09-10T03:50:36.949634538Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-03-25T21:13:39Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -10801,11 +13468,59 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.0.4"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "3.0.0"
+                    },
+                    {
+                      "fixed": "3.0.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "2.3.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -10826,6 +13541,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1333"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -10848,8 +13569,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-c2c7-rcm5-vvqj",
+          "modified": "2026-09-10T03:51:00.292614896Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-03-25T21:12:07Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -10878,8 +13601,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -10955,6 +13682,22 @@
       "version": "6.9.1",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "2.2.5"
+                    },
+                    {
+                      "fixed": "6.16.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -10975,6 +13718,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-248",
+              "CWE-703"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -10997,8 +13747,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-4mjr-xmp4-gh2g",
+          "modified": "2026-09-10T03:51:14.991984096Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-09-02T14:45:13Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -11027,11 +13779,31 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "6.14.1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -11052,6 +13824,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-20"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -11074,8 +13852,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-6rw7-vpxm-498p",
+          "modified": "2026-09-10T03:50:31.670581449Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2025-12-30T21:02:54Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -11104,11 +13884,143 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.10.0"
+                    },
+                    {
+                      "fixed": "6.10.3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.9.0"
+                    },
+                    {
+                      "fixed": "6.9.7"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.8.0"
+                    },
+                    {
+                      "fixed": "6.8.3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.7.0"
+                    },
+                    {
+                      "fixed": "6.7.3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.6.0"
+                    },
+                    {
+                      "fixed": "6.6.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.5.0"
+                    },
+                    {
+                      "fixed": "6.5.3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.4.0"
+                    },
+                    {
+                      "fixed": "6.4.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.3.0"
+                    },
+                    {
+                      "fixed": "6.3.3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "6.2.4"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -11129,6 +14041,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -11151,8 +14069,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-hrpp-h998-j3pp",
+          "modified": "2025-04-29T15:41:43Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2022-11-27T00:30:50Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -11181,11 +14101,31 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.7.0"
+                    },
+                    {
+                      "fixed": "6.14.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -11206,6 +14146,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-20"
+            ],
+            "severity": "LOW"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -11228,8 +14174,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-w7fw-mjwx-w883",
+          "modified": "2026-09-10T03:50:35.973235487Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-02-12T17:04:39Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -11258,8 +14206,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -11446,6 +14398,50 @@
       "version": "5.7.1",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "7.0.0"
+                    },
+                    {
+                      "fixed": "7.5.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "6.0.0"
+                    },
+                    {
+                      "fixed": "6.3.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "2.0.0-alpha"
+                    },
+                    {
+                      "fixed": "5.7.2"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -11466,6 +14462,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1333"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -11488,8 +14490,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-c2qf-rxjj-qqgw",
+          "modified": "2026-09-10T03:50:02.224637541Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2023-06-21T06:30:28Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -11518,8 +14522,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -11577,8 +14585,110 @@
       "matched": true,
       "name": "sprintf-js",
       "purl": "pkg:npm/sprintf-js@1.0.3",
+      "remediation": {
+        "status": "unavailable",
+        "suggestions": [
+          {
+            "action": "no-fix-upstream",
+            "affected_dependency_refs": [
+              "pkg:npm/sprintf-js@1.0.3"
+            ],
+            "manifest_path": "package-lock.json",
+            "suggested_action_dependency_ref": "pkg:npm/js-yaml@3.13.0"
+          }
+        ]
+      },
       "version": "1.0.3",
-      "vulnerabilities": []
+      "vulnerabilities": [
+        {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "last_affected": "1.1.3"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1284"
+            ],
+            "severity": "MODERATE"
+          },
+          "details": "\u003cnormalized\u003e",
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-hp3w-g68c-fv3c",
+          "modified": "2026-10-06T00:00:08.436043466Z",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-09-24T15:31:31Z",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jsreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 2,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
+            "hops": 2,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "osv",
+          "summary": "\u003cnormalized\u003e",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
     },
     {
       "detected_origins": [
@@ -11971,6 +15081,22 @@
       "version": "1.9.2",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "1.3.2"
+                    },
+                    {
+                      "fixed": "1.12.1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -11991,6 +15117,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-94"
+            ],
+            "severity": "CRITICAL"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -12013,8 +15145,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-cf4h-3jhx-xvhq",
+          "modified": "2025-11-04T16:33:59Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2021-05-06T16:09:43Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -12046,11 +15180,31 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "1.13.8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -12071,6 +15225,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-674",
+              "CWE-770"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -12093,8 +15254,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-qpx9-hpmf-5gmw",
+          "modified": "2026-09-10T03:51:00.752419958Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-03-03T17:46:06Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -12126,8 +15289,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -12231,6 +15398,50 @@
       "version": "3.4.0",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "11.1.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "12.0.0"
+                    },
+                    {
+                      "fixed": "12.0.1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "13.0.0"
+                    },
+                    {
+                      "fixed": "13.0.1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -12251,6 +15462,13 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1285",
+              "CWE-787"
+            ],
+            "severity": "MODERATE"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -12273,8 +15491,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-w5hq-g745-h8pq",
+          "modified": "2026-09-10T03:51:03.663336650Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-04-22T20:53:24Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -12303,8 +15523,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]
@@ -12520,6 +15744,53 @@
       "version": "4.0.0",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "3.2.2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "4.0.0"
+                    },
+                    {
+                      "fixed": "4.0.1"
+                    }
+                  ]
+                }
+              ],
+              "versions": [
+                "4.0.0"
+              ]
+            },
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "5.0.0"
+                    },
+                    {
+                      "fixed": "5.0.5"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -12540,6 +15811,14 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-1321",
+              "CWE-20",
+              "CWE-915"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -12562,8 +15841,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-c4w7-xm78-47vh",
+          "modified": "2024-12-05T15:28:53.812442Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2021-03-29T16:05:12Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jsreach",
@@ -12592,8 +15873,12 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]

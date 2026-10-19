@@ -183,7 +183,7 @@
     ],
     "analyzer_stats": {
       "govulncheck": {
-        "unreachable": 3
+        "unreachable": 4
       }
     },
     "reachability_enabled": true
@@ -315,6 +315,22 @@
       "version": "v0.3.5",
       "vulnerabilities": [
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "0.3.8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -335,6 +351,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-772"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -357,8 +379,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-69ch-w2m2-3vjp",
+          "modified": "2026-09-10T03:49:46.240531909Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2022-10-14T19:00:40Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",
@@ -386,11 +410,31 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "0.3.7"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -411,6 +455,12 @@
             }
           ],
           "data_source": "\u003cnormalized\u003e",
+          "database_specific": {
+            "cwe_ids": [
+              "CWE-125"
+            ],
+            "severity": "HIGH"
+          },
           "details": "\u003cnormalized\u003e",
           "epss": [
             {
@@ -433,8 +483,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-ppp9-7jff-5vj2",
+          "modified": "2026-09-10T03:49:50.331764985Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2022-12-26T06:30:22Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",
@@ -462,11 +514,31 @@
             }
           ],
           "risk_score": 0,
+          "severity": [
+            "\u003cnormalized\u003e"
+          ],
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         },
         {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "0.39.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
@@ -509,8 +581,10 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GO-2026-5970",
+          "modified": "2026-09-23T10:41:39.386264978Z",
           "namespace": "\u003cnormalized\u003e",
           "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-07-14T17:29:56Z",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",
@@ -540,6 +614,102 @@
           "risk_score": 0,
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
+          "summary": "\u003cnormalized\u003e",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected": [
+            {
+              "ranges": [
+                {
+                  "events": [
+                    {
+                      "introduced": "0"
+                    },
+                    {
+                      "fixed": "0.41.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-56851",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GO-2026-6629",
+          "modified": "2026-10-07T17:45:13.919634270Z",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "published": "2026-10-07T14:09:43Z",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "govulncheck",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "govulncheck",
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "summary": "\u003cnormalized\u003e",
           "title": "\u003cnormalized\u003e"
         }
       ]

@@ -150,6 +150,8 @@ func repositoryHost(repository string) string {
 	return ""
 }
 
+// depGraphFromRepository resolves the repository's manifests into one
+// consolidated graph, publishing origins on github.com.
 func depGraphFromRepository(projectPath string) (*model.Graph, error) {
 	container, err := depGraphContainerFromRepository(projectPath, githubHost)
 	if err != nil {
@@ -385,6 +387,9 @@ func parseActionRefs(path string) ([]string, error) {
 	return uniqueStrings(refs), nil
 }
 
+// addReferenceEdges resolves each "uses:" reference a manifest makes and
+// links the manifest's node to the node the reference names; see
+// resolveReference for what each reference becomes.
 func addReferenceEdges(depsGraph *model.Graph, parent *model.DependencyNode, callerRelPath string, refs []string, host string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) error {
 	for _, ref := range refs {
 		node, err := resolveReference(ref, callerRelPath, host, workflowNodes, actionNodes)
@@ -404,6 +409,12 @@ func addReferenceEdges(depsGraph *model.Graph, parent *model.DependencyNode, cal
 	return nil
 }
 
+// resolveReference turns one "uses:" value into the node it depends on: a
+// Docker image reference is not a GitHub Actions dependency and yields nil,
+// a local reference resolves to the workflow or action node already built
+// for that path, and an external "owner/repo[/path]@ref" reference becomes
+// a dependency node carrying its origin on host (none when host is empty)
+// and, for a SHA-pinned ref, the commit as a SHA-1 digest.
 func resolveReference(ref, callerRelPath, host string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) (*model.DependencyNode, error) {
 	ref = strings.TrimSpace(ref)
 	if ref == "" || strings.HasPrefix(ref, "docker://") {

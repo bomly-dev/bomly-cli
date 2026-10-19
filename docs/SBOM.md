@@ -233,11 +233,11 @@ A detector reports one of two things, or nothing at all:
 | What the lockfile records | SPDX 2.3 | CycloneDX |
 |---|---|---|
 | The exact file the package was fetched from | `downloadLocation` | `distribution` external reference |
-| The repository it was resolved from, and the commit when the lockfile pinned one | `downloadLocation` as `git+<url>`, with `@<revision>` when pinned; `sourceInfo` when a download location is already taken by an artifact | `vcs` external reference (URL only) |
+| The repository it was resolved from, and the revision when the manifest names one: a commit, or for GitHub Actions the tag or branch exactly as written | `downloadLocation` as `git+<url>`, with `@<revision>` when present; `sourceInfo` when a download location is already taken by an artifact | `vcs` external reference (URL only) |
 | Neither | `NOASSERTION` | no reference |
 
-CycloneDX external references have no field for a revision, so the commit a
-detector resolved appears only in the SPDX form.
+CycloneDX external references have no field for a revision, so the revision a
+detector reported appears only in the SPDX form.
 
 What each ecosystem yields:
 

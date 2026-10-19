@@ -7,7 +7,7 @@ Attaches the latest OpenSSF Scorecard run to packages whose upstream source repo
 | Property | Value |
 | --- | --- |
 | Matcher name | `scorecard` |
-| Runs by default | No |
+| In the default `--enrich` set | No |
 | Requires enrichment | Yes |
 | Uses network | Yes |
 | Cache behavior | Uses Bomly's matcher cache (24h TTL); cache failures are non-fatal. Unscored repos are cached as a sentinel so repeated runs do not refetch. |

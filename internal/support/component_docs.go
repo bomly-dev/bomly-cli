@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/composition"
 	rootdetectors "github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"go.uber.org/zap"
@@ -270,6 +271,10 @@ Pass `+"`--enrich`"+` to run all default network matchers:
 bomly scan --enrich
 `+"```"+`
 
+`+matcherDefaultSetMarkdown()+` Vulnerabilities come from Grype's database
+by default; OSV and Grype can run together, and advisories both return are
+merged by identity and reported once.
+
 Use `+"`--matchers`"+` to restrict or extend the set with the standard [selector grammar](COMMANDS.md#selector-grammar):
 
 `+"```bash"+`
@@ -287,14 +292,14 @@ External matchers are published as plugins — see the [ClearlyDefined License M
 
 ## Network endpoints
 
-When `+"`--enrich`"+` is set, Bomly may call:
+With the default matcher set, `+"`--enrich`"+` may call:
 
-- `+"`api.osv.dev`"+` — OSV vulnerability database
-- `+"`api.cisa.gov`"+` — CISA Known Exploited Vulnerabilities catalog
 - `+"`api.deps.dev`"+` — Google's deps.dev package metadata
+- `+"`grype.anchore.io/databases`"+` (plus the archive URL it returns) — the bundled Grype downloads its vulnerability database on first use and checks for a newer build at most every two hours (`+"`matchers.grype.db_auto_update: false`"+` turns the check off)
 
-The OpenSSF Scorecard matcher also calls `+"`api.scorecard.dev`"+`. Bundled
-Grype downloads its vulnerability database on first use. The lite build leaves
+Selecting `+"`osv`"+` adds `+"`api.osv.dev`"+` (the OSV vulnerability database) and
+`+"`www.cisa.gov`"+` (the CISA Known Exploited Vulnerabilities catalog); selecting
+`+"`scorecard`"+` adds `+"`api.scorecard.dev`"+`. The lite build leaves Grype
 database management to the external `+"`grype`"+` command. Bomly sends no
 telemetry or credentials to its built-in matcher services. External plugin
 matchers may contact other services after you install and enable them. See
@@ -863,7 +868,10 @@ func renderMatcherMarkdown(descriptor plugin.MatcherDescriptor) string {
 	b.WriteString("| Property | Value |\n")
 	b.WriteString("| --- | --- |\n")
 	_, _ = fmt.Fprintf(&b, "| Matcher name | `%s` |\n", descriptor.Name)
-	_, _ = fmt.Fprintf(&b, "| Runs by default | %s |\n", yesNo(matcherRunsByDefault(descriptor.Name) && !behavior.RequiresEnrich))
+	// Every built-in matcher requires --enrich, so "runs on a plain scan" is
+	// always No and says nothing. The cell answers the question a reader has
+	// once they pass --enrich: is this matcher selected without --matchers?
+	_, _ = fmt.Fprintf(&b, "| In the default `--enrich` set | %s |\n", yesNo(matcherRunsByDefault(descriptor.Name)))
 	_, _ = fmt.Fprintf(&b, "| Requires enrichment | %s |\n", yesNo(behavior.RequiresEnrich))
 	_, _ = fmt.Fprintf(&b, "| Uses network | %s |\n", yesNo(behavior.UsesNetwork))
 	_, _ = fmt.Fprintf(&b, "| Cache behavior | %s |\n", behavior.Cache)
@@ -999,13 +1007,47 @@ func humanAuditorTitle(name string) string {
 	}
 }
 
+// matcherRunsByDefault reports whether the composition enables the named
+// built-in matcher without an explicit --matchers selection. It reads the
+// composition rather than keeping its own list: the two drifted once, and the
+// generated page then described a default set the binary did not run.
 func matcherRunsByDefault(name string) bool {
-	switch name {
-	case "grype", "depsdev-license-matcher":
-		return true
-	default:
-		return false
+	for _, entry := range composition.Entries() {
+		if entry.Kind == plugin.PluginKindMatcher && entry.Name == name {
+			return entry.DefaultEnabled
+		}
 	}
+	return false
+}
+
+// matcherDefaultSetMarkdown renders the sentence in the matcher guide that
+// names the built-in matchers --enrich runs without a --matchers selection,
+// and the ones that stay opt-in, from the composition. Installed external
+// plugins are registered default-enabled too (internal/plugin), so the
+// sentence says the list is the built-in set, not the whole run.
+func matcherDefaultSetMarkdown() string {
+	var enabled, optIn []string
+	for _, entry := range composition.Entries() {
+		if entry.Kind != plugin.PluginKindMatcher {
+			continue
+		}
+		if entry.DefaultEnabled {
+			enabled = append(enabled, entry.Name)
+		} else {
+			optIn = append(optIn, entry.Name)
+		}
+	}
+	sort.Strings(enabled)
+	sort.Strings(optIn)
+	text := "With no `--matchers` selection, `--enrich` runs the built-in matchers " + codeList(enabled) + ", plus any installed external matcher plugin you have enabled."
+	switch len(optIn) {
+	case 0:
+	case 1:
+		text += " " + codeList(optIn) + " is opt-in: add it with `--matchers +" + optIn[0] + "`."
+	default:
+		text += " " + codeList(optIn) + " are opt-in: add one with `--matchers +<name>`."
+	}
+	return text
 }
 
 type matcherDocBehavior struct {

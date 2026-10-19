@@ -68,3 +68,4 @@ status to `Superseded by [ADR-NNNN](NNNN-slug.md)`; do not rewrite history
 | ADR-0045 | 2026-09-13 | [The SDK owns the SBOM codec](0045-the-sdk-owns-the-sbom-codec.md) | Accepted |
 | ADR-0046 | 2026-09-24 | [The scan output is the SDK's scan record](0046-the-scan-output-is-the-sdk-scan-record.md) | Accepted |
 | ADR-0047 | 2026-10-03 | [Release assurance is a declarative catalog plus a per-check result contract](0047-release-assurance-is-a-catalog-and-a-result-contract.md) | Accepted |
+| ADR-0048 | 2026-10-19 | [OSV stays opt-in; Grype keeps its database fresh](0048-osv-stays-opt-in-and-grype-keeps-its-database-fresh.md) | Accepted |

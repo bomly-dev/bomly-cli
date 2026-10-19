@@ -7,7 +7,7 @@ Fetches package metadata from deps.dev to improve license coverage.
 | Property | Value |
 | --- | --- |
 | Matcher name | `depsdev-license-matcher` |
-| Runs by default | No |
+| In the default `--enrich` set | Yes |
 | Requires enrichment | Yes |
 | Uses network | Yes |
 | Cache behavior | Uses Bomly's matcher cache; cache failures are non-fatal. |

@@ -9,10 +9,12 @@ package composition
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	depsdev "github.com/bomly-dev/bomly-plugin-depsdev-license-matcher/plugin"
 	govulncheck "github.com/bomly-dev/bomly-plugin-govulncheck-analyzer/plugin"
+	grype "github.com/bomly-dev/bomly-plugin-grype-matcher/plugin"
 	jsreach "github.com/bomly-dev/bomly-plugin-jsreach-analyzer/plugin"
 	jvmreach "github.com/bomly-dev/bomly-plugin-jvmreach-analyzer/plugin"
 	osvmatcher "github.com/bomly-dev/bomly-plugin-osv-matcher/plugin"
@@ -51,6 +53,15 @@ type Deps struct {
 	ScorecardAPIBase  string
 	ScorecardCacheDir string
 	ScorecardCacheTTL string
+
+	// Grype database refresh settings. The switch arrives as a bool because
+	// the CLI boundary reads the matchers.grype.db_auto_update string once,
+	// with the grammar config.Validate accepted; the durations arrive as the
+	// Go duration strings the configuration carries, empty meaning the
+	// matcher's own default.
+	GrypeDBUpdateDisabled      bool
+	GrypeDBMaxAge              string
+	GrypeDBUpdateCheckInterval string
 }
 
 func (d Deps) logger() *zap.Logger {
@@ -108,6 +119,38 @@ func Entries() []Entry {
 		jvmReachEntry(),
 	)
 	return entries
+}
+
+// osvEntry composes the OSV matcher. It is opt-in: the default --enrich set
+// runs grype for vulnerabilities and deps.dev for licenses, and OSV joins it
+// with --matchers +osv (ADR-0048). The generated matcher docs read this flag
+// through internal/support, so a page cannot describe a default set the
+// binary does not run; they did for four months after PR #130 flipped it.
+// grypeMatcher builds the Grype matcher from the resolved database settings.
+// config.Validate already rejects malformed durations on the CLI path, so a
+// parse failure here means a host that bypassed it; it logs and leaves the
+// matcher's own default in place rather than aborting enrichment.
+func grypeMatcher(deps Deps) grype.Matcher {
+	logger := deps.logger()
+	matcher := grype.Matcher{Logger: logger, DisableDBUpdate: deps.GrypeDBUpdateDisabled}
+	matcher.DBMaxAge = durationSetting(logger, "grype: invalid db_max_age; using default", deps.GrypeDBMaxAge)
+	matcher.DBUpdateCheckInterval = durationSetting(logger, "grype: invalid db_update_check_interval; using default", deps.GrypeDBUpdateCheckInterval)
+	return matcher
+}
+
+// durationSetting parses an optional duration setting; empty and malformed
+// values both yield zero, which every consumer reads as "use the default".
+func durationSetting(logger *zap.Logger, warning, raw string) time.Duration {
+	value := strings.TrimSpace(raw)
+	if value == "" {
+		return 0
+	}
+	parsed, err := time.ParseDuration(value)
+	if err != nil || parsed < 0 {
+		logger.Warn(warning, zap.String("value", raw), zap.Error(err))
+		return 0
+	}
+	return parsed
 }
 
 func osvEntry() Entry {

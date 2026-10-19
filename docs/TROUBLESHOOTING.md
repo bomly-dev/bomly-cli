@@ -51,7 +51,7 @@ Check:
 
 ## Enrichment is slow on first run
 
-Expected. OSV and KEV are cached under `~/.bomly/cache/` after the first lookup. Subsequent runs hit the cache and complete in seconds.
+Expected. The bundled Grype downloads its vulnerability database on first use, and matcher responses are cached under `~/.bomly/cache/` after the first lookup. Subsequent runs hit the cache and complete in seconds.
 
 To pre-warm the cache in CI, schedule a nightly enrichment run on `main`.
 

@@ -32,6 +32,10 @@ Pass `--enrich` to run all default network matchers:
 bomly scan --enrich
 ```
 
+With no `--matchers` selection, `--enrich` runs the built-in matchers `depsdev-license-matcher`, `grype`, plus any installed external matcher plugin you have enabled. `osv`, `scorecard` are opt-in: add one with `--matchers +<name>`. Vulnerabilities come from Grype's database
+by default; OSV and Grype can run together, and advisories both return are
+merged by identity and reported once.
+
 Use `--matchers` to restrict or extend the set with the standard [selector grammar](COMMANDS.md#selector-grammar):
 
 ```bash
@@ -49,14 +53,14 @@ External matchers are published as plugins — see the [ClearlyDefined License M
 
 ## Network endpoints
 
-When `--enrich` is set, Bomly may call:
+With the default matcher set, `--enrich` may call:
 
-- `api.osv.dev` — OSV vulnerability database
-- `api.cisa.gov` — CISA Known Exploited Vulnerabilities catalog
 - `api.deps.dev` — Google's deps.dev package metadata
+- `grype.anchore.io/databases` (plus the archive URL it returns) — the bundled Grype downloads its vulnerability database on first use and checks for a newer build at most every two hours (`matchers.grype.db_auto_update: false` turns the check off)
 
-The OpenSSF Scorecard matcher also calls `api.scorecard.dev`. Bundled
-Grype downloads its vulnerability database on first use. The lite build leaves
+Selecting `osv` adds `api.osv.dev` (the OSV vulnerability database) and
+`www.cisa.gov` (the CISA Known Exploited Vulnerabilities catalog); selecting
+`scorecard` adds `api.scorecard.dev`. The lite build leaves Grype
 database management to the external `grype` command. Bomly sends no
 telemetry or credentials to its built-in matcher services. External plugin
 matchers may contact other services after you install and enable them. See

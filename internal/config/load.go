@@ -261,7 +261,7 @@ func ApplyEnvOverrides(dst *Resolved) {
 		case reflect.String:
 			fv.SetString(val)
 		case reflect.Bool:
-			if b, ok := parseBool(val); ok {
+			if b, ok := ParseBool(val); ok {
 				fv.SetBool(b)
 			}
 		case reflect.Int:
@@ -297,7 +297,7 @@ func ApplyDefaults(cfg *Resolved) {
 			}
 		case reflect.Bool:
 			if !fv.Bool() {
-				if b, ok := parseBool(def); ok {
+				if b, ok := ParseBool(def); ok {
 					fv.SetBool(b)
 				}
 			}
@@ -353,6 +353,27 @@ func Validate(cfg Resolved) error {
 	}
 	if len(cfg.AllowLicenses) > 0 && len(cfg.DenyLicenses) > 0 {
 		return fmt.Errorf("--allow-license cannot be combined with --deny-license")
+	}
+	if value := strings.TrimSpace(cfg.GrypeDBAutoUpdate); value != "" {
+		if _, ok := ParseBool(value); !ok {
+			return fmt.Errorf("matchers.grype.db_auto_update must be true or false, got %q", cfg.GrypeDBAutoUpdate)
+		}
+	}
+	for _, setting := range []struct{ key, value string }{
+		{key: "matchers.grype.db_max_age", value: cfg.GrypeDBMaxAge},
+		{key: "matchers.grype.db_update_check_interval", value: cfg.GrypeDBUpdateCheckInterval},
+	} {
+		value := strings.TrimSpace(setting.value)
+		if value == "" {
+			continue
+		}
+		parsed, err := time.ParseDuration(value)
+		if err != nil {
+			return fmt.Errorf("%s must be a duration such as 48h or 30m, got %q", setting.key, setting.value)
+		}
+		if parsed < 0 {
+			return fmt.Errorf("%s must not be negative, got %q", setting.key, setting.value)
+		}
 	}
 	if threshold := strings.TrimSpace(cfg.TyposquatThreshold); threshold != "" {
 		if _, err := strconv.ParseFloat(threshold, 64); err != nil {
@@ -453,7 +474,12 @@ func clonePluginConfig(value map[string]any) map[string]any {
 	return out
 }
 
-func parseBool(s string) (bool, bool) {
+// ParseBool reads a boolean setting in the grammar every Bomly setting uses:
+// 1, true, yes and on are true; 0, false, no and off are false, case and
+// surrounding space ignored. The second result is false when the value is
+// none of these. It is exported so a layer that turns a validated string
+// setting into a bool reads it with the same grammar Validate accepted.
+func ParseBool(s string) (bool, bool) {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "1", "true", "yes", "on":
 		return true, true

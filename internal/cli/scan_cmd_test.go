@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -8,6 +10,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/config"
+	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"go.uber.org/zap"
 
@@ -334,5 +337,123 @@ func TestGitDescribeVersion(t *testing.T) {
 	}
 	if got := gitDescribeVersion(zap.NewNop(), t.TempDir()); got != "" {
 		t.Fatalf("non-git directory must yield no version, got %q", got)
+	}
+}
+
+// TestSBOMProjectVersionDescribesTheCheckoutNotTheURL pins the fix for issue
+// #504: a --url target's descriptor carries the URL as its path, and git
+// describe run against a URL fails, which left the primary component with no
+// version at all. The version comes from the checkout the scan ran against
+// (the clone's location), so a remote target gets the same describe output
+// a local scan of the same commit gets, whether or not --ref was given.
+func TestSBOMProjectVersionDescribesTheCheckoutNotTheURL(t *testing.T) {
+	requireGit(t)
+	repoDir := t.TempDir()
+	runGit(t, repoDir, "init", "--initial-branch=main")
+	runGit(t, repoDir, "config", "user.email", "test@example.com")
+	runGit(t, repoDir, "config", "user.name", "Bomly Test")
+	if err := os.WriteFile(filepath.Join(repoDir, "README.md"), []byte("demo\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	runGit(t, repoDir, "add", "README.md")
+	runGit(t, repoDir, "commit", "-m", "base")
+	runGit(t, repoDir, "tag", "v1.0.0")
+	runGit(t, repoDir, "commit", "--allow-empty", "-m", "next")
+	head := runGit(t, repoDir, "rev-parse", "HEAD")
+	want := runGit(t, repoDir, "describe", "--tags", "--always", "--dirty")
+	if !strings.HasPrefix(want, "v1.0.0-1-g") {
+		t.Fatalf("fixture describe = %q, want a v1.0.0-1-g<sha> description", want)
+	}
+
+	const url = "https://github.com/example/demo"
+	remote := plugin.ExecutionTarget{
+		Kind:          plugin.ExecutionTargetGitRepository,
+		Location:      repoDir,
+		RepositoryURL: url,
+		CommitSHA:     head,
+	}
+	project := output.ProjectDescriptor{Name: "demo", Path: url, TargetType: "git repository"}
+
+	t.Run("remote target without ref", func(t *testing.T) {
+		if got := sbomProjectVersion(zap.NewNop(), remote, project); got != want {
+			t.Fatalf("version = %q, want describe output %q", got, want)
+		}
+	})
+	t.Run("remote target with a branch ref", func(t *testing.T) {
+		withRef := remote
+		withRef.Ref = "main"
+		described := project
+		described.TargetRef = "main"
+		if got := sbomProjectVersion(zap.NewNop(), withRef, described); got != want {
+			t.Fatalf("version = %q, want describe output %q, not the branch name", got, want)
+		}
+	})
+	t.Run("remote target at a tag", func(t *testing.T) {
+		runGit(t, repoDir, "checkout", "--quiet", "v1.0.0")
+		t.Cleanup(func() { runGit(t, repoDir, "checkout", "--quiet", "main") })
+		atTag := remote
+		atTag.Ref = "v1.0.0"
+		atTag.CommitSHA = runGit(t, repoDir, "rev-parse", "HEAD")
+		described := project
+		described.TargetRef = "v1.0.0"
+		if got := sbomProjectVersion(zap.NewNop(), atTag, described); got != "v1.0.0" {
+			t.Fatalf("version = %q, want the tag", got)
+		}
+	})
+	t.Run("local path", func(t *testing.T) {
+		local := plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: repoDir, CommitSHA: head}
+		if got := sbomProjectVersion(zap.NewNop(), local, output.ProjectDescriptor{Name: "demo", Path: repoDir}); got != want {
+			t.Fatalf("version = %q, want describe output %q", got, want)
+		}
+	})
+	t.Run("build options carry the version", func(t *testing.T) {
+		opts := scanSBOMBuildOptions(zap.NewNop(), remote, project, config.Resolved{}, "0.0.0", nil, nil, model.ScopeUnknown, false)
+		if opts.ProjectRoot == nil || opts.ProjectRoot.Version != want {
+			t.Fatalf("ProjectRoot = %+v, want version %q", opts.ProjectRoot, want)
+		}
+	})
+}
+
+// TestSBOMProjectVersionFallsBackToCommitThenRef covers the targets git
+// cannot describe: the resolved commit is the next best identity, and the
+// ref as typed is the last resort rather than an omitted version.
+func TestSBOMProjectVersionFallsBackToCommitThenRef(t *testing.T) {
+	cases := []struct {
+		name    string
+		target  plugin.ExecutionTarget
+		project output.ProjectDescriptor
+		want    string
+	}{
+		{
+			name:    "commit outranks ref when describe fails",
+			target:  plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, Location: t.TempDir(), Ref: "main", CommitSHA: "0123456789abcdef0123456789abcdef01234567"},
+			project: output.ProjectDescriptor{Name: "demo", Path: "https://github.com/example/demo", TargetRef: "main"},
+			want:    "0123456789abcdef0123456789abcdef01234567",
+		},
+		{
+			name:    "ref when nothing was resolved",
+			target:  plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, Location: t.TempDir(), Ref: "main"},
+			project: output.ProjectDescriptor{Name: "demo", Path: "https://github.com/example/demo", TargetRef: "main"},
+			want:    "main",
+		},
+		{
+			name:    "container image is never described",
+			target:  plugin.ExecutionTarget{Kind: plugin.ExecutionTargetContainerImage, Location: "alpine:3.20"},
+			project: output.ProjectDescriptor{Name: "alpine:3.20", Path: "alpine:3.20"},
+			want:    "",
+		},
+		{
+			name:    "plain directory has no version",
+			target:  plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: t.TempDir()},
+			project: output.ProjectDescriptor{Name: "demo"},
+			want:    "",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := sbomProjectVersion(zap.NewNop(), tc.target, tc.project); got != tc.want {
+				t.Fatalf("sbomProjectVersion = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }

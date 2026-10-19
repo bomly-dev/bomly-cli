@@ -347,9 +347,11 @@ Every generated document carries a stable identity:
   `Creator: Tool: bomly-cli-<version>`), plus one tool entry per detector that
   contributed to the graph.
 - A project version on the primary component and the project's own
-  (first-party) modules: the `--ref` value for remote scans, or `git
-  describe --tags --always --dirty` for local checkouts. When neither is
-  available the version is omitted rather than invented.
+  (first-party) modules: `git describe --tags --always --dirty` run on the
+  checkout the scan read, which is the local path or the temporary clone of
+  a `--url` target (with or without `--ref`). When Git cannot describe it,
+  the resolved commit is used, then the `--ref` value as typed. When none
+  of those is available the version is omitted rather than invented.
 - A CycloneDX lifecycle phase (`pre-build` for source scans, `post-build`
   for container images) and a composition completeness declaration:
   `complete` for unfiltered, warning-free scans, `incomplete` when a

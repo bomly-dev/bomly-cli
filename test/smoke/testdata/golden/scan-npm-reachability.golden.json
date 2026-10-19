@@ -4305,7 +4305,7 @@
     ],
     "analyzer_stats": {
       "jsreach": {
-        "reachable": 25,
+        "reachable": 26,
         "unreachable": 31
       }
     },
@@ -11577,8 +11577,74 @@
       "matched": true,
       "name": "sprintf-js",
       "purl": "pkg:npm/sprintf-js@1.0.3",
+      "remediation": {
+        "status": "unavailable",
+        "suggestions": [
+          {
+            "action": "no-fix-upstream",
+            "affected_dependency_refs": [
+              "pkg:npm/sprintf-js@1.0.3"
+            ],
+            "manifest_path": "package-lock.json",
+            "suggested_action_dependency_ref": "pkg:npm/js-yaml@3.13.0"
+          }
+        ]
+      },
       "version": "1.0.3",
-      "vulnerabilities": []
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "details": "\u003cnormalized\u003e",
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-hp3w-g68c-fv3c",
+          "namespace": "\u003cnormalized\u003e",
+          "parsed_severity": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jsreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 2,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
+            "hops": 2,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
     },
     {
       "detected_origins": [

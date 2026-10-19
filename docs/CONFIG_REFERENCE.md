@@ -89,7 +89,7 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `matchers.scorecard.cache_dir` | `BOMLY_SCORECARD_CACHE_DIR` | `string` | - | Directory for the Scorecard response cache |
 | `matchers.scorecard.cache_ttl` | `BOMLY_SCORECARD_CACHE_TTL` | `string` | 24h | TTL for cached Scorecard responses (e.g. 24h) |
 
-## be turned off: ApplyDefaults cannot tell an explicit false from unset.
+## Grype matcher settings
 
 | YAML Key | Environment Variable | Type | Default | Description |
 |----------|---------------------|------|---------|-------------|

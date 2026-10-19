@@ -68,7 +68,7 @@ type Configs struct {
 	ScorecardAPIBase           string
 	ScorecardCacheDir          string
 	ScorecardCacheTTL          string
-	GrypeDBAutoUpdate          string
+	GrypeDBUpdateDisabled      bool
 	GrypeDBMaxAge              string
 	GrypeDBUpdateCheckInterval string
 	HTTPProxy                  string
@@ -296,7 +296,7 @@ func (r *Registry) registerCompositionEntries(kind plugin.PluginKind) {
 		ScorecardAPIBase:           r.configs.ScorecardAPIBase,
 		ScorecardCacheDir:          r.configs.ScorecardCacheDir,
 		ScorecardCacheTTL:          r.configs.ScorecardCacheTTL,
-		GrypeDBAutoUpdate:          r.configs.GrypeDBAutoUpdate,
+		GrypeDBUpdateDisabled:      r.configs.GrypeDBUpdateDisabled,
 		GrypeDBMaxAge:              r.configs.GrypeDBMaxAge,
 		GrypeDBUpdateCheckInterval: r.configs.GrypeDBUpdateCheckInterval,
 	}

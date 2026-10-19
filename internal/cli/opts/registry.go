@@ -32,7 +32,7 @@ func RegistryConfigsFromResolved(cfg config.Resolved) engine.RegistryConfigs {
 		ScorecardAPIBase:           cfg.ScorecardAPIBase,
 		ScorecardCacheDir:          cfg.ScorecardCacheDir,
 		ScorecardCacheTTL:          cfg.ScorecardCacheTTL,
-		GrypeDBAutoUpdate:          cfg.GrypeDBAutoUpdate,
+		GrypeDBUpdateDisabled:      grypeDBUpdateDisabled(cfg.GrypeDBAutoUpdate),
 		GrypeDBMaxAge:              cfg.GrypeDBMaxAge,
 		GrypeDBUpdateCheckInterval: cfg.GrypeDBUpdateCheckInterval,
 		HTTPProxy:                  cfg.HTTPProxy,
@@ -46,4 +46,13 @@ func RegistryConfigsFromResolved(cfg config.Resolved) engine.RegistryConfigs {
 		PluginConfigs:              cfg.Plugins,
 		CoreVersion:                cfg.CoreVersion,
 	}
+}
+
+// grypeDBUpdateDisabled turns the matchers.grype.db_auto_update setting into
+// the matcher's switch, with the grammar config.Validate accepted ("off" and
+// "no" disable it, not only "false"). An empty or malformed value, which
+// Validate has already rejected on the CLI path, keeps the update on.
+func grypeDBUpdateDisabled(autoUpdate string) bool {
+	enabled, ok := config.ParseBool(autoUpdate)
+	return ok && !enabled
 }

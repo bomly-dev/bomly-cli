@@ -81,10 +81,15 @@ type Resolved struct {
 	ScorecardCacheDir string `doc:"Directory for the Scorecard response cache" env:"BOMLY_SCORECARD_CACHE_DIR"`
 	ScorecardCacheTTL string `doc:"TTL for cached Scorecard responses (e.g. 24h)" env:"BOMLY_SCORECARD_CACHE_TTL" default:"24h"`
 
-	// Grype matcher settings (the full binary's bundled Grype; the lite build
-	// leaves database management to the external grype command). The
+	// The settings below drive the full binary's bundled Grype; the lite build
+	// leaves database management to the external grype command. The
 	// auto-update switch is a string because a bool default of true could not
 	// be turned off: ApplyDefaults cannot tell an explicit false from unset.
+	// (This note is detached from the field so the config reference generator,
+	// which reads a field's own doc comment as its section heading, does not
+	// take it for one.)
+
+	// Grype matcher settings
 	GrypeDBAutoUpdate          string `doc:"Whether the bundled Grype checks for and downloads a newer vulnerability database on an enriched run: true or false" env:"BOMLY_GRYPE_DB_AUTO_UPDATE" default:"true"`
 	GrypeDBMaxAge              string `doc:"Age past which the bundled Grype warns that its vulnerability database is stale (e.g. 120h)" env:"BOMLY_GRYPE_DB_MAX_AGE" default:"120h"`
 	GrypeDBUpdateCheckInterval string `doc:"Minimum time between the bundled Grype's checks for a newer vulnerability database (e.g. 2h)" env:"BOMLY_GRYPE_DB_UPDATE_CHECK_INTERVAL" default:"2h"`

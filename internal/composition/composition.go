@@ -9,7 +9,6 @@ package composition
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -55,10 +54,12 @@ type Deps struct {
 	ScorecardCacheDir string
 	ScorecardCacheTTL string
 
-	// Grype database refresh settings, as the resolved configuration carries
-	// them: "true"/"false", and Go durations. Empty means the matcher's own
-	// default.
-	GrypeDBAutoUpdate          string
+	// Grype database refresh settings. The switch arrives as a bool because
+	// the CLI boundary reads the matchers.grype.db_auto_update string once,
+	// with the grammar config.Validate accepted; the durations arrive as the
+	// Go duration strings the configuration carries, empty meaning the
+	// matcher's own default.
+	GrypeDBUpdateDisabled      bool
 	GrypeDBMaxAge              string
 	GrypeDBUpdateCheckInterval string
 }
@@ -126,20 +127,12 @@ func Entries() []Entry {
 // through internal/support, so a page cannot describe a default set the
 // binary does not run; they did for four months after PR #130 flipped it.
 // grypeMatcher builds the Grype matcher from the resolved database settings.
-// config.Validate already rejects malformed values on the CLI path, so a
+// config.Validate already rejects malformed durations on the CLI path, so a
 // parse failure here means a host that bypassed it; it logs and leaves the
 // matcher's own default in place rather than aborting enrichment.
 func grypeMatcher(deps Deps) grype.Matcher {
 	logger := deps.logger()
-	matcher := grype.Matcher{Logger: logger}
-	if value := strings.TrimSpace(deps.GrypeDBAutoUpdate); value != "" {
-		enabled, err := strconv.ParseBool(value)
-		if err != nil {
-			logger.Warn("grype: invalid db_auto_update; using default", zap.String("value", deps.GrypeDBAutoUpdate), zap.Error(err))
-		} else {
-			matcher.DisableDBUpdate = !enabled
-		}
-	}
+	matcher := grype.Matcher{Logger: logger, DisableDBUpdate: deps.GrypeDBUpdateDisabled}
 	matcher.DBMaxAge = durationSetting(logger, "grype: invalid db_max_age; using default", deps.GrypeDBMaxAge)
 	matcher.DBUpdateCheckInterval = durationSetting(logger, "grype: invalid db_update_check_interval; using default", deps.GrypeDBUpdateCheckInterval)
 	return matcher

@@ -17,7 +17,7 @@ Run alongside `osv` for the highest coverage: the two databases overlap heavily 
 
 ## Network
 
-Grype reads from a local vulnerability database that it syncs on first use and refreshes on a schedule.
+Grype reads from a local vulnerability database. The full `bomly` binary downloads it on first use and, on every later enriched run, asks Anchore's database service for a newer build at most once every two hours, installing it when there is one. If that check fails, the run matches against the local copy and logs a warning. Once the local copy is older than five days, the run warns, without `-v`, that advisories published since are missing until a newer database downloads; `-v` shows the build date on every run.
 
 | Mode | DB sync source | DB location |
 | --- | --- | --- |
@@ -25,6 +25,14 @@ Grype reads from a local vulnerability database that it syncs on first use and r
 | `bomly-lite` | External `grype` binary on `PATH` | Wherever the external `grype` stores it |
 
 The DB sync is the only network call Grype makes. Once synced, matching is local. Bomly's enrichment cache does not wrap Grype calls -- Grype manages its own cache.
+
+Three settings control the refresh in the full binary; see the [Config Reference](../CONFIG_REFERENCE.md):
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `matchers.grype.db_auto_update` | `true` | Check for and download a newer database; `false` uses the local copy as it is and fails when there is none |
+| `matchers.grype.db_max_age` | `120h` | Age past which the run warns that the database is stale |
+| `matchers.grype.db_update_check_interval` | `2h` | Minimum time between update checks |
 
 ## OS packages (apk / dpkg / rpm)
 
@@ -64,10 +72,11 @@ bomly scan --enrich --matchers +osv --audit --fail-on high
 When reproducibility matters (e.g. nightly compliance runs), pin the DB version through Grype's own config and call Bomly with the matching binary:
 
 ```bash
-GRYPE_DB_AUTO_UPDATE=false bomly-lite scan --enrich
+GRYPE_DB_AUTO_UPDATE=false bomly-lite scan --enrich          # lite: the external grype's own switch
+BOMLY_GRYPE_DB_AUTO_UPDATE=false bomly scan --enrich         # full: keep the local database as it is
 ```
 
-The full `bomly` binary downloads the database on first use and then keeps using that copy; delete `~/.cache/grype/db` to download a current one.
+With updates off, the full binary still warns once the database is older than `matchers.grype.db_max_age`; delete `~/.cache/grype/db` to download a current one.
 
 ## Limitations
 

@@ -50,33 +50,36 @@ type Configs struct {
 	// FailOn is the parsed list of --fail-on constraints. Vulnerability
 	// constraints form an AND-set; other auditors may consume independent
 	// finding-family constraints.
-	FailOn                []model.FailOnConstraint
-	AllowVulnerabilityIDs []string
-	AllowLicenses         []string
-	DenyLicenses          []string
-	LicenseExemptPackages []string
-	DenyPackages          []string
-	DenyGroups            []string
-	ProtectedPackages     []string
-	TyposquatThreshold    string
-	TyposquatMode         string
-	OsvAPIBase            string
-	OsvCacheDir           string
-	OsvCacheTTL           string
-	KEVCacheDir           string
-	KEVCacheTTL           string
-	ScorecardAPIBase      string
-	ScorecardCacheDir     string
-	ScorecardCacheTTL     string
-	HTTPProxy             string
-	HTTPNoProxy           string
-	HTTPProxyType         string
-	HTTPProxyHost         string
-	HTTPProxyPort         int
-	HTTPProxyUsername     string
-	HTTPProxyPassword     string
-	HTTPCACertFile        string
-	HTTPClientProvider    *httpkit.ClientProvider
+	FailOn                     []model.FailOnConstraint
+	AllowVulnerabilityIDs      []string
+	AllowLicenses              []string
+	DenyLicenses               []string
+	LicenseExemptPackages      []string
+	DenyPackages               []string
+	DenyGroups                 []string
+	ProtectedPackages          []string
+	TyposquatThreshold         string
+	TyposquatMode              string
+	OsvAPIBase                 string
+	OsvCacheDir                string
+	OsvCacheTTL                string
+	KEVCacheDir                string
+	KEVCacheTTL                string
+	ScorecardAPIBase           string
+	ScorecardCacheDir          string
+	ScorecardCacheTTL          string
+	GrypeDBAutoUpdate          string
+	GrypeDBMaxAge              string
+	GrypeDBUpdateCheckInterval string
+	HTTPProxy                  string
+	HTTPNoProxy                string
+	HTTPProxyType              string
+	HTTPProxyHost              string
+	HTTPProxyPort              int
+	HTTPProxyUsername          string
+	HTTPProxyPassword          string
+	HTTPCACertFile             string
+	HTTPClientProvider         *httpkit.ClientProvider
 	// PluginConfigs carries kind-scoped per-component configuration blocks so
 	// embedded components can decode the same block managed plugins receive.
 	PluginConfigs config.PluginConfigs
@@ -283,16 +286,19 @@ func (r *Registry) registerAnalyzers() {
 // wiring.
 func (r *Registry) registerCompositionEntries(kind plugin.PluginKind) {
 	deps := composition.Deps{
-		Logger:             r.logger,
-		HTTPClientProvider: r.httpClientProvider(),
-		OsvAPIBase:         r.configs.OsvAPIBase,
-		OsvCacheDir:        r.configs.OsvCacheDir,
-		OsvCacheTTL:        r.configs.OsvCacheTTL,
-		KEVCacheDir:        r.configs.KEVCacheDir,
-		KEVCacheTTL:        r.configs.KEVCacheTTL,
-		ScorecardAPIBase:   r.configs.ScorecardAPIBase,
-		ScorecardCacheDir:  r.configs.ScorecardCacheDir,
-		ScorecardCacheTTL:  r.configs.ScorecardCacheTTL,
+		Logger:                     r.logger,
+		HTTPClientProvider:         r.httpClientProvider(),
+		OsvAPIBase:                 r.configs.OsvAPIBase,
+		OsvCacheDir:                r.configs.OsvCacheDir,
+		OsvCacheTTL:                r.configs.OsvCacheTTL,
+		KEVCacheDir:                r.configs.KEVCacheDir,
+		KEVCacheTTL:                r.configs.KEVCacheTTL,
+		ScorecardAPIBase:           r.configs.ScorecardAPIBase,
+		ScorecardCacheDir:          r.configs.ScorecardCacheDir,
+		ScorecardCacheTTL:          r.configs.ScorecardCacheTTL,
+		GrypeDBAutoUpdate:          r.configs.GrypeDBAutoUpdate,
+		GrypeDBMaxAge:              r.configs.GrypeDBMaxAge,
+		GrypeDBUpdateCheckInterval: r.configs.GrypeDBUpdateCheckInterval,
 	}
 	for _, entry := range composition.Entries() {
 		if entry.Kind != kind {

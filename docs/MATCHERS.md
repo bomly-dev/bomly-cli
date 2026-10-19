@@ -56,7 +56,7 @@ External matchers are published as plugins — see the [ClearlyDefined License M
 With the default matcher set, `--enrich` may call:
 
 - `api.deps.dev` — Google's deps.dev package metadata
-- `grype.anchore.io/databases` (plus the archive URL it returns) — the bundled Grype downloads its vulnerability database on first use
+- `grype.anchore.io/databases` (plus the archive URL it returns) — the bundled Grype downloads its vulnerability database on first use and checks for a newer build at most every two hours (`matchers.grype.db_auto_update: false` turns the check off)
 
 Selecting `osv` adds `api.osv.dev` (the OSV vulnerability database) and
 `www.cisa.gov` (the CISA Known Exploited Vulnerabilities catalog); selecting

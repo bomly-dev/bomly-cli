@@ -289,3 +289,35 @@ func TestValidateSBOMSupportEnd(t *testing.T) {
 		t.Errorf("error message = %q, want it to mention support_end", err.Error())
 	}
 }
+
+func TestValidateGrypeDatabaseSettings(t *testing.T) {
+	for _, cfg := range []Resolved{
+		{GrypeDBAutoUpdate: "false"},
+		{GrypeDBAutoUpdate: "true", GrypeDBMaxAge: "48h", GrypeDBUpdateCheckInterval: "30m"},
+		{},
+	} {
+		if err := Validate(cfg); err != nil {
+			t.Fatalf("Validate(%+v) = %v, want nil", cfg, err)
+		}
+	}
+	cases := []struct {
+		name string
+		cfg  Resolved
+		want string
+	}{
+		{name: "auto update not boolean", cfg: Resolved{GrypeDBAutoUpdate: "maybe"}, want: "matchers.grype.db_auto_update must be true or false"},
+		{name: "max age not a duration", cfg: Resolved{GrypeDBMaxAge: "five days"}, want: "matchers.grype.db_max_age must be a duration"},
+		{name: "check interval negative", cfg: Resolved{GrypeDBUpdateCheckInterval: "-1h"}, want: "matchers.grype.db_update_check_interval must not be negative"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := Validate(tc.cfg)
+			if err == nil {
+				t.Fatalf("Validate returned nil, want %q", tc.want)
+			}
+			if !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("error = %q, want it to contain %q", err.Error(), tc.want)
+			}
+		})
+	}
+}

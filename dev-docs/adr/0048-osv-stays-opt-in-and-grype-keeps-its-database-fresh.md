@@ -53,7 +53,8 @@ matcher says so at WARN, which Bomly shows without `-v`, because every
 advisory published since is missing from that run. Three settings control
 this: `db_auto_update`, `db_max_age`, and `db_update_check_interval` in the
 plugin's managed configuration, and the same three under `matchers.grype.*`
-in the CLI once the pin is bumped to the release that carries them.
+in the CLI (`BOMLY_GRYPE_DB_*` in the environment), validated by
+`config.Validate` and handed to the matcher by the composition.
 
 An enriched run also logs at INFO which registered matchers it selected and
 which it left out (`logMatcherSelection` in `internal/cli/opts`), so `-v`
@@ -61,17 +62,17 @@ answers "did OSV run?" without reading the report.
 
 ## Consequences
 
-- Once the refreshed plugin is pinned, a plain `--enrich` run contacts
-  Grype's database service not only on first use but also, at most every two
-  hours, to check for a newer database; the network documentation changes
-  with that pin bump, and until then says "on first use", which is what the
-  pinned version does. Users who pin a database, or run without network
-  access, will set `db_auto_update: false` and accept the staleness warning.
-- The CLI consumes the plugin as a pinned module, so the refresh lands in two
-  steps: the plugin release first, then a CLI change that bumps the pin and
-  exposes the `matchers.grype.*` keys. Until then the full binary keeps the
-  database it downloaded first, and `docs/matchers/grype.md` says that
-  plainly.
+- A plain `--enrich` run contacts Grype's database service not only on first
+  use but also, at most every two hours, to check for a newer database. The
+  network documentation says so. Users who pin a database, or run without
+  network access, set `matchers.grype.db_auto_update: false` and accept the
+  staleness warning.
+- The CLI consumes the plugin as a pinned module, so the refresh landed in
+  two steps: the plugin release (bomly-plugin-grype-matcher#15), then the
+  CLI pin bump that exposes the `matchers.grype.*` keys.
+- `matchers.grype.db_auto_update` is a string, not a bool: the configuration
+  loader applies a `default` tag to a false bool, so a bool defaulting to
+  true could never be switched off.
 - Still open: a typed warning for a matcher that did not run or served
   expired data is bomly-dev/bomly-cli#340; a "fresh advisory" case in the
   accuracy benchmark is tracked in bomly-planning.

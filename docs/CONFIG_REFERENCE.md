@@ -89,6 +89,14 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `matchers.scorecard.cache_dir` | `BOMLY_SCORECARD_CACHE_DIR` | `string` | - | Directory for the Scorecard response cache |
 | `matchers.scorecard.cache_ttl` | `BOMLY_SCORECARD_CACHE_TTL` | `string` | 24h | TTL for cached Scorecard responses (e.g. 24h) |
 
+## be turned off: ApplyDefaults cannot tell an explicit false from unset.
+
+| YAML Key | Environment Variable | Type | Default | Description |
+|----------|---------------------|------|---------|-------------|
+| `matchers.grype.db_auto_update` | `BOMLY_GRYPE_DB_AUTO_UPDATE` | `string` | true | Whether the bundled Grype checks for and downloads a newer vulnerability database on an enriched run: true or false |
+| `matchers.grype.db_max_age` | `BOMLY_GRYPE_DB_MAX_AGE` | `string` | 120h | Age past which the bundled Grype warns that its vulnerability database is stale (e.g. 120h) |
+| `matchers.grype.db_update_check_interval` | `BOMLY_GRYPE_DB_UPDATE_CHECK_INTERVAL` | `string` | 2h | Minimum time between the bundled Grype's checks for a newer vulnerability database (e.g. 2h) |
+
 ## SBOM export metadata (optional EU-CRA transparency fields)
 
 | YAML Key | Environment Variable | Type | Default | Description |
@@ -277,6 +285,13 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #     cache_dir: ""
 #     TTL for cached Scorecard responses (e.g. 24h)
 #     cache_ttl: 24h
+#   grype:
+#     Whether the bundled Grype checks for and downloads a newer vulnerability database on an enriched run: true or false
+#     db_auto_update: true
+#     Age past which the bundled Grype warns that its vulnerability database is stale (e.g. 120h)
+#     db_max_age: 120h
+#     Minimum time between the bundled Grype's checks for a newer vulnerability database (e.g. 2h)
+#     db_update_check_interval: 2h
 # sbom:
 #   Organization name emitted as the SBOM manufacturer/supplier (EU CRA Art. 13(15))
 #   manufacturer: ""

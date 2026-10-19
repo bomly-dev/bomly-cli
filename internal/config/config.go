@@ -81,6 +81,14 @@ type Resolved struct {
 	ScorecardCacheDir string `doc:"Directory for the Scorecard response cache" env:"BOMLY_SCORECARD_CACHE_DIR"`
 	ScorecardCacheTTL string `doc:"TTL for cached Scorecard responses (e.g. 24h)" env:"BOMLY_SCORECARD_CACHE_TTL" default:"24h"`
 
+	// Grype matcher settings (the full binary's bundled Grype; the lite build
+	// leaves database management to the external grype command). The
+	// auto-update switch is a string because a bool default of true could not
+	// be turned off: ApplyDefaults cannot tell an explicit false from unset.
+	GrypeDBAutoUpdate          string `doc:"Whether the bundled Grype checks for and downloads a newer vulnerability database on an enriched run: true or false" env:"BOMLY_GRYPE_DB_AUTO_UPDATE" default:"true"`
+	GrypeDBMaxAge              string `doc:"Age past which the bundled Grype warns that its vulnerability database is stale (e.g. 120h)" env:"BOMLY_GRYPE_DB_MAX_AGE" default:"120h"`
+	GrypeDBUpdateCheckInterval string `doc:"Minimum time between the bundled Grype's checks for a newer vulnerability database (e.g. 2h)" env:"BOMLY_GRYPE_DB_UPDATE_CHECK_INTERVAL" default:"2h"`
+
 	// CoreVersion is the running bomly core version. The CLI populates it at
 	// startup from the build's version string; it is not user configuration
 	// and has no flag, environment variable, or YAML key.
@@ -200,6 +208,7 @@ type ProxyFile struct {
 type MatchersFile struct {
 	OSV       OSVMatcherFile       `yaml:"osv,omitempty"`
 	Scorecard ScorecardMatcherFile `yaml:"scorecard,omitempty"`
+	Grype     GrypeMatcherFile     `yaml:"grype,omitempty"`
 }
 
 // OSVMatcherFile configures OSV vulnerability enrichment.
@@ -214,6 +223,15 @@ type OSVMatcherFile struct {
 type KEVFile struct {
 	CacheDir *string `yaml:"cache_dir,omitempty" resolved:"KEVCacheDir" legacy:"kev_cache_dir"`
 	CacheTTL *string `yaml:"cache_ttl,omitempty" resolved:"KEVCacheTTL" legacy:"kev_cache_ttl"`
+}
+
+// GrypeMatcherFile configures the bundled Grype matcher's vulnerability
+// database refresh. The keys mirror the plugin's own managed configuration
+// (db_auto_update, db_max_age, db_update_check_interval).
+type GrypeMatcherFile struct {
+	DBAutoUpdate          *string `yaml:"db_auto_update,omitempty" resolved:"GrypeDBAutoUpdate"`
+	DBMaxAge              *string `yaml:"db_max_age,omitempty" resolved:"GrypeDBMaxAge"`
+	DBUpdateCheckInterval *string `yaml:"db_update_check_interval,omitempty" resolved:"GrypeDBUpdateCheckInterval"`
 }
 
 // ScorecardMatcherFile configures OpenSSF Scorecard enrichment.

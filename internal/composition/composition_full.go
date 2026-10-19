@@ -5,8 +5,6 @@ package composition
 import (
 	"context"
 
-	grype "github.com/bomly-dev/bomly-plugin-grype-matcher/plugin"
-
 	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
@@ -22,7 +20,7 @@ func grypeEntry() Entry {
 			return plugin.Module{Kind: plugin.PluginKindMatcher, Matcher: &plugin.MatcherModule{
 				Descriptor: plugin.MatcherDescriptor{Name: "grype", DisplayName: "Grype"},
 				New: func(_ context.Context, _ plugin.HostContext) (plugin.Matcher, error) {
-					return grype.Matcher{Logger: deps.logger()}, nil
+					return grypeMatcher(deps), nil
 				},
 			}}
 		},

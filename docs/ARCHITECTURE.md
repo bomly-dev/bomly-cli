@@ -146,8 +146,8 @@ separate boundaries:
 
 When enrichment is enabled, the default matchers contact deps.dev and, in the
 full binary, Grype's database service, which downloads the vulnerability
-database on first use; the lite build leaves database management to the
-external `grype` command. OSV, CISA KEV, and OpenSSF Scorecard are contacted
+database on first use and checks for a newer build at most every two hours;
+the lite build leaves database management to the external `grype` command. OSV, CISA KEV, and OpenSSF Scorecard are contacted
 only when you select the `osv` or `scorecard` matcher. Bomly sends no telemetry or credentials to
 its built-in services. External plugin matchers, including ClearlyDefined and
 endoflife.date integrations, may contact their documented services once you

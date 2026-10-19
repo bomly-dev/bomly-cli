@@ -129,7 +129,7 @@ func TestBuildRegistersCompositionEntries(t *testing.T) {
 	}
 	defaultMatchers := registry.DefaultEnabledMatcherNames()
 	for _, name := range defaultMatchers {
-		if name == "scorecard" {
+		if name == "osv" || name == "scorecard" {
 			t.Errorf("expected %q to be default-disabled, defaults: %v", name, defaultMatchers)
 		}
 	}
@@ -137,8 +137,8 @@ func TestBuildRegistersCompositionEntries(t *testing.T) {
 	for _, name := range defaultMatchers {
 		defaultSet[name] = true
 	}
-	if !defaultSet["grype"] || !defaultSet["osv"] || !defaultSet["depsdev-license-matcher"] {
-		t.Errorf("expected grype, osv, and depsdev-license-matcher default-enabled, got %v", defaultMatchers)
+	if !defaultSet["grype"] || !defaultSet["depsdev-license-matcher"] {
+		t.Errorf("expected grype and depsdev-license-matcher default-enabled, got %v", defaultMatchers)
 	}
 
 	analyzerNames := registry.DefaultEnabledAnalyzerNames()

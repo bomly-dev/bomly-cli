@@ -107,7 +107,7 @@ Top-level dependencies
   express   4.19.2    MIT       runtime   1L
 ```
 
-This calls the enabled built-in matchers, including OSV, KEV, deps.dev, and OpenSSF Scorecard when selected. Responses are cached under `~/.bomly/cache/`. See [Matchers](MATCHERS.md) for the per-source list and cache TTLs. ClearlyDefined license and endoflife.date lifecycle enrichment are available as external matcher plugins.
+This runs the default matchers: Grype for vulnerabilities and deps.dev for licenses. OSV (with the CISA KEV signal) and OpenSSF Scorecard run when you select them with `--matchers +osv` or `--matchers +scorecard`. Responses are cached under `~/.bomly/cache/`. See [Matchers](MATCHERS.md) for the per-source list and cache TTLs. ClearlyDefined license and endoflife.date lifecycle enrichment are available as external matcher plugins.
 
 ## Generate an SBOM
 

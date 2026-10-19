@@ -6,13 +6,14 @@ After a successful OSV match, the matcher also queries the [CISA Known Exploited
 
 ## When it runs
 
-`osv` requires `--enrich`. A plain scan never contacts OSV. With `--enrich` and no `--matchers` selection, `osv` is in the default matcher set next to `grype`, so every enriched run consults the live advisory feed and does not depend on Grype's local database alone. Advisories both matchers return are merged by identity and reported once.
+`osv` is opt-in. It requires `--enrich`, and it is not in the default matcher set, where `grype` covers vulnerabilities. Add it next to the defaults, or run it on its own:
 
 ```bash
-bomly scan --enrich
+bomly scan --enrich --matchers +osv   # the default set plus OSV
+bomly scan --enrich --matchers osv    # OSV only
 ```
 
-To keep Grype as the only vulnerability matcher, remove OSV from the default set with `--matchers -osv`; the deps.dev license matcher still runs. `--matchers grype` runs Grype and nothing else.
+Advisories both OSV and Grype return are merged by identity and reported once.
 
 ## Network
 
@@ -50,7 +51,7 @@ Each `vulnerabilities[]` entry on a package carries:
 The simplest gate:
 
 ```bash
-bomly scan --enrich --audit --fail-on high
+bomly scan --enrich --matchers +osv --audit --fail-on high
 ```
 
 KEV-listed advisories at any severity warrant their own gate; see [Auditors](../AUDITORS.md) for the `--fail-on` grammar.
@@ -60,7 +61,7 @@ KEV-listed advisories at any severity warrant their own gate; see [Auditors](../
 After a first `--enrich` run, the cache holds 24h of OSV responses. To re-evaluate policy without hitting the network:
 
 ```bash
-bomly scan --enrich --audit --fail-on high   # cached lookups are instant
+bomly scan --enrich --matchers +osv --audit --fail-on high   # cached lookups are instant
 ```
 
 If the cache is older than 24h for a package, that package is re-queried; others stay cached.

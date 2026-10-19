@@ -112,7 +112,7 @@ bomly scan --enrich --audit --fail-on high
 bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable
 ```
 
-Built-in enrichment uses public services such as OSV, CISA KEV, deps.dev, and OpenSSF Scorecard. `--audit` evaluates the vulnerability and license data already present on packages; use `--enrich --audit` when you want to fetch and evaluate in one run.
+By default, enrichment matches vulnerabilities against Grype's database and fetches license data from deps.dev; OSV (with the CISA KEV signal) and OpenSSF Scorecard join when you select them with `--matchers +osv` or `--matchers +scorecard`. `--audit` evaluates the vulnerability and license data already present on packages; use `--enrich --audit` when you want to fetch and evaluate in one run.
 
 Reachability is experimental. It is useful for triage, but "unreachable" is not a guarantee of safety. Read [Reachability](docs/REACHABILITY.md) before using `--fail-on reachable` as a CI gate.
 

@@ -30,7 +30,7 @@ func TestEntriesShapeAndDefaults(t *testing.T) {
 		defaultEnabled bool
 	}{
 		"grype":                   {sdkplugin.PluginKindMatcher, true},
-		"osv":                     {sdkplugin.PluginKindMatcher, true},
+		"osv":                     {sdkplugin.PluginKindMatcher, false},
 		"depsdev-license-matcher": {sdkplugin.PluginKindMatcher, true},
 		"scorecard":               {sdkplugin.PluginKindMatcher, false},
 		"govulncheck":             {sdkplugin.PluginKindAnalyzer, true},

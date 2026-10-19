@@ -6,7 +6,7 @@ In the full `bomly` binary, Grype is linked in as a library and runs in-process.
 
 ## When it runs
 
-`grype` requires `--enrich`. A plain scan never runs it. With `--enrich` and no `--matchers` selection, `grype` is in the default matcher set next to `osv`; `--matchers grype` runs Grype and nothing else.
+`grype` requires `--enrich`. A plain scan never runs it. With `--enrich` and no `--matchers` selection, `grype` is the default vulnerability matcher; `--matchers grype` runs Grype and nothing else.
 
 ```bash
 bomly scan --enrich --matchers grype     # Grype only
@@ -54,10 +54,10 @@ Each `vulnerabilities[]` entry on a package carries:
 ### Combine Grype with OSV for the highest coverage
 
 ```bash
-bomly scan --enrich --audit --fail-on high
+bomly scan --enrich --matchers +osv --audit --fail-on high
 ```
 
-Both `osv` and `grype` are in the default matcher set when `--enrich` is set. Duplicate advisories (same CVE found by both) are merged on the package.
+`grype` is in the default matcher set; `osv` is opt-in, and `--matchers +osv` adds it. Duplicate advisories (same CVE found by both) are merged on the package.
 
 ### Pin to a specific Grype DB
 
@@ -66,6 +66,8 @@ When reproducibility matters (e.g. nightly compliance runs), pin the DB version 
 ```bash
 GRYPE_DB_AUTO_UPDATE=false bomly-lite scan --enrich
 ```
+
+The full `bomly` binary downloads the database on first use and then keeps using that copy; delete `~/.cache/grype/db` to download a current one.
 
 ## Limitations
 

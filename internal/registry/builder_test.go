@@ -136,12 +136,12 @@ func TestBuildScanRegistryRegistersBuiltInMatchers(t *testing.T) {
 		}
 	}
 	defaults := builtins.DefaultEnabledMatcherNames()
-	for _, name := range []string{"grype", "osv", "depsdev-license-matcher"} {
+	for _, name := range []string{"grype", "depsdev-license-matcher"} {
 		if !slices.Contains(defaults, name) {
 			t.Fatalf("expected matcher %q to be enabled by default; got %#v", name, defaults)
 		}
 	}
-	for _, name := range []string{"scorecard"} {
+	for _, name := range []string{"osv", "scorecard"} {
 		if slices.Contains(defaults, name) {
 			t.Fatalf("expected matcher %q to be opt-in; got %#v", name, defaults)
 		}

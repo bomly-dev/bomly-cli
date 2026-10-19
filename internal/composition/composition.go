@@ -110,20 +110,17 @@ func Entries() []Entry {
 	return entries
 }
 
-// osvEntry composes the OSV matcher. It is in the default --enrich set, next
-// to grype, so that a plain --enrich run always consults a live advisory
-// source: grype answers from a local database whose age the run does not
-// check, and a run whose only vulnerability source is that database reports
-// nothing published after it was built -- silently, because an absent
-// matcher raises no warning (ADR-0048, bomly-dev/bomly-cli#510). The two
-// sources' advisories are merged by identity in the engine's consolidation
-// step, so a run with both reports each advisory once.
+// osvEntry composes the OSV matcher. It is opt-in: the default --enrich set
+// runs grype for vulnerabilities and deps.dev for licenses, and OSV joins it
+// with --matchers +osv (ADR-0048). The generated matcher docs read this flag
+// through internal/support, so a page cannot describe a default set the
+// binary does not run; they did for four months after PR #130 flipped it.
 func osvEntry() Entry {
 	return Entry{
 		Name:           "osv",
 		Kind:           plugin.PluginKindMatcher,
 		Implementation: ImplementationNative,
-		DefaultEnabled: true,
+		DefaultEnabled: false,
 		Module: func(deps Deps) plugin.Module {
 			return plugin.Module{Kind: plugin.PluginKindMatcher, Matcher: &plugin.MatcherModule{
 				Descriptor: plugin.MatcherDescriptor{Name: "osv", DisplayName: "OSV"},

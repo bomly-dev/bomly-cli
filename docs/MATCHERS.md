@@ -32,13 +32,9 @@ Pass `--enrich` to run all default network matchers:
 bomly scan --enrich
 ```
 
-With no `--matchers` selection, `--enrich` runs `depsdev-license-matcher`, `grype`, `osv`. `scorecard` is opt-in: add it with `--matchers +scorecard`.
-
-Two vulnerability matchers run by default on purpose. Grype answers from a
-local database that is downloaded on first use, and a run does not check how
-old that database is; OSV is queried live (through a 24h cache), so a plain
-`--enrich` run never depends on a local database alone for the advisories it
-reports. Advisories both sources return are merged by identity and reported once.
+With no `--matchers` selection, `--enrich` runs `depsdev-license-matcher`, `grype`. `osv`, `scorecard` are opt-in: add one with `--matchers +<name>`. Vulnerabilities come from Grype's database
+by default; OSV and Grype can run together, and advisories both return are
+merged by identity and reported once.
 
 Use `--matchers` to restrict or extend the set with the standard [selector grammar](COMMANDS.md#selector-grammar):
 
@@ -57,14 +53,14 @@ External matchers are published as plugins — see the [ClearlyDefined License M
 
 ## Network endpoints
 
-When `--enrich` is set, Bomly may call:
+With the default matcher set, `--enrich` may call:
 
-- `api.osv.dev` — OSV vulnerability database
-- `api.cisa.gov` — CISA Known Exploited Vulnerabilities catalog
 - `api.deps.dev` — Google's deps.dev package metadata
+- `grype.anchore.io/databases` (plus the archive URL it returns) — the bundled Grype downloads its vulnerability database on first use
 
-The OpenSSF Scorecard matcher also calls `api.scorecard.dev`. Bundled
-Grype downloads its vulnerability database on first use. The lite build leaves
+Selecting `osv` adds `api.osv.dev` (the OSV vulnerability database) and
+`www.cisa.gov` (the CISA Known Exploited Vulnerabilities catalog); selecting
+`scorecard` adds `api.scorecard.dev`. The lite build leaves Grype
 database management to the external `grype` command. Bomly sends no
 telemetry or credentials to its built-in matcher services. External plugin
 matchers may contact other services after you install and enable them. See

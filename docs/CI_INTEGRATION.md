@@ -11,11 +11,11 @@ Every recipe follows the same four steps:
 
 | Platform | SARIF display | SBOM artifact | Cache |
 | --- | --- | --- | --- |
-| GitHub Actions | Security tab, through `upload-sarif` | `upload-artifact` | `actions/cache` on `~/.bomly/cache` |
-| GitLab CI | Not native | `artifacts`, plus `reports:cyclonedx` for the built-in viewer | Project-local directory only |
+| GitHub Actions | Security tab, through `upload-sarif` | `upload-artifact` | `actions/cache` on `~/.bomly/cache` and `~/.cache/grype` |
+| GitLab CI | Not native | `artifacts`, plus `reports:cyclonedx` for the built-in viewer | Project-local directory, linked to the real cache locations |
 | Jenkins | Warnings Next Generation plugin | `archiveArtifacts` | Workspace |
 | Azure DevOps | SARIF SAST Scans Tab extension | `PublishBuildArtifacts` | Pipeline caching |
-| CircleCI | Not native | `store_artifacts` | `save_cache` on `~/.bomly/cache` |
+| CircleCI | Not native | `store_artifacts` | `save_cache` on `~/.bomly/cache` and `~/.cache/grype` |
 
 ## Install
 
@@ -91,13 +91,15 @@ Only the packages the PR touched are audited, so findings elsewhere never fail t
 
 ### Cache enrichment data
 
-Caching `~/.bomly/cache` between runs cuts enrichment time from minutes to seconds:
+Bomly keeps enrichment responses under `~/.bomly/cache` and the bundled Grype vulnerability database under the operating system's cache directory (`~/.cache/grype/db` on Linux). Caching both between runs cuts enrichment time from minutes to seconds:
 
 ```yaml
-      - name: Cache Bomly matcher data
+      - name: Cache Bomly enrichment data
         uses: actions/cache@v4
         with:
-          path: ~/.bomly/cache
+          path: |
+            ~/.bomly/cache
+            ~/.cache/grype
           key: bomly-${{ runner.os }}-${{ hashFiles('**/go.sum', '**/package-lock.json', '**/pom.xml') }}
           restore-keys: bomly-${{ runner.os }}-
 ```
@@ -116,9 +118,13 @@ Scan, keep the SBOMs as artifacts, and show the CycloneDX SBOM in GitLab's depen
 bomly:
   image: ubuntu:24.04
   stage: test
+  variables:
+    XDG_CACHE_HOME: "$CI_PROJECT_DIR/.bomly-cache"   # Grype database goes to .bomly-cache/grype/db
   before_script:
     - apt-get update && apt-get install -y curl ca-certificates
     - curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.28.3 sh
+    - mkdir -p "$CI_PROJECT_DIR/.bomly-cache/bomly" ~/.bomly
+    - ln -sfn "$CI_PROJECT_DIR/.bomly-cache/bomly" ~/.bomly/cache   # enrichment responses
   script:
     - |
       bomly scan --enrich --audit --fail-on high \
@@ -142,7 +148,7 @@ bomly:
       - .bomly-cache
 ```
 
-GitLab can only cache paths inside the project directory, and Bomly's default cache is `~/.bomly/cache`. To use the GitLab cache, set each matcher's `cache_dir` to a path under the project (for example `.bomly-cache/grype`) in your config file, or with the `BOMLY_*_CACHE_DIR` environment variables listed in the [Config reference](CONFIG_REFERENCE.md).
+GitLab caches only paths inside the project directory, while Bomly writes enrichment responses to `~/.bomly/cache` and the bundled Grype database to the operating system's cache directory. The recipe points both at `.bomly-cache` inside the project: `XDG_CACHE_HOME` moves the Grype database there, and the symlink moves Bomly's own cache there. Only the OSV, KEV, and Scorecard matchers have a `cache_dir` setting of their own; see the [Config reference](CONFIG_REFERENCE.md).
 
 ## Jenkins
 
@@ -206,8 +212,8 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - bomly-cache-v1-{{ checksum "go.sum" }}
-            - bomly-cache-v1-
+            - bomly-cache-v2-{{ checksum "go.sum" }}
+            - bomly-cache-v2-
       - run:
           name: Install and scan
           command: |
@@ -217,9 +223,10 @@ jobs:
               -o spdx=sbom.spdx.json \
               -o cyclonedx=sbom.cdx.json
       - save_cache:
-          key: bomly-cache-v1-{{ checksum "go.sum" }}
+          key: bomly-cache-v2-{{ checksum "go.sum" }}
           paths:
             - ~/.bomly/cache
+            - ~/.cache/grype
       - store_artifacts:
           path: sbom.spdx.json
       - store_artifacts:
@@ -247,7 +254,7 @@ Run a scan before every push:
 ## Recommendations
 
 - Pin the Bomly version. Use a tagged release or a package-manager version, never `latest`.
-- Cache `~/.bomly/cache` across runs. The cache lifetimes make this safe.
+- Cache `~/.bomly/cache` and the Grype database directory across runs. The cache lifetimes make this safe.
 - Upload the SBOM even when the scan fails. It is a release artifact in its own right.
 - Use `bomly diff` on pull requests, so only the packages the PR changes are audited.
 

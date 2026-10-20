@@ -81,7 +81,7 @@ Two cases change the serial number, and both apply only when the scan read SBOMs
 
 | Input | Identity of the output | Links to sources |
 | --- | --- | --- |
-| One source document (a conversion) | Keeps the source's identity. This is what makes export, read, export reproduce the same bytes. A CycloneDX serial can hold only a UUID URN, so an SPDX namespace that is not one is linked instead | None needed |
+| One source document (a conversion) | Keeps the source's identity, so the output names the same document as the input. Encoding is deterministic, but the output is not byte-identical to the input: the fields the [limits table](#preservation-and-conversion-limits) marks as not read back (package origin, component identifiers, SPDX relationship types) change. A CycloneDX serial can hold only a UUID URN, so an SPDX namespace that is not one is linked instead | None needed |
 | Several source documents (a merge) | A new identity; a document has exactly one, and adopting a source's would name a document that is not this one | CycloneDX: a document-level `bom` external reference per source, carrying a BOM-Link (`urn:cdx:<serial>/<version>`) or the SPDX namespace URI, plus a SHA-256 checksum. SPDX: an `externalDocumentRefs` entry per source with the SHA-256 the specification requires. The checksum is computed while the source is read; a source that arrived without its bytes is left unnamed in SPDX rather than written as an invalid reference |
 
 Source links are read back on import, so a merged document converted again still names the documents behind it. People and tools credited by any source are credited by the merged document.

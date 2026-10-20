@@ -100,7 +100,7 @@ bomly scan --sbom --path ./in.spdx.json -o cyclonedx=out.cdx.json
 bomly scan --sbom --path ./in.cdx.json  -o spdx=out.spdx.json
 ```
 
-There is no separate `convert` command. The scan pipeline is the conversion path, so you can add `--enrich` or `--audit` in the same run. Converting a single document keeps that document's identity, so export, read, export reproduces the same bytes within one format. Some fields have no equivalent in the other format; the [conversion limits table](SBOM_REFERENCE.md#preservation-and-conversion-limits) lists what changes.
+There is no separate `convert` command. The scan pipeline is the conversion path, so you can add `--enrich` or `--audit` in the same run. Converting a single document keeps that document's identity, and encoding is deterministic, so converting the same input twice gives the same output. The output is not byte-identical to the input: some fields are not read back, and some have no equivalent in the other format. The [conversion limits table](SBOM_REFERENCE.md#preservation-and-conversion-limits) lists what changes.
 
 ## Compare two SBOMs
 

@@ -1,69 +1,73 @@
 # JSON schemas
 
-Bomly's `--format json` output follows a stable, versioned schema. Every command shares the same vocabulary — `manifests`, `packages`, and `findings` — described in [Architecture → Domain model](ARCHITECTURE.md#domain-model). These pages are the per-command field references, generated from the source types so they never drift from the binary.
+Bomly's `--format json` output follows a stable, versioned schema. This page is for people who write scripts or integrations against it. It explains the shape every command shares and points to the generated per-command field references, which are built from the source types so they never drift from the binary.
 
-| Command         | Schema reference                       |
-|-----------------|----------------------------------------|
-| `bomly scan`    | [Scan output schema](schemas/scan.md)       |
+| Command | Field reference |
+| --- | --- |
+| `bomly scan` | [Scan output schema](schemas/scan.md) |
 | `bomly explain` | [Explain output schema](schemas/explain.md) |
-| `bomly diff`    | [Diff output schema](schemas/diff.md)       |
+| `bomly diff` | [Diff output schema](schemas/diff.md) |
 
 ## Quick start
 
-Emit JSON instead of the text report, and pipe it to any tool that speaks JSON:
+Write JSON instead of the text report and pipe it to any JSON tool:
 
 ```sh
-# Pretty-print the whole document
-bomly scan . --format json | jq .
-
-# List every package that has at least one vulnerability
-bomly scan . --enrich --format json | jq '.packages[] | select(.vulnerabilities | length > 0) | .purl'
-
-# Show packages with a complete version recommendation
-bomly scan . --enrich --format json | jq '.packages[] | select(.remediation.status == "complete") | {purl, recommended_version: .remediation.recommended_version}'
-
-# Write the document to a file for a later step
-bomly scan . --format json --output scan.json
+bomly scan --format json | jq .                                                            # the whole document
+bomly scan --enrich --format json | jq '.packages[] | select(.vulnerabilities | length > 0) | .purl'   # vulnerable packages
+bomly scan --enrich --format json | jq '.packages[] | select(.remediation.status == "complete") | {purl, recommended_version: .remediation.recommended_version}'
+bomly scan --format json -o json=scan.json                                                 # write to a file
 ```
 
-`bomly explain` and `bomly diff` accept the same `--format json` flag and emit documents that follow their respective schemas above.
+`bomly explain` and `bomly diff` accept the same flag and follow their own schemas.
 
 ## Output shape
 
-The scan document is the SDK's scan record (`github.com/bomly-dev/bomly-sdk/scan`,
-schema `bomly.scan.v1`). Every document carries a `schema_version` and a
-`command`, then the three top-level collections, and the scan document adds
-what a run says about itself:
+Every document carries a `schema_version` and a `command`, then three collections. The scan document also records what the run was about:
 
-- **`subject`** — what was scanned: `kind`, `repository_url`, `ref`, and the `commit_sha` the ref resolved to (or the working tree's HEAD for a local path inside a repository). Never a local path.
-- **`run`** — the execution: `id`, `started_at`, `completed_at`, `tool` (`bomly` and its version), and `options` (`enrich`, `analyze`, `audit`, `fail_on`).
-- **`verdict`** — `pass`, `warn` or `fail`, the same outcome the exit code reports, present when `--audit` ran.
-- **`digests`** — a `sha256:` digest over each of `manifests`, `packages` and `findings`, so a reader can tell which section changed between two documents without comparing them.
+| Field | What it holds | Present |
+| --- | --- | --- |
+| `subject` | What was scanned: `kind`, `repository_url`, `ref`, and the `commit_sha` the ref resolved to (or the working tree's HEAD for a local path inside a repository). Never a local path | Always |
+| `run` | `id`, `started_at`, `completed_at`, `tool` (`bomly` and its version), and `options` (`enrich`, `analyze`, `audit`, `fail_on`) | Always |
+| `verdict` | `pass`, `warn`, or `fail`, the same outcome the exit code reports | With `--audit` |
+| `digests` | A `sha256:` digest over each of `manifests`, `packages`, and `findings`, so a reader can tell which section changed between two documents | Always |
 
-The collections:
+The three collections keep three kinds of data apart, so the same fact never appears twice:
 
-- **`manifests[]`** — detection-stage results, one entry per discovered project, each holding lean `dependencies[]` (identity, `scopes`, `depends_on`, and a `package_ref` into `packages`).
-- **`packages[]`** — matching-stage artifacts, deduplicated by PURL, carrying the enrichment: `licenses`, `vulnerabilities` (OSV-aligned, with CVSS/EPSS/reachability and, when a source document stated one, the VEX `analysis`), `remediation`, `scorecard`, and `eol`. Each entry is the SDK package as the registry holds it: `name` and `org` are its coordinates (`@scope/name` on npm is `org: scope`, `name: name`), and every optional field is omitted when empty. `remediation` contains vulnerability fix status, a recommended version when the evidence is complete, and occurrence-specific suggestions. In each suggestion, `affected_dependency_refs` identifies occurrences of the vulnerable package. `suggested_action_dependency_ref` identifies the direct dependency or manifest anchor the action targets. These references and the manifest path keep workspaces and repeated packages distinct. Suggestions are read-only guidance, not commands that Bomly runs.
-- **`findings[]`** — reference-style audit results that point back at the other collections rather than copying data inline: `package_ref` is the package URL (join `packages` by `purl`), `vulnerability_id` names the advisory inside `packages[].vulnerabilities`, `dependency_refs` lists the introducing `manifests[].dependencies` ids, and `decision`, when a resolver such as a baseline settled the `policy_status`, says which one and why.
+| Collection | One entry per | What each entry holds |
+| --- | --- | --- |
+| `manifests[]` | Discovered project | The manifest's path and detector, and its `dependencies[]`: one per occurrence of a package, with identity, `scopes`, `depends_on`, and a `package_ref` into `packages` |
+| `packages[]` | Unique package URL (PURL) | The enrichment data: `licenses`, `vulnerabilities` (OSV-aligned, with CVSS, EPSS, reachability, and the VEX `analysis` when a source document stated one), `remediation`, `scorecard`, and `eol`. `name` and `org` are the package's coordinates (`@scope/name` on npm is `org: scope`, `name: name`). Empty optional fields are omitted |
+| `findings[]` | Audit result | A reference back into the other collections: `package_ref` is the PURL (join `packages` by `purl`), `vulnerability_id` names the advisory inside that package, `dependency_refs` lists the dependency IDs that introduce it, and `decision` says which resolver (for example a baseline) settled the `policy_status` and why |
 
-Remediation status values are compact machine labels: `complete` means a
-complete fix is available for every known vulnerability on the package;
-`partial` means only some vulnerability evidence supports a fix;
-`unavailable` means the sources explicitly report no fix; and `unknown` means
-the evidence is missing or contradictory. Human-readable output expands these
-to clearer fix-availability labels.
+Enrichment lives once, in `packages`, and is joined by PURL. A CVE on a package that 50 dependencies share appears one time. `bomly diff` documents carry the same `packages` collection, holding every package from both sides (the head version wins when they differ), so findings in a diff join the same way.
 
-Enrichment lives once, in `packages`, and is resolved by PURL — so a CVE that affects a package shared by 50 dependencies appears a single time. `bomly diff` documents carry the same `packages` collection (the PURL-deduplicated union of the base and head states, head winning on conflict) so audit findings in the diff join the same way. See the per-command pages for the exact field-by-field breakdown.
+### Remediation
+
+`packages[].remediation` carries the fix guidance for a package:
+
+| Field | What it holds |
+| --- | --- |
+| `status` | `complete` (a fix is known for every vulnerability on the package), `partial` (only some), `unavailable` (the sources report no fix), or `unknown` (missing or contradictory evidence). Human-readable output expands these to longer labels |
+| `recommended_version` | Present only when the evidence supports one complete recommendation |
+| `suggestions[]` | One per occurrence. `affected_dependency_refs` names the dependencies that carry the vulnerable package; `suggested_action_dependency_ref` names the direct dependency or manifest the action targets. They differ for a transitive package |
+
+Suggestions are guidance. Bomly never applies them.
 
 ## Stability
 
-- The scan document's `schema_version` is `bomly.scan.v1`, the SDK's scan record schema: additive within v1 (new optional keys only), so tolerate unknown keys. Collections are always present: a collection with nothing in it is written as `[]`, never omitted and never `null`, so `jq '.findings[]'` or `.depends_on[]` works on a run that found nothing. This holds for the `scan`, `diff` and `explain` documents alike. Unset scalar fields and objects are still omitted.
-- `diff` and `explain` keep the CLI's own `schema_version`, `1.0`. Their finding and package shapes follow the scan document's (`findings[].package_ref`, packages as SDK packages).
-- Within a version, changes are additive: new optional fields may appear, existing fields keep their meaning. A breaking change gets a new version. Tolerate unknown fields in your consumers.
-- The schema reference pages are regenerated by `make generate`, so they always match the binary you are running.
+- The scan document's `schema_version` is `bomly.scan.v1`. `diff` and `explain` keep the CLI's own `1.0`; their finding and package shapes follow the scan document's.
+- Within a version, changes are additive: new optional fields may appear, and existing fields keep their meaning. A breaking change gets a new version. Tolerate unknown fields.
+- Collections are always present. An empty one is written as `[]`, never omitted and never `null`, so `jq '.findings[]'` works on a run that found nothing. Unset scalar fields and objects are omitted.
+- The field references under `schemas/` are regenerated from the source types by `make generate`, so they match the binary you run.
+
+## Related shapes
+
+- [MCP server](MCP.md#what-the-tools-return) describes the compact `mcp/1` shape the MCP tools return, which is versioned separately.
+- [SARIF](OUTPUT_FORMATS.md#sarif) follows the SARIF 2.1.0 specification, not this schema.
 
 ## Limitations
 
-- A field is only populated when the corresponding stage ran: `vulnerabilities`, `remediation`, `scorecard`, and `eol` are present only with `--enrich`; `findings` only with `--audit`; `reachability` only with `--analyze`.
-- An empty `vulnerabilities`/`findings` array means *nothing was reported under the options you ran with* — not a guarantee that the package is safe. In particular, reachability tiers are best-effort; a `tier: none`/unreachable result is a triage signal, not proof of safety (see [Reachability](REACHABILITY.md)).
-- JSON output may contain absolute filesystem paths from the scanned target. Treat a scan document as potentially sensitive before publishing it.
+- A field is filled only when its stage ran: `vulnerabilities`, `remediation`, `scorecard`, and `eol` need `--enrich`; `findings` needs `--audit`; `reachability` needs `--analyze`.
+- An empty `vulnerabilities` or `findings` array means nothing was reported with the options you ran, not that the package is safe. A reachability result of `unreachable` is a triage signal, not proof of safety; see [Reachability](REACHABILITY.md).
+- JSON output can contain absolute paths from the scanned target. Treat a scan document as potentially sensitive before you publish it.

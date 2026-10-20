@@ -1,26 +1,14 @@
 # Architecture
 
-A tour of how Bomly turns a scan target into a report — the stages a scan runs through, the data it produces, and when (if ever) it touches the network.
+This page explains how Bomly turns a scan target into a report: the stages a scan runs through, the data it produces, and how the pieces can be extended. It is for readers who want to understand the output, not for contributors to the code; the contributor version is [`dev-docs/ARCHITECTURE.md`](https://github.com/bomly-dev/bomly-cli/blob/main/dev-docs/ARCHITECTURE.md).
 
 ## Commands
 
-Bomly is a CLI. Three commands run the dependency pipeline described on this page, and four support it:
-
-| Command         | Purpose                                                              |
-|-----------------|----------------------------------------------------------------------|
-| `bomly scan`    | Resolve dependencies, render reports, and write SBOMs                |
-| `bomly explain` | Show why a dependency exists in a graph                              |
-| `bomly diff`    | Compare dependency state across Git refs, SBOM files, or image tags  |
-| `bomly baseline`| Create and inspect finding baselines                                 |
-| `bomly plugins` | List, install, enable, verify, and test external plugins             |
-| `bomly mcp`     | Serve Bomly's tools to MCP-aware AI agents                           |
-| `bomly version` | Print version information                                            |
-
-Each pipeline invocation works on exactly one target: a filesystem path, a container image, a remote Git repository, or an existing SBOM file. See [Commands](COMMANDS.md) for the per-command reference and [Scan targets](SCAN_TARGETS.md) for the details of each target.
+Three commands run the pipeline described here, and four support it. Every run works on exactly one target: a directory, a container image, a remote Git repository, or an SBOM file. See [Commands](COMMANDS.md) and [Scan targets](SCAN_TARGETS.md).
 
 ## The scan pipeline
 
-A scan flows through an ordered set of stages. Each stage hands its output to the next, so later stages always see a single, consolidated view of your dependencies.
+A scan runs through a fixed sequence of stages. Each stage hands its output to the next, so later stages always see one consolidated view of your dependencies.
 
 ```mermaid
 flowchart TD
@@ -34,39 +22,36 @@ flowchart TD
     A --> B --> C --> D --> E --> F
 ```
 
-1. **Discover** — Bomly inspects the target root and finds every supported package-manager root (a `go.mod`, a `package-lock.json`, a `pom.xml`, and so on). With `--recursive` it also walks nested directories, discovering independent subprojects in a monorepo while workspace-aware managers (npm workspaces, Maven reactors, …) keep expanding their own modules from the root. See [Scan targets](SCAN_TARGETS.md#recursive-discovery----recursive).
-2. **Detect** — For each root, a [detector](DETECTORS.md) reads the lockfile, manifest, or SBOM and resolves a dependency graph. Per-subproject graphs are then *consolidated* into one graph and one deduplicated package set for the rest of the run. `--scope` narrows the graph to runtime or development dependencies here. Detection reports its non-fatal problems as one list of warnings, each with a type: `resolution-failure` (a detector chain failed and its subproject is missing), `fallback` (a fallback detector produced the graph, so transitive dependencies may be missing), and `package-manager` (the graph is sound, but the project's configuration will break an install elsewhere — see [CI-readiness warnings](CI_READINESS.md)). The first two mean coverage degraded and findings may be missing; the third does not. Warnings appear in the progress output, in the text and Markdown reports, and in the `warnings` collection of the JSON document.
-3. **Match** — When you pass `--enrich`, [matchers](MATCHERS.md) add data to published registry packages: known vulnerabilities, licenses, end-of-life status, and project health scores. Bomly then derives one remediation result from the vulnerability and dependency evidence. It reports fix availability, a recommended version when the evidence is complete, and occurrence-specific actions when a detector supports the package-manager strategy. Project roots, workspace members, and local/file/Git/URL artifacts remain in the graph and reports but are not queried as if they were registry releases.
-4. **Analyze** — When you pass `--analyze`, [reachability](REACHABILITY.md) analysis runs on top of the matched data to flag whether a vulnerability is actually reachable from your code.
-5. **Audit** — When you pass `--audit`, [auditors](AUDITORS.md) evaluate policy (severity thresholds, license rules, denied packages) against the enriched data and produce findings. As part of this same step, configured policy-status rules may mark a finding non-gating without removing it. Combine `--enrich --audit` to gate on fresh external data in one run.
-6. **Render** — Bomly emits the result as text, JSON, SARIF, or an SBOM. See [Output formats](OUTPUT_FORMATS.md) and [SBOM formats](SBOM.md).
+| Stage | Runs | What it does |
+| --- | --- | --- |
+| **Discover** | Always | Finds every supported project root at the target (a `go.mod`, a `package-lock.json`, a `pom.xml`, and so on). With `--recursive` it also walks nested directories; workspace-aware package managers expand their own modules from the root. See [Monorepos](MONOREPOS.md) |
+| **Detect** | Always | For each root, a [detector](DETECTORS.md) reads the lockfile, manifest, or SBOM and resolves a dependency graph. The per-project graphs are consolidated into one graph and one deduplicated package set. `--scope` narrows the graph here |
+| **Match** | With `--enrich` | [Matchers](MATCHERS.md) add vulnerabilities, licenses, end-of-life status, and project health scores to the packages. Bomly then derives one fix suggestion per vulnerable package from that evidence. Project roots, workspace members, and local, Git, or URL packages stay in the graph but are not looked up in registries |
+| **Analyze** | With `--analyze` | [Reachability](REACHABILITY.md) analysis marks each vulnerability as reachable or not from your code |
+| **Audit** | With `--audit` | [Auditors](AUDITORS.md) evaluate your policy (severity thresholds, license rules, denied packages) against the enriched data and produce findings. A [baseline](BASELINES.md) can mark a finding as accepted without removing it |
+| **Render** | Always | Writes the result as text, JSON, SARIF, or an SBOM. See [Output formats](OUTPUT_FORMATS.md) |
 
-`bomly explain` reuses the detect and match stages, then traces the dependency paths that pull in a given package. `bomly diff` runs the pipeline against two states and reports package additions, removals, version changes, and changes to dependency relationship, source, or registry-matching eligibility.
+Detection reports its non-fatal problems as warnings, each with a type:
 
-## Configuration trust
+| Warning type | Meaning | Coverage |
+| --- | --- | --- |
+| `resolution-failure` | A detector chain failed, and its project is missing from the graph | Reduced; findings may be missing |
+| `fallback` | A fallback detector produced the graph, so transitive dependencies may be missing | Reduced; findings may be missing |
+| `package-manager` | The graph is complete, but the project's configuration will break an install elsewhere | Complete. See [CI-readiness warnings](CI_READINESS.md) |
 
-Bomly automatically loads your user configuration from
-`~/.bomly/config.yaml`. It does not automatically load `.bomly/config.yaml`
-from a repository because a complete configuration file can enable network
-access, package-manager commands, plugins, and file output.
+Warnings appear in the progress output, in the text and Markdown reports, and in the `warnings` collection of the JSON document.
 
-To trust a repository configuration, select it explicitly:
-
-```sh
-bomly scan --config .bomly/config.yaml
-```
-
-You can also set `BOMLY_CONFIG`. If both are present, `--config` wins. Other
-environment values and command-line flags continue to override values read
-from configuration files.
+`bomly explain` reuses the detect and match stages, then traces every path that pulls in the package you name. `bomly diff` runs the pipeline on two states and reports added, removed, and changed packages, plus changes to a dependency's relationship, source, or registry eligibility. See the [diff command](commands/diff.md).
 
 ## Domain model
 
-Bomly keeps three kinds of data separate, which is why the same fact never appears twice in the output:
+Bomly keeps three kinds of data apart, which is why the same fact never appears twice in the output:
 
-- **Dependencies** are detection-time graph nodes. Each is one instance of a dependency in a manifest, carrying its scope, where it was found, and its edges to other dependencies. A dependency points at a package by its PURL but does not itself hold license or vulnerability data.
-- **Packages** are deduplicated artifacts keyed by [PURL](GLOSSARY.md). There is one package per unique PURL across the whole scan, and it owns the enrichment: licenses, vulnerabilities, remediation status and suggestions, scorecard, and EOL. Suggestions keep dependency references and manifest paths so repeated package occurrences are not collapsed. If 50 dependencies all reference `react@18.2.0`, they share one package — and one set of CVEs.
-- **Findings** are reference-style audit results. A finding names a policy outcome and points back at a package (and, for a vulnerability, at a specific advisory) rather than copying that data inline.
+| Kind | What it is | What it carries |
+| --- | --- | --- |
+| **Dependency** | One occurrence of a package in a manifest: a node in the detection graph | Its scope, where it was found, and its edges to other dependencies. It points at a package by PURL and holds no license or vulnerability data |
+| **Package** | One unique package across the whole scan, keyed by [PURL](GLOSSARY.md) | The enrichment: licenses, vulnerabilities, fix status and suggestions, scorecard, end-of-life status. If 50 dependencies reference `react@18.2.0`, they share one package and one set of CVEs |
+| **Finding** | An audit result | A policy outcome that points back at a package (and, for a vulnerability, at one advisory) instead of copying the data |
 
 ```mermaid
 flowchart TD
@@ -82,16 +67,9 @@ flowchart TD
     F -->|reference by PURL + advisory ID| P
 ```
 
-In the JSON output these surface as three top-level collections — `manifests` (with their `dependencies`), `packages`, and `findings` — and the same vocabulary carries through SARIF and SBOM output. See [Output formats](OUTPUT_FORMATS.md) and the [schema reference](SCHEMAS.md) for the exact shapes.
+In JSON these are the three top-level collections `manifests` (with their `dependencies`), `packages`, and `findings`. [JSON schemas](SCHEMAS.md) documents every field.
 
-Manifests themselves hang off the project structure. A **subproject** is an independently discovered nested directory (what `--recursive` finds); a **module** is a workspace or reactor member the package manager resolves natively (npm/pnpm workspace packages, Cargo workspace members, Maven reactor modules), each with its own manifest entry. A project or module and its manifest are two faces of the same thing, so user-facing views (interactive mode, text, markdown) merge them into a single named node; machine formats keep the flat `manifests` collection, from which the hierarchy is derived using the `subproject` and `path` fields.
-
-During enrichment, Bomly derives read-only vulnerability remediation on each
-affected package. One central component chooses the status, recommended
-version, and occurrence-specific action. Detectors may contribute
-package-manager advice, but they cannot choose the final action or edit files.
-If an older detector omits directness, Bomly may infer it from a real project
-root in the graph. A synthetic manifest root is never treated as a safe parent.
+Manifests hang off the project structure. A **subproject** is an independent project in a nested directory, found by `--recursive`. A **module** is a workspace or reactor member the package manager resolves itself, with its own manifest entry. The human-readable views merge a project or module with its manifest into one named node. The machine formats keep the flat `manifests` collection and derive the hierarchy from each manifest's `subproject` and `path` fields. The diagram below shows how the pieces relate; [Monorepos](MONOREPOS.md) explains the terms.
 
 ```mermaid
 flowchart TD
@@ -114,70 +92,25 @@ flowchart TD
     DEP -->|shared transitives count once| P2
 ```
 
+Fix suggestions are derived during enrichment by one central component, which chooses the status, the recommended version, and the per-occurrence action. Detectors may contribute package-manager advice, but they cannot choose the final action or edit files.
+
 ## Extensibility
 
-Every built-in is an implementation of the same contract an external plugin implements — there is no privileged internal path. Four extension points are pluggable today:
+Every built-in component implements the same contract an external plugin implements. There are four extension points:
 
-| Extension point | Status    | Responsibility                                                   |
-|-----------------|-----------|------------------------------------------------------------------|
-| Detector        | Available | Turn evidence (lockfile, manifest, SBOM) into a dependency graph |
-| Matcher         | Available | Enrich packages with vulnerability, license, or lifecycle data   |
-| Auditor         | Available | Evaluate policy and emit findings                                |
-| Analyzer        | Available | Annotate vulnerability reachability for a language               |
+| Extension point | Responsibility |
+| --- | --- |
+| Detector | Turn evidence (a lockfile, a manifest, an SBOM) into a dependency graph |
+| Matcher | Add vulnerability, license, or lifecycle data to packages |
+| Auditor | Evaluate policy and produce findings |
+| Analyzer | Mark vulnerabilities as reachable or not for one language |
 
-External plugins run as separate, versioned native processes and are disabled
-until you explicitly enable them. They are not operating-system sandboxes.
-Once enabled, they have the same user-level privileges as Bomly. See
-[Plugins](PLUGINS.md) for the trust model, installation, and authoring guides.
+External plugins run as separate processes and stay disabled until you enable them. Once enabled they have the same privileges as Bomly. See [Plugins](PLUGINS.md) for installing and trusting them, and [Plugin authoring](plugins/authoring.md) for writing one.
 
-## Network behavior
+## Network behavior and trust
 
-**Network-backed matchers are off by default.** A plain `bomly scan` does not
-contact matcher services. Target cloning and detector subprocesses are
-separate boundaries:
-
-- **Matchers** only run when you pass `--enrich`. `--audit` evaluates data that is already present and never triggers enrichment on its own.
-- **Detectors** vary: lockfile parsers (npm, pnpm, Yarn, Bun text lockfiles, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file readers and make no network calls. Build-tool–backed detectors shell out to the package manager when their deterministic file parser cannot resolve the project. Bun prefers `bun.lock`, then uses `bun pm ls --all` for the installed tree, and finally falls back to Syft; displayed child edges are preserved and unprovable hoisted parent relationships remain explicitly `unknown`. Install-first is never implicit.
-- **Remote targets** require network access when you pass `--url`; Bomly clones
-  the requested Git repository before scanning it. Remote Git work has a
-  10-minute deadline. The completed checkout has path, regular-file-size, and
-  depth limits, and repository symlinks cannot escape it.
-- `--install-first` is the explicit opt-in that lets supporting detectors run their install command (`npm install`, `pip install`, …) before resolving; this downloads packages by design.
-
-When enrichment is enabled, the default matchers contact deps.dev and, in the
-full binary, Grype's database service, which downloads the vulnerability
-database on first use and checks for a newer build at most every two hours;
-the lite build leaves database management to the external `grype` command. OSV, CISA KEV, and OpenSSF Scorecard are contacted
-only when you select the `osv` or `scorecard` matcher. Bomly sends no telemetry or credentials to
-its built-in services. External plugin matchers, including ClearlyDefined and
-endoflife.date integrations, may contact their documented services once you
-install and enable them. See
-[Detectors → Network behavior](DETECTORS.md#network-behavior) and
-[Matchers](MATCHERS.md).
-
-Custom OSV and Scorecard endpoints, proxies, and additional CA files are
-supported, including private-network destinations. These are trusted settings:
-use the user config, a file selected with `--config` or `BOMLY_CONFIG`, or the
-documented environment variables. Repository config is not loaded
-automatically. Bomly follows normal redirects and does not block private
-addresses so self-hosted services and enterprise proxies can work. This also
-means a trusted HTTPS endpoint may redirect to HTTP; Bomly does not add a
-downgrade block.
-
-For the complete permission model, input limits, plugin trust boundary, and
-documented residual risks, see [Security and Trust Boundaries](SECURITY.md).
-
-## Repository and module layout
-
-Bomly is built from modular components. This repository contains the full
-CLI: the `bomly` command entry point, the implementation of every pipeline
-stage and built-in component (detectors, matchers, auditors, analyzers), the
-user documentation, the release automation, and the end-to-end test suite
-that drives the built binary against pinned public repositories. The public
-[`bomly-sdk`](https://github.com/bomly-dev/bomly-sdk) module is released
-separately and defines the contract that both built-in components and
-external plugins implement.
+A plain `bomly scan` contacts no vulnerability or license service. Enrichment runs only with `--enrich`, remote targets only with `--url` or `--image`, and a build-tool detector may download dependencies when it cannot read a lockfile. [Network and privacy](NETWORK.md) lists every trigger and what it transmits. [Security and trust boundaries](SECURITY.md) covers configuration trust, resource limits, and the plugin trust model.
 
 ## Build variants
 
-Bomly ships in two variants. The full binary (`bomly`) links the Syft and Grype libraries directly and needs no external tools. The lite binary (`bomly-lite`) shells out to `syft` and `grype` on your `PATH` for a smaller download. Both behave the same from the command line. See [Installation](INSTALLATION.md) for which to pick.
+Bomly ships as two binaries. `bomly` has the Syft and Grype libraries built in and needs no other tools. `bomly-lite` runs the `syft` and `grype` binaries on your `PATH` and is a smaller download. Both behave the same on the command line. See [Installation](INSTALLATION.md).

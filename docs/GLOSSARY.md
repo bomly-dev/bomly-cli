@@ -1,69 +1,79 @@
 # Glossary
 
-The vocabulary Bomly uses, with one-sentence definitions and pointers to the doc that covers the concept in depth.
+The terms Bomly uses, one short definition each, with a link to the page that covers the concept. Other pages link here instead of redefining a term.
 
-## Pipeline stages
+**Analyzer** — A component that marks each vulnerability as reachable or not from your code. Runs only with `--analyze`. See [Reachability](REACHABILITY.md).
 
-**Detector** — Reads project evidence and produces a dependency graph. See [Detectors](DETECTORS.md).
+**Auditor** — A component that evaluates the enriched graph against your policy and produces findings. Runs only with `--audit`. See [Auditors](AUDITORS.md).
 
-**Matcher** — Enriches the graph with external data (vulnerabilities, licenses, lifecycle). Runs only with `--enrich`. See [Matchers](MATCHERS.md).
+**Baseline** — A committed file (`.bomly/baseline.json`) that records findings you have accepted, so they are reported but no longer fail an audit. See [Finding baselines](BASELINES.md).
 
-**Analyzer** — Annotates vulnerability findings with reachability data. Runs only with `--analyze`. See [Reachability](REACHABILITY.md).
+**`bomly` and `bomly-lite`** — The two release binaries. `bomly` has Syft and Grype built in; `bomly-lite` runs the `syft` and `grype` binaries on your `PATH`. Same flags, same output. See [Installation](INSTALLATION.md).
 
-**Auditor** — Evaluates the enriched graph against policy and produces findings. Runs only with `--audit`. See [Auditors](AUDITORS.md).
+**Built-in** — A component compiled into the Bomly binary. `bomly plugins list` shows built-in and external components together.
 
-## Data shapes
+**Cache** — The on-disk store at `~/.bomly/cache/` (`%USERPROFILE%\.bomly\cache\` on Windows) for enrichment responses, with one subdirectory and lifetime (TTL) per matcher. A cache failure is a warning, never an error. See [Matchers](MATCHERS.md#cache).
 
-**Package** — A resolved component: name, version, ecosystem, PURL, license, source manifest.
+**CRA** — The EU Cyber Resilience Act, whose SBOM expectations the `sbom` config section helps you meet. See [SBOM formats](SBOM.md).
 
-**Dependency edge** — A directed relationship between two packages, carrying scope (`runtime`, `development`, `unknown`) and depth.
+**CVSS** — The Common Vulnerability Scoring System, the numeric severity score an advisory carries.
 
-**Manifest** — A file the detector treated as authoritative for the graph (`go.mod`, `package-lock.json`, `pom.xml`, `Gemfile.lock`, an SBOM, etc.).
+**Dependency** — One occurrence of a package in a manifest: a node in the detection graph with its scope, its location, and its edges to other dependencies. It points at a package by PURL and does not itself carry license or vulnerability data. See [Architecture](ARCHITECTURE.md#domain-model).
 
-**Subproject** — A directory below the scan root that has its own evidence. A monorepo has many subprojects; a single-module project has one.
+**Detector** — A component that reads project evidence (a lockfile, a manifest, build-tool output, an SBOM) and produces a dependency graph. See [Detectors](DETECTORS.md).
 
-**Finding** — A policy-evaluated match produced by an auditor. Has an ID, severity, package, title, reasons, and source.
+**Detector chain** — The ordered list of detectors Bomly tries for one package manager. The first that is ready and applicable wins; later entries are fallbacks. See [Detectors](DETECTORS.md#detector-chains).
 
-**Reachability** — Whether application code can reach a vulnerable symbol. Status (`reachable` / `unreachable` / `unknown` / `not_applicable`) and tier (`symbol` / `module` / `package` / `none`).
+**Ecosystem** — A package universe such as `go`, `npm`, `maven`, or `python`. See the [Support matrix](SUPPORT_MATRIX.md).
 
-## Plumbing
+**Enrichment** — Looking packages up in vulnerability, license, and lifecycle sources. Happens only with `--enrich`. See [Matchers](MATCHERS.md) and [Network and privacy](NETWORK.md).
 
-**Detector chain** — The ordered list Bomly tries for a given package manager. The first is preferred; later entries are fallbacks. See [Detectors](DETECTORS.md#detector-chains).
-
-**Ecosystem** — A package universe (e.g. `go`, `npm`, `maven`, `python`). Bomly's per-ecosystem coverage is in [SUPPORT_MATRIX.md](SUPPORT_MATRIX.md).
-
-**Package manager** — The tool that produced the manifest within an ecosystem (e.g. `gomod` in `go`; `npm`, `pnpm`, `yarn` in `npm`).
-
-**Scope** — Whether an edge is `runtime` (needed in production) or `development` (build- or test-only). `unknown` when the detector cannot classify.
-
-**`+/-` selector grammar** — The syntax used by `--detectors`, `--matchers`, `--auditors`, `--ecosystems`. Bare name filters to only that name; `+name` adds; `-name` removes.
-
-## Network and caching
-
-**Offline-safe matcher run** — A run with no `--enrich`; network-backed
-matchers make no requests. Remote targets and build-tool detectors have
-separate network behavior.
-
-**Enrichment** — Network calls to public data sources, gated by `--enrich`. See [Matchers](MATCHERS.md).
-
-**Cache** — On-disk store at `~/.bomly/cache/` (or `%USERPROFILE%\.bomly\cache\` on Windows). One subdirectory per matcher, each with its own TTL. Cache failures are non-fatal.
-
-## CLI and policy
-
-**`--fail-on`** — An audit gate. Vulnerability tokens include severity (`any` / `low` / `medium` / `high` / `critical`), `reachable`, and `exploitable`; repeated vulnerability tokens combine with AND. The diff-only `source-change` token independently fails package source changes to Git or a URL. See [Auditors](AUDITORS.md).
+**EPSS** — The Exploit Prediction Scoring System, a probability that a vulnerability will be exploited.
 
 **Exit code** — `0` success, `1` execution error, `2` policy violation, `3` resolution failure, `4` invalid input, `5` nothing to evaluate. See [Exit codes](EXIT_CODES.md).
 
-## SBOM
+**`--fail-on`** — The audit gate. Vulnerability values are a severity (`any`, `low`, `medium`, `high`, `critical`), `reachable`, and `exploitable`; when repeated, a finding must match all of them. `source-change`, for `bomly diff` only, fails a package whose source changed to Git or a URL. See [Auditors](AUDITORS.md).
 
-**SBOM** — Software Bill of Materials. Bomly writes SPDX 2.3 and CycloneDX 1.7 JSON via `-o`, and ingests SPDX 2.3 and CycloneDX 1.4–1.7 via `--sbom`. See [SBOM formats](SBOM.md).
+**Finding** — A policy result produced by an auditor: an ID, a severity, a package, a title, reasons, and a policy status. A finding points at its package and advisory rather than copying them. See [Auditors](AUDITORS.md).
 
-**PURL** — Package URL identifier (`pkg:type/namespace/name@version`). Bomly emits PURLs on every package.
+**KEV** — CISA's Known Exploited Vulnerabilities catalog. The `osv` matcher marks advisories that appear in it, and `--fail-on exploitable` gates on them.
 
-## Plugin
+**Lockfile** — The file a package manager writes with the exact resolved versions (`package-lock.json`, `go.sum`, `Gemfile.lock`, and so on). Lockfile detectors read it without running the package manager.
 
-**Plugin** — An external binary that adds a detector, matcher, auditor, or analyzer over Bomly's v1 gRPC protocol. See [Plugins](PLUGINS.md).
+**Manifest** — A file a detector treated as the source of a graph: `go.mod`, `package-lock.json`, `pom.xml`, `Gemfile.lock`, an SBOM. In JSON, each manifest entry carries its dependencies.
 
-**Built-in** — Components compiled into the Bomly binary. Listed by `bomly plugins list`.
+**Matcher** — A component that adds vulnerability, license, lifecycle, or health data to packages. Runs only with `--enrich`. See [Matchers](MATCHERS.md).
 
-**`bomly` vs. `bomly-lite`** — `bomly` ships with Syft and Grype linked in; `bomly-lite` shells out to external `syft` and `grype` on `PATH`. Same flags, same outputs.
+**MCP** — The Model Context Protocol, which AI coding agents use to call tools. `bomly mcp serve` exposes `scan`, `explain`, and `diff` over it. See [MCP server](MCP.md).
+
+**Module** — A workspace or reactor member that the package manager resolves under one root manifest: an npm, pnpm, or yarn workspace package, a Cargo workspace member, a Maven reactor module. See [Monorepos](MONOREPOS.md).
+
+**Package** — One unique package across the whole scan, identified by its PURL. It owns the enrichment data: licenses, vulnerabilities, fix suggestions, scorecard, end-of-life status. Fifty dependencies on `react@18.2.0` share one package. See [Architecture](ARCHITECTURE.md#domain-model).
+
+**Package manager** — The tool that produced a manifest within an ecosystem: `gomod` in `go`; `npm`, `pnpm`, and `yarn` in `npm`.
+
+**Plugin** — An external program that adds a detector, matcher, auditor, or analyzer. Installed and verified by Bomly, disabled until you enable it. See [Plugins](PLUGINS.md).
+
+**PURL** — A package URL, the standard identifier `pkg:type/namespace/name@version`. Every package Bomly reports has one.
+
+**Reachability** — Whether your code can reach a vulnerable package or function. Status `reachable`, `unreachable`, or `unknown`, at tier `symbol`, `module`, `package`, or `none`. See [Reachability](REACHABILITY.md).
+
+**Remediation** — Bomly's fix guidance for a vulnerable package: fix status, a recommended version when the evidence is complete, and suggested actions. It is read-only; Bomly never edits manifests.
+
+**SARIF** — The Static Analysis Results Interchange Format, the JSON format GitHub code scanning and similar tools read. See [Output formats](OUTPUT_FORMATS.md#sarif).
+
+**SBOM** — A Software Bill of Materials. Bomly writes SPDX 2.3 and CycloneDX 1.7 and reads SPDX 2.3 and CycloneDX 1.4 to 1.7. See [SBOM formats](SBOM.md).
+
+**Scope** — Whether a dependency is `runtime` (needed in production) or `development` (build or test only). `unknown` when the detector cannot tell.
+
+**Selector** — The list form shared by `--detectors`, `--matchers`, `--auditors`, `--analyzers`, and `--ecosystems`: plain names replace the defaults, `+name` adds, `-name` removes. See [Commands](COMMANDS.md#selector-grammar).
+
+**SLSA** — Supply-chain Levels for Software Artifacts, the framework behind the build provenance file every release publishes. See [Installation](INSTALLATION.md#verify-a-release).
+
+**Subproject** — An independent project in a nested directory, found by `--recursive`, with its own detector run. See [Monorepos](MONOREPOS.md).
+
+**Tier** — The precision of a reachability result: `symbol`, `module`, `package`, or `none`. See [Reachability](REACHABILITY.md).
+
+**VEX** — Vulnerability Exploitability eXchange, the CycloneDX `analysis` block that states whether a product is affected by a vulnerability. Bomly reads and writes it. See the [SBOM field reference](SBOM_REFERENCE.md).
+
+**Workspace** — A package manager's way of declaring several packages in one repository (npm workspaces, Cargo workspaces, Maven reactors). Its members are modules.

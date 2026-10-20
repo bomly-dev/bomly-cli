@@ -5,8 +5,8 @@ order, and the results are published for that exact version. You can read them
 at **[bomly.dev/assurance](https://bomly.dev/assurance)**, pick any release from
 the selector, and print the page if you need a copy for a review file.
 
-This page explains what the checks are, when they run, and what they do and do
-not prove.
+This page is for anyone who has to decide whether to adopt a Bomly release. It
+explains what the checks are, when they run, and what they do and do not prove.
 
 ## Three stages
 
@@ -21,22 +21,14 @@ need a fix in the source tree, run **before** a version number exists, so a
 problem is fixed by a normal pull request instead of by a broken release.
 Checks that describe the published files can only run once those files exist.
 
-## How the report is organised
+## How the report is organized
 
-The report is grouped by subject, not by release stage: scanning real projects,
-dependency graphs, policy decisions, reachability, upgrade guidance, comparing
-two scans, other scan targets, SBOM compatibility, running everywhere, handling
-broken input, speed and repeatability, what you download, and installing it.
-Each section holds the checks that cover it and the evidence claims made about
-it. Every check still states which stage it ran in, because that is what
-decides how a failure gets fixed.
-
-The full list, with what every check proves and what it does not, lives in the
-machine-readable catalog at
-[`docs/assurance/catalog.json`](assurance/catalog.json). The assurance page
-renders the same catalog, so the page and the repository can never disagree —
-including the section order, which is the order the catalog declares its areas
-in.
+The report is grouped by subject (scanning real projects, SBOM compatibility,
+what you download, and so on), not by release stage, and each check still says
+which stage it ran in. The full list, with what every check proves and what it
+does not, is the machine-readable catalog at
+[`docs/assurance/catalog.json`](assurance/catalog.json). The public page is
+rendered from that same file, so the two cannot disagree.
 
 Highlights:
 
@@ -59,16 +51,15 @@ Highlights:
   cache to record timing and confirm the output does not change.
 
 Some checks stop a release when they fail; others are recorded without
-blocking. A claim that was not confirmed is always shown on the page. When the
-problem is found after the release is already published, it also raises a
-tracking issue for maintainers, so a known problem in a released version is
-never quietly dropped; problems found earlier stop the release instead, and are
-fixed before anything is published. Every count links to the job that produced
-it, so any number on the page is one click from its log.
+blocking. A claim that was not confirmed is always shown on the page. A problem
+found before publication stops the release and is fixed first. A problem found
+after publication opens a tracking issue for the maintainers, so a known defect
+in a released version is never dropped. Every count links to the job that
+produced it, so any number on the page is one click from its log.
 
 ## Claims, checks, and evidence
 
-The report uses one vocabulary, and it is worth being precise about it:
+The report uses three terms:
 
 - A **claim** is one specific statement about what a release does — that it
   reads an npm lockfile correctly, or that the files you download are the ones
@@ -78,26 +69,25 @@ The report uses one vocabulary, and it is worth being precise about it:
 - The **report as a whole** is the evidence: every claim, whether it was
   confirmed, and a link to what confirmed it.
 
-Some claims are asserted directly by a check. Others are asserted by comparing
-a pinned input — a public repository at a recorded commit, or a checked-in
-fixture — against a recorded result file, and name the check that performed
-that comparison. Both appear as claims on the page, in the section they belong
-to. A claim earns a separate entry only when it adds something the check cannot
-say on its own.
+Some claims are asserted directly by a check. Others compare a pinned input (a
+public repository at a recorded commit, or a checked-in fixture) against a
+recorded result file, and name the check that ran the comparison. Both appear
+as claims on the page, in the section they belong to. A claim gets its own
+entry only when it says something the check alone does not.
 
-Check any claim yourself from a repository checkout:
+You can check the catalog yourself from a repository checkout. This command
+validates the whole catalog and confirms that every expected-result file it
+names exists:
 
 ```sh
 make assurance-catalog
 ```
 
+This one prints a single claim with the command that reproduces it:
+
 ```sh
 go run ./internal/assurance/cmd catalog-validate --evidence graph-npm
 ```
-
-The first command validates the whole catalog and confirms every expected-result
-file it names exists. The second prints one claim with its reproduction
-command.
 
 ## What a verified claim does not mean
 

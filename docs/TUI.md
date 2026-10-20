@@ -1,6 +1,6 @@
-# Interactive Terminal UI
+# Interactive terminal UI
 
-`bomly scan --interactive` opens a Bubbletea TUI for browsing scan results. Use it when text output is too dense or you want to filter results live.
+`bomly scan --interactive` opens a terminal UI for browsing scan results. Use it when the text report is too dense, or when you want to search and filter the results live. This page lists the tabs and keys.
 
 ```bash
 bomly scan --enrich --audit --interactive
@@ -8,27 +8,31 @@ bomly scan --enrich --audit --interactive
 
 Requirements:
 
-- A real terminal on stdin **and** stderr. Piping into a non-tty rejects with `ErrNotATerminal`.
-- A TrueColor-capable terminal for the best rendering.
+- a real terminal on both stdin and stderr. Bomly refuses to start the TUI when either is piped;
+- a terminal with TrueColor support, for the best rendering.
 
-`--interactive` forces `--format text` and is incompatible with `--json`, `--format json`, `--format sarif`, and stdout SBOM writes (`-o spdx` without `=<path>`). File SBOM writes still work alongside the TUI.
+`--interactive` forces `--format text`. It cannot be combined with `--json`, `--format json`, `--format sarif`, or an SBOM written to stdout (`-o spdx` without `=<path>`). SBOMs written to files still work alongside the TUI.
 
 ## Tabs
 
-Switch with the number keys or `Tab`:
+Switch with the number keys or `Tab` (`Shift+Tab` goes backwards in terminals that support it):
 
-| Key | View | What's shown |
+| Key | View | What it shows |
 | --- | --- | --- |
 | `1` | Overview | Scan summary, totals by ecosystem and severity |
-| `2` | Components | Project tree: manifests and their dependency trees |
+| `2` | Components | The project tree: manifests and their dependency trees |
 | `3` | Vulnerabilities | Findings grouped by package |
 | `4` | Licenses | License inventory and conflicts |
 | `5` | Findings | Audit policy hits with reasons |
-| `6` | Source | Detected manifest and lockfile inventory |
+| `6` | Source | The detected manifests and lockfiles |
 
-`Tab` cycles forward through views; `Shift+Tab` is the reverse cycle in supporting terminals.
+The Components tree follows the project layout:
 
-The Components tree groups manifests the way the project is actually laid out: manifests at the scan root sit directly under the project node, **subproject** nodes hold the manifests of independently discovered nested directories (what `--recursive` finds), and **module** nodes hold workspace/reactor members (npm/pnpm workspace packages, Cargo workspace members, Maven reactor modules) that resolve under one root manifest. Flat single-root scans keep a plain project → manifests tree. Group nodes expand and collapse like any other row, and their details pane shows the directory, ecosystems, and manifest counts. See [Scan targets](SCAN_TARGETS.md#subprojects-and-modules-in-scan-output) for the terminology.
+- manifests at the scan root sit directly under the project node;
+- a **subproject** node holds the manifests of a nested directory found by `--recursive`;
+- a **module** node holds a workspace or reactor member (an npm or pnpm workspace package, a Cargo workspace member, a Maven reactor module) that resolves under one root manifest.
+
+A single-root scan keeps a plain project-to-manifests tree. Group nodes expand and collapse like any other row, and their details pane shows the directory, ecosystems, and manifest counts. [Monorepos](MONOREPOS.md) explains the terms.
 
 ## Navigation
 
@@ -38,29 +42,29 @@ The Components tree groups manifests the way the project is actually laid out: m
 | `↓` / `j` | Move down one row |
 | `Home` (or `g` on tabs without grouping) | Jump to top |
 | `End` / `G` | Jump to bottom |
-| `PgUp` / `Ctrl+u` | Half-page up |
-| `PgDn` / `Ctrl+d` | Half-page down |
-| `←` / `h` / `Backspace` | Collapse / go back |
+| `PgUp` / `Ctrl+u` | Half page up |
+| `PgDn` / `Ctrl+d` | Half page down |
+| `←` / `h` / `Backspace` | Collapse, or go back |
 | `→` / `l` | Expand |
 | `[` | Collapse all |
 | `]` | Expand all |
-| `Enter` | Open / toggle the selected row |
+| `Enter` | Open or toggle the selected row |
 
 ## Search
 
 | Key | Action |
 | --- | --- |
 | `/` | Start a search |
-| (typing) | Refine the query incrementally |
-| `Enter` | Commit the filter |
+| (typing) | Narrow the results as you type |
+| `Enter` | Keep the filter |
 | `Esc` | Cancel the search |
-| `Backspace` | Edit the current query |
+| `Backspace` | Edit the query |
 
-Search matches package name, version, ecosystem, vulnerability ID, and license expression.
+Search matches the package name, version, ecosystem, vulnerability ID, and license expression.
 
 ## Filters
 
-Press the filter key, then pick from the popup. Press the same key again to clear that filter.
+Press a filter key, then pick a value from the popup. Press the same key again to clear that filter.
 
 | Key | Filter |
 | --- | --- |
@@ -68,29 +72,32 @@ Press the filter key, then pick from the popup. Press the same key again to clea
 | `s` | Scope (runtime, development, unknown) |
 | `v` | Severity (critical, high, medium, low, unknown) |
 | `e` | Ecosystem |
-| `g` | Group (custom grouping) |
+| `g` | Group (on tabs that support grouping) |
 
-Filters compose. Search and filters compose. The current filter set is shown in the header.
+You can combine filters with each other and with a search. The header shows the active set.
 
 ## Quit
 
 | Key | Action |
 | --- | --- |
-| `q` | Quit (with confirmation prompt) |
-| `Esc` | Quit when no search/popup is active |
-| `Ctrl+C` | Quit (with confirmation prompt) |
+| `q` | Quit, after a confirmation prompt |
+| `Esc` | Quit, when no search or popup is open |
+| `Ctrl+C` | Quit, after a confirmation prompt |
 
-The confirmation prompt prevents accidental exits mid-scroll. Press `y` to confirm or any other key to stay.
+The prompt prevents accidental exits. Press `y` to confirm, or any other key to stay.
+
+## Fix suggestions
+
+When enrichment found fix information, select a package in the Components view. Its details pane shows a **Remediation suggestion** section below **Vulnerabilities**, with one of four fix states: **Complete fix available**, **Partial fix available**, **No fix available**, or **Fix availability unknown**. The section may also show a recommended version, suggested actions, and package-manager advice. A suggestion changes nothing on disk. Check compatibility and run your tests before you apply an upgrade.
 
 ## Tips
 
-- Run with `--enrich` to populate vulnerability details. Add `--audit` to populate policy findings.
-- When enrichment finds vulnerability fix evidence, select a package in the Components view. Its details pane shows a **Remediation Suggestion** section directly below **Vulnerabilities**. Fix status is shown as **Complete fix available**, **Partial fix available**, **No fix available**, or **Fix availability unknown**. The section may also include a recommended version, suggested actions, and package-manager advice. A suggestion is not a guarantee: viewing it does not change manifests or lockfiles, and you should check compatibility and test the project before applying an upgrade.
-- Use `Search` (`/`) to narrow a large monorepo quickly: `/api` shows only packages with `api` in the name.
-- Combine the Severity filter (`v`) with the Findings tab to triage the highest-impact items first.
+- Run with `--enrich` to see vulnerability details, and add `--audit` to see policy findings.
+- Search (`/`) narrows a large monorepo quickly: `/api` shows only packages with `api` in the name.
+- Combine the severity filter (`v`) with the Findings tab to triage the most severe items first.
 
 ## Limitations
 
-- TUI output is not captured into JSON or SARIF. Re-run without `--interactive` to produce machine-readable artifacts.
-- Plugin matchers that print progress to stderr will draw under the TUI; use a non-interactive run for plugin debugging.
-- SSH and `tmux` sessions are supported; multiplexer detach/reattach is supported.
+- The TUI does not produce JSON or SARIF. Re-run without `--interactive` for machine-readable output.
+- A plugin matcher that prints progress to stderr can corrupt the display. Debug plugins in a non-interactive run.
+- SSH sessions work, and so do `tmux` and `screen`, including detaching and reattaching.

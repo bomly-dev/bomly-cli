@@ -1,30 +1,32 @@
 ## What `depsdev-license-matcher` does
 
-`depsdev-license-matcher` fetches package metadata from [deps.dev](https://deps.dev) (Google's open package metadata service) and attaches license information to packages that the detector did not resolve a license for. It covers the ecosystems listed in the table above; packages from any other ecosystem are skipped.
+`depsdev-license-matcher` fetches package metadata from [deps.dev](https://deps.dev), Google's open package metadata service. It attaches license information to packages for which the detector did not resolve a license. It covers the ecosystems listed in the table above and skips packages from any other ecosystem.
 
-## When to use it
+## When it runs
 
-Use it when local manifests do not carry enough license information, especially for generated SBOMs or ecosystems where lockfiles omit license fields:
+Use it when local manifests do not carry enough license information, for example with generated SBOMs or ecosystems whose lockfiles omit license fields:
 
 ```bash
 bomly scan --enrich --matchers depsdev-license-matcher  # this matcher only
 ```
 
-## What gets added
+## Network
+
+The matcher batches version lookups through deps.dev and caches responses for 24 hours under `~/.bomly/cache/licenses/depsdev/`. Each successful batch response is limited to 16 MiB. A cache failure is logged as a warning, and the API response is still applied. A failed HTTP response reports the status code without copying the server's response body into the error.
+
+## Output fields
 
 Each matched package can gain:
 
 - `licenses[]` entries with normalized SPDX expressions
-- `licenses[].source = external-depsdev`
-- `matched = true` on packages that received license data
+- `licenses[].source` set to `external-depsdev`
+- `matched` set to `true` on packages that received license data
 
-Bomly only fills packages that do not already have license data. Detector-resolved licenses remain the first source of truth.
+Bomly only fills packages that have no license data yet. A license the detector resolved is never replaced.
 
-## Cache and network
+## Examples
 
-The matcher batches version lookups through deps.dev and caches responses for 24 hours under `~/.bomly/cache/licenses/depsdev/`. Each successful batch response is limited to 16 MiB. Cache failures are non-fatal: Bomly logs a warning and still applies the API response. Failed HTTP responses report the status code without including the server's response body in the error.
-
-## CI recipe
+A CI run that enriches licenses only:
 
 ```bash
 bomly scan \

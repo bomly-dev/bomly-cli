@@ -21,52 +21,31 @@ This page explains how Bomly builds a dependency graph for `bundler` projects: t
 
 ## How `bundler` resolves
 
-`bundler-detector` is a **lockfile parser** — it reads `Gemfile.lock` directly and produces a full transitive graph with RubyGems names and resolved versions. No subprocess runs.
+`bundler-detector` is a **lockfile parser**. It reads `Gemfile.lock` directly and produces a full transitive graph with RubyGems names and resolved versions. No command runs.
 
 | Step | Strategy | Command |
 | --- | --- | --- |
 | Resolve graph | Lockfile parser | None |
 
-## Network behavior
-
-✅ **Fully offline-safe.** Bomly does not invoke Ruby, Bundler, or any other tool to resolve the graph.
+The detector reads one file and runs nothing, so it never uses the network. See [Network and privacy](../../NETWORK.md) for the shared rule.
 
 ## Prerequisites
 
-- A committed `Gemfile.lock`. The detector understands Bundler 1.x, 2.x, and the `Gemfile.next.lock` produced by `bundle update --conservative` workflows.
+- A committed `Gemfile.lock`. The detector understands Bundler 1.x and 2.x, and the `Gemfile.next.lock` that `bundle update --conservative` workflows produce.
 - No Ruby or Bundler installation is required to scan.
 - For `--install-first`: `bundle` on `PATH`.
-
-## `--install-first`
-
-`bundler` supports `--install-first`. When passed, Bomly runs `bundle install` in the project directory before resolving the graph.
-
-⚠️ **`--install-first` downloads gems from RubyGems** (or whatever sources your `Gemfile` declares) and writes to the configured gem path. Use it on a clean checkout when the lockfile is missing or you want a fresh install.
-
-```bash
-bomly scan --install-first
-```
-
-### Customizing the install command
-
-Append flags to `bundle install` with repeatable `--install-arg`. Requires `--detectors bundler-detector`.
-
-```bash
-# Production deployment mode: frozen lockfile, no version updates
-bomly scan --install-first --detectors bundler-detector \
-  --install-arg --deployment --install-arg --without --install-arg development
-```
 
 ## Examples
 
 ### Fix a direct vulnerability
 
+Raise the version in the `Gemfile`:
+
 ```ruby
-# Gemfile
 gem "rails", "~> 7.1.4"
 ```
 
-`bundle lock --update rails`. Re-scan.
+Re-lock with `bundle lock --update rails` and re-scan.
 
 ### Pin a transitive vulnerability
 
@@ -76,21 +55,35 @@ Add the transitive gem at the top level so Bundler's resolver picks your version
 gem "nokogiri", ">= 1.16.5"
 ```
 
-`bundle lock --update nokogiri`. Re-scan.
+Re-lock with `bundle lock --update nokogiri` and re-scan.
+
+## `--install-first`
+
+With `--install-first`, Bomly runs `bundle install` in the project directory before resolving the graph. That downloads gems from RubyGems, or from the sources your `Gemfile` declares, and writes to the configured gem path. Use it on a clean checkout when the lockfile is missing or you want a fresh install:
+
+```bash
+bomly scan --install-first
+```
+
+To append flags to that command, repeat `--install-arg`. This requires `--detectors bundler-detector`:
+
+```bash
+# Production deployment mode: frozen lockfile, no version updates
+bomly scan --install-first --detectors bundler-detector \
+  --install-arg --deployment --install-arg --without --install-arg development
+```
 
 ## Source details
 
-Bomly maps the `GEM`, `GIT`, and `PATH` sections in `Gemfile.lock` to registry,
-Git, and local-file sources. These details let `bomly diff` review a gem that
-moves to Git.
+Bomly maps the `GEM`, `GIT`, and `PATH` sections in `Gemfile.lock` to registry, Git, and local-file sources. That lets `bomly diff` review a gem that moves to Git.
 
 ## Reachability
 
-> **Not yet supported.** Bomly has no Ruby reachability analyzer today. `--analyze` produces `not_applicable` for Ruby packages.
+Bomly has no Ruby reachability analyzer. `--analyze` reports `not_applicable` for Ruby packages.
 
 ## Limitations
 
-- **Local-path gems** (`gem "x", path: "../x"`) are recorded but their internal dependencies come from the local checkout, not RubyGems.
-- **Git-sourced gems** (`gem "x", git: "…"`) are tracked by the URL and ref; advisory matching by name still applies but version-range matching may be imprecise for non-semver refs.
-- **Platform-specific gems** (e.g. `nokogiri-x86_64-linux`) collapse to the base name; per-platform CVEs are matched against the base name.
-- **`*.gemspec`-only projects** (gem libraries with no `Gemfile.lock`) fall back to Syft, which produces a flat package list without edges.
+- **Local-path gems** (`gem "x", path: "../x"`) are recorded, but their dependencies come from the local checkout, not RubyGems.
+- **Git-sourced gems** (`gem "x", git: "…"`) are tracked by URL and ref. Advisory matching by name still applies, but version-range matching may be imprecise for refs that are not semver.
+- **Platform-specific gems** (for example `nokogiri-x86_64-linux`) collapse to the base name. Per-platform advisories are matched against the base name.
+- **Gem libraries with only a `*.gemspec`** and no `Gemfile.lock` fall back to Syft, which produces a flat package list without edges.

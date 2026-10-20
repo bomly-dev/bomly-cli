@@ -21,56 +21,27 @@ This page explains how Bomly builds a dependency graph for `maven` projects: the
 
 ## How `maven` resolves
 
-`maven-detector` is a **build-tool primary** chain — there is no committed-lockfile fallback. Maven projects don't ship lockfiles in general use, so Bomly drives Maven's own resolver to produce the graph.
+`maven-detector` is a **build-tool primary** chain. Maven projects do not normally ship lockfiles, so there is no lockfile fallback. Bomly runs Maven's own resolver to produce the graph.
 
 | Step | Command | Working dir |
 | --- | --- | --- |
-| Resolve graph | `mvn dependency:tree -DoutputType=tgf` (uses `./mvnw` wrapper if present) | every directory containing a `pom.xml` |
+| Resolve graph | `mvn dependency:tree -DoutputType=tgf` (uses the `./mvnw` wrapper if present) | every directory containing a `pom.xml` |
 
-The TGF (Trivial Graph Format) output is parsed into a full transitive graph with Maven scopes (`compile`, `runtime`, `test`, `provided`, `system`) preserved as edge attributes.
+Bomly parses the Trivial Graph Format output into a full transitive graph and keeps the Maven scopes (`compile`, `runtime`, `test`, `provided`, `system`) as edge attributes.
 
-## Network behavior
-
-⚠️ `mvn dependency:tree` **may download artifacts** during normal scan, before `--enrich`:
-
-- If a referenced artifact (including parent POMs, BOM imports, plugins) is not in your local repository (`~/.m2/repository`), Maven will fetch it from Maven Central (or whatever repositories your `settings.xml` declares).
-- Build-tool execution is Maven's, not Bomly's. The same network calls happen when you run `mvn compile` locally.
-
-To keep the scan fully offline:
-
-- Pre-warm `~/.m2/repository` by running `mvn dependency:go-offline` once.
-- Or pass `-DskipResolutionCheck` and accept that uncached transitives will be missing.
+`mvn dependency:tree` **may download artifacts** during a plain scan. If an artifact, parent POM, imported BOM, or plugin is not in `~/.m2/repository`, Maven fetches it from Maven Central or the repositories your `settings.xml` declares. That is Maven's behavior, not Bomly's, and the same downloads happen when you run `mvn compile`. See [Network and privacy](../../NETWORK.md) for the shared rule. To keep the scan offline, run `mvn dependency:go-offline` once to warm `~/.m2/repository`.
 
 ## Prerequisites
 
-- `mvn` (or `./mvnw` Maven Wrapper) on `PATH`. The detector cannot resolve without invoking Maven.
-- A valid `pom.xml` at every module root. Multi-module reactors are supported; each `pom.xml` is its own subproject.
-- Authentication for private repositories: configure `~/.m2/settings.xml` as usual. Bomly does not authenticate to repositories itself.
-
-## `--install-first`
-
-`maven` supports `--install-first`. When passed, Bomly runs `mvn dependency:resolve` (using `./mvnw` if present) before resolving the graph. This warms `~/.m2/repository` so the subsequent `mvn dependency:tree` runs offline.
-
-⚠️ **`--install-first` downloads artifacts from Maven Central** (or whatever repositories your `settings.xml` declares). Use it on a clean checkout when the local repository is cold.
-
-```bash
-bomly scan --install-first
-```
-
-### Customizing the install command
-
-Append flags to `mvn dependency:resolve` with repeatable `--install-arg`. Requires `--detectors maven-detector`.
-
-```bash
-# Activate a specific Maven profile and point at a settings file
-bomly scan --install-first --detectors maven-detector \
-  --install-arg -Pproduction \
-  --install-arg --settings --install-arg ./ci-settings.xml
-```
+- `mvn`, or the `./mvnw` wrapper, on `PATH`. The detector cannot resolve without running Maven.
+- A valid `pom.xml` at every module root. Multi-module reactors are supported, and each `pom.xml` is its own subproject.
+- For private repositories, configure `~/.m2/settings.xml` as usual. Bomly does not authenticate to repositories itself.
 
 ## Examples
 
 ### Fix a direct vulnerability
+
+Raise the version in `pom.xml` and re-scan:
 
 ```xml
 <dependency>
@@ -80,11 +51,9 @@ bomly scan --install-first --detectors maven-detector \
 </dependency>
 ```
 
-Re-scan.
-
 ### Pin a transitive vulnerability
 
-Use `<dependencyManagement>` to override the version a transitive dep resolves to:
+Use `<dependencyManagement>` to override the version a transitive dependency resolves to, then re-scan:
 
 ```xml
 <dependencyManagement>
@@ -98,21 +67,32 @@ Use `<dependencyManagement>` to override the version a transitive dep resolves t
 </dependencyManagement>
 ```
 
-Re-scan.
+## `--install-first`
+
+With `--install-first`, Bomly runs `mvn dependency:resolve` (through `./mvnw` if present) before resolving the graph. That downloads artifacts from Maven Central, or the repositories your `settings.xml` declares, into `~/.m2/repository`, so the following `mvn dependency:tree` runs offline. Use it on a clean checkout when the local repository is cold:
+
+```bash
+bomly scan --install-first
+```
+
+To append flags to that command, repeat `--install-arg`. This requires `--detectors maven-detector`:
+
+```bash
+# Activate a Maven profile and point at a settings file
+bomly scan --install-first --detectors maven-detector \
+  --install-arg -Pproduction \
+  --install-arg --settings --install-arg ./ci-settings.xml
+```
 
 ## Reachability (experimental)
 
-> **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
+With `--analyze`, the `jvmreach` analyzer walks `.java`, `.kt`, `.kts`, `.scala`, and `.groovy` files under the project root and reads their `import` statements. It maps package-name prefixes to Maven coordinates with a curated longest-prefix map. For multi-module reactors it reads parent `<modules>` declarations and follows imports between sibling modules first. Unreachable is a triage signal, not proof of safety; see [Reachability](../../REACHABILITY.md#unreachable-is-not-safe).
 
-For Maven packages, the analyzer is `jvmreach` at **Tier-3 (package)**. It walks `.java`, `.kt`, `.kts`, `.scala`, `.groovy` source files under the project root, parses top-of-file `import` statements, and maps fully-qualified-name prefixes to Maven coordinates via a curated longest-prefix map. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
-
-For multi-module reactors, `jvmreach` reads parent `<modules>` declarations recursively and follows source namespace imports between consumed sibling modules before attributing external artifacts.
-
-If a missing prefix produces a false-negative for a direct import, add the mapping to `prefixmap.go` in the `bomly-plugin-jvmreach-analyzer` repository (one-line PR).
+If a missing prefix causes a direct import to be reported as unreachable, open a pull request against the `jvmreach` analyzer repository to add the mapping.
 
 ## Limitations
 
-- **System-scoped dependencies** (`<scope>system</scope>`) are recorded but not classified by ecosystem — Bomly cannot follow `<systemPath>` to a Maven coordinate.
-- **Classifier-only differences** are collapsed to a single graph node; if two artifacts differ only by classifier (e.g. `linux-x86_64` vs. `macos-aarch64`), reachability annotates them identically.
+- **System-scoped dependencies** (`<scope>system</scope>`) are recorded but not classified by ecosystem. Bomly cannot follow `<systemPath>` to a Maven coordinate.
+- **Classifier-only differences** collapse to one graph node. Two artifacts that differ only by classifier (for example `linux-x86_64` and `macos-aarch64`) get the same reachability result.
 - **Annotation processors** that generate code at build time are invisible to source-based reachability.
-- **`mvn` is required.** There is no offline-only path for Maven graph resolution.
+- **Maven is required.** There is no offline-only path for Maven graph resolution.

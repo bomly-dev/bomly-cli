@@ -17,60 +17,58 @@ This page explains how Bomly builds a dependency graph for `github-actions` proj
 
 ## How `github-actions` resolves
 
-`github-actions-detector` is a **manifest parser** — it walks `.github/workflows/*.yml`, `.github/workflows/*.yaml`, and `.github/actions/*/action.yml` and resolves every `uses:` reference to a package node (`owner/repo@ref`). No subprocess runs.
+`github-actions-detector` is a **manifest parser**. It walks `.github/workflows/*.yml`, `.github/workflows/*.yaml`, and `.github/actions/*/action.yml`, and turns every `uses:` reference into a package node named `owner/repo@ref`. No command runs.
 
 | Step | Strategy | Command |
 | --- | --- | --- |
 | Resolve graph | YAML parser | None |
 
-## Network behavior
-
-✅ **Fully offline-safe.** Bomly does not contact GitHub during graph resolution.
+The detector reads files and runs nothing, so it never contacts GitHub. See [Network and privacy](../../NETWORK.md) for the shared rule.
 
 ## Prerequisites
 
-- A `.github/workflows/` directory containing at least one workflow YAML file (`*.yml` or `*.yaml`).
-- For custom composite actions, `.github/actions/<name>/action.yml`. The detector follows nested action references inside the same repo.
-- No GitHub CLI or authentication is required — the YAML files are parsed locally.
-
-## `--install-first`
-
-`github-actions` does **not** support `--install-first`. There is nothing to install.
-
-## Reference styles
-
-The detector treats two `uses:` patterns differently:
-
-- **Tag references** (`uses: actions/checkout@v4`) — resolved by name; advisories applying to a tag range match.
-- **Commit SHA references** (`uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29`) — pinned to that exact commit; advisories that mention the SHA still match.
-
-GitHub's [security hardening guide](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions) recommends pinning third-party actions to commit SHAs. Bomly does not enforce the policy itself, but the JSON output exposes the reference type so you can build it into a custom auditor.
+- A `.github/workflows/` directory with at least one workflow file (`*.yml` or `*.yaml`).
+- For composite actions, `.github/actions/<name>/action.yml`. The detector follows nested action references inside the same repository.
+- No GitHub CLI or authentication is required.
 
 ## Examples
 
 ### Fix a vulnerable action
 
-Bump the action version in the workflow file:
+Bump the action version in the workflow file and re-scan:
 
 ```yaml
 - uses: actions/checkout@v4    # was @v3
 ```
 
-Re-scan.
-
-### Audit which workflow introduces an action
+### Find which workflow introduces an action
 
 ```bash
 bomly explain actions/checkout
 ```
 
+## Reference styles
+
+The detector records two kinds of `uses:` reference:
+
+| Reference | Example | How it is matched |
+| --- | --- | --- |
+| Tag | `uses: actions/checkout@v4` | By name; advisories that apply to a tag range match |
+| Commit SHA | `uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29` | Pinned to that commit; advisories that mention the SHA still match |
+
+GitHub's [security hardening guide](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions) recommends pinning third-party actions to commit SHAs. Bomly does not enforce that policy itself, but the JSON output exposes the reference type so you can build it into a custom auditor.
+
+## `--install-first`
+
+Not supported. There is nothing to install.
+
 ## Reachability
 
-> **Not applicable.** Every referenced action is treated as "imported"; `--analyze` produces `not_applicable` for GitHub Actions.
+Every referenced action counts as imported. `--analyze` reports `not_applicable` for GitHub Actions.
 
 ## Limitations
 
-- **Dynamic action references** (e.g. `uses: ${{ matrix.action }}@v1`) are skipped — the detector requires a static `uses:` string.
-- **Reusable workflows** (`uses: ./.github/workflows/x.yml@main`) are recorded as edges but the referenced workflow's own `uses:` declarations are only walked when the referenced file is in the same repo.
-- **Docker-based actions** (`uses: docker://…`) are recorded with the image ref; advisory matching uses the image rather than the source action repo.
-- **JavaScript action node-modules** are not recursed into. The detector tracks the action repo, not the npm packages bundled inside its `dist/` directory.
+- **Dynamic references** (for example `uses: ${{ matrix.action }}@v1`) are skipped. The detector needs a static `uses:` string.
+- **Reusable workflows** (`uses: ./.github/workflows/x.yml@main`) are recorded as edges. The referenced workflow's own `uses:` entries are only walked when the file is in the same repository.
+- **Docker-based actions** (`uses: docker://…`) are recorded with the image reference. Advisory matching uses the image, not the source action repository.
+- **Bundled JavaScript dependencies** inside an action's `dist/` directory are not walked. The detector tracks the action repository, not the npm packages inside it.

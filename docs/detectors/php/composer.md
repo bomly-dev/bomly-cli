@@ -21,46 +21,26 @@ This page explains how Bomly builds a dependency graph for `composer` projects: 
 
 ## How `composer` resolves
 
-`composer-detector` is a **lockfile parser** — it reads `composer.lock` (preferred) or `vendor/composer/installed.json` directly and produces a full transitive graph with Packagist coordinates. No subprocess runs.
+`composer-detector` is a **lockfile parser**. It reads `composer.lock` (preferred) or `vendor/composer/installed.json` directly and produces a full transitive graph with Packagist coordinates. No command runs.
 
 | Step | Strategy | Command |
 | --- | --- | --- |
 | Resolve graph | Lockfile parser | None |
 
-## Network behavior
-
-✅ **Fully offline-safe.** Bomly does not invoke PHP, Composer, or any other tool to resolve the graph.
+The detector reads one file and runs nothing, so it never uses the network. See [Network and privacy](../../NETWORK.md) for the shared rule.
 
 ## Prerequisites
 
 - A committed `composer.lock` for full transitive resolution. The detector handles Composer 2.x lockfiles.
-- If only `vendor/composer/installed.json` is present (no lockfile), the detector reads that file directly. Both produce equivalent graph data.
+- If only `vendor/composer/installed.json` is present, the detector reads that file instead. Both produce the same graph data.
 - No PHP or Composer installation is required to scan.
 - For `--install-first`: `composer` on `PATH`.
-
-## `--install-first`
-
-`composer` supports `--install-first`. When passed, Bomly runs `composer install` in the project directory before resolving the graph.
-
-⚠️ **`--install-first` downloads packages from Packagist** (or whatever repositories your `composer.json` declares) and writes to `vendor/`. Use it on a clean checkout when the lockfile is missing or stale.
-
-```bash
-bomly scan --install-first
-```
-
-### Customizing the install command
-
-Append flags to `composer install` with repeatable `--install-arg`. Requires `--detectors composer-detector`.
-
-```bash
-# Production-shaped graph: skip dev dependencies, optimize autoloader
-bomly scan --install-first --detectors composer-detector \
-  --install-arg --no-dev --install-arg --optimize-autoloader
-```
 
 ## Examples
 
 ### Fix a direct vulnerability
+
+Raise the range in `composer.json`:
 
 ```json
 {
@@ -70,9 +50,11 @@ bomly scan --install-first --detectors composer-detector \
 }
 ```
 
-`composer update symfony/http-foundation`. Re-scan.
+Re-lock with `composer update symfony/http-foundation` and re-scan.
 
 ### Pin a transitive vulnerability
+
+Add the transitive package at the top level:
 
 ```json
 {
@@ -82,15 +64,31 @@ bomly scan --install-first --detectors composer-detector \
 }
 ```
 
-`composer update guzzlehttp/guzzle`. Re-scan.
+Re-lock with `composer update guzzlehttp/guzzle` and re-scan.
+
+## `--install-first`
+
+With `--install-first`, Bomly runs `composer install` in the project directory before resolving the graph. That downloads packages from Packagist, or from the repositories your `composer.json` declares, and writes to `vendor/`. Use it on a clean checkout when the lockfile is missing or stale:
+
+```bash
+bomly scan --install-first
+```
+
+To append flags to that command, repeat `--install-arg`. This requires `--detectors composer-detector`:
+
+```bash
+# Production-shaped graph: skip dev dependencies, optimize the autoloader
+bomly scan --install-first --detectors composer-detector \
+  --install-arg --no-dev --install-arg --optimize-autoloader
+```
 
 ## Reachability
 
-> **Not yet supported.** Bomly has no PHP reachability analyzer today. `--analyze` produces `not_applicable` for Composer packages.
+Bomly has no PHP reachability analyzer. `--analyze` reports `not_applicable` for Composer packages.
 
 ## Limitations
 
-- **`pear`-installed packages** are detected by Syft, not by `composer-detector`. PEAR is in maintenance; expect coverage to track Syft's PEAR cataloger.
-- **`platform` requirements** (`php`, `ext-*`) are recorded as metadata but not turned into graph edges.
-- **Path repositories** (`type: path`) are recorded with their resolved version; internal dependencies of the local package come from the local checkout.
-- **VCS repositories** with branch refs are tracked by the resolved reference; advisory matching uses the version Composer records.
+- **PEAR-installed packages** are detected by Syft, not by `composer-detector`. PEAR is in maintenance, so expect coverage to follow Syft's.
+- **Platform requirements** (`php`, `ext-*`) are recorded as metadata, not as graph edges.
+- **Path repositories** (`type: path`) are recorded with their resolved version. The local package's own dependencies come from the local checkout.
+- **VCS repositories** with branch refs are tracked by the resolved reference. Advisory matching uses the version Composer records.

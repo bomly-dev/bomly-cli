@@ -21,56 +21,29 @@ This page explains how Bomly builds a dependency graph for `gradle` projects: th
 
 ## How `gradle` resolves
 
-`gradle-detector` is a **build-tool primary** chain. Bomly drives Gradle's own resolver to produce the graph.
+`gradle-detector` is a **build-tool primary** chain. Bomly runs Gradle's own resolver to produce the graph.
 
 | Step | Command | Working dir |
 | --- | --- | --- |
-| Resolve graph | `./gradlew dependencies --console=plain` (or `gradle dependencies --console=plain` if no wrapper) | every directory containing `build.gradle` or `build.gradle.kts` |
+| Resolve graph | `./gradlew dependencies --console=plain` (or `gradle dependencies --console=plain` without a wrapper) | every directory containing `build.gradle` or `build.gradle.kts` |
 
-Gradle's `dependencies` task output is parsed into a transitive graph with configuration scopes preserved.
+Bomly parses the output of the `dependencies` task into a transitive graph and keeps the configuration scopes.
 
-## Network behavior
-
-⚠️ `gradle dependencies` **may download artifacts** during normal scan, before `--enrich`:
-
-- Gradle's resolver fetches missing artifacts from any repository declared in your build files (typically `mavenCentral()` and `google()`).
-- Build-tool execution is Gradle's, not Bomly's. The same network calls happen when you run `./gradlew build` locally.
-
-A committed `gradle.lockfile` (Gradle 6+ format) lets Gradle resolve without hitting the network once the cache is warm, but it does not prevent the first cold-cache fetch.
+`gradle dependencies` **may download artifacts** during a plain scan. Gradle fetches missing artifacts from the repositories your build files declare, usually `mavenCentral()` and `google()`. That is Gradle's behavior, not Bomly's, and the same downloads happen when you run `./gradlew build`. A committed `gradle.lockfile` lets Gradle resolve offline once the cache is warm, but it does not prevent the first cold-cache fetch. See [Network and privacy](../../NETWORK.md) for the shared rule.
 
 ## Prerequisites
 
-- `gradle` or `./gradlew` (Gradle Wrapper) on `PATH`. The Wrapper is strongly preferred — it pins the Gradle version your project expects.
+- `gradle` or `./gradlew` (the Gradle wrapper) on `PATH`. Prefer the wrapper, because it pins the Gradle version your project expects.
 - A `build.gradle` or `build.gradle.kts`. Bomly treats every Gradle module under `settings.gradle` as a subproject.
-- For full transitive lock fidelity: a committed `gradle.lockfile`. Enable with `dependencyLocking { lockAllConfigurations() }` and run `./gradlew dependencies --write-locks`.
-
-## `--install-first`
-
-`gradle` supports `--install-first`. When passed, Bomly invokes the same `gradle dependencies --console=plain` command that drives normal resolution. Gradle's resolver fetches missing artifacts as a side-effect, warming the local cache.
-
-⚠️ **`--install-first` downloads artifacts from your declared repositories** (typically `mavenCentral()`, `google()`). Use it on a clean checkout when the Gradle cache is cold.
-
-```bash
-bomly scan --install-first
-```
-
-### Customizing the install command
-
-Append flags to `gradle dependencies --console=plain` with repeatable `--install-arg`. Requires `--detectors gradle-detector`.
-
-```bash
-# Refresh dependencies (bypass Gradle's daemon cache) and target one configuration
-bomly scan --install-first --detectors gradle-detector \
-  --install-arg --refresh-dependencies \
-  --install-arg --configuration --install-arg runtimeClasspath
-```
+- For full lock detail: a committed `gradle.lockfile`. Enable it with `dependencyLocking { lockAllConfigurations() }` and run `./gradlew dependencies --write-locks`.
 
 ## Examples
 
 ### Fix a direct vulnerability
 
+Raise the version in `build.gradle.kts`:
+
 ```kotlin
-// build.gradle.kts
 implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
 ```
 
@@ -93,18 +66,31 @@ configurations.all {
 
 Re-lock and re-scan.
 
+## `--install-first`
+
+With `--install-first`, Bomly runs the same `gradle dependencies --console=plain` command that drives normal resolution. Gradle fetches missing artifacts as a side effect, which warms the local cache. Use it on a clean checkout when the Gradle cache is cold:
+
+```bash
+bomly scan --install-first
+```
+
+To append flags to that command, repeat `--install-arg`. This requires `--detectors gradle-detector`:
+
+```bash
+# Refresh dependencies and target one configuration
+bomly scan --install-first --detectors gradle-detector \
+  --install-arg --refresh-dependencies \
+  --install-arg --configuration --install-arg runtimeClasspath
+```
+
 ## Reachability (experimental)
 
-> **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
-
-For Gradle packages, the analyzer is `jvmreach` at **Tier-3 (package)** — same caveats as Maven. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
-
-For multi-project builds, `jvmreach` reads standard `include(...)` declarations and `projectDir` overrides automatically. Dynamically computed settings and composite `includeBuild` closures remain best-effort.
+With `--analyze`, the `jvmreach` analyzer reports a Gradle package as reachable when app source imports a class from it. For multi-project builds it reads `include(...)` declarations and `projectDir` overrides. Dynamically computed settings and `includeBuild` closures are best effort. Unreachable is a triage signal, not proof of safety; see [Reachability](../../REACHABILITY.md#unreachable-is-not-safe).
 
 ## Limitations
 
-- **`gradle` is required.** There is no offline-only path for Gradle graph resolution.
-- **Composite builds** (`includeBuild`) are scanned per-included-build; cross-build dependency edges are best-effort.
-- **Dynamic versions** (`+`, `latest.release`, version ranges) are resolved at lock-time, not by Bomly. A stale `gradle.lockfile` will not pick up new advisories until you re-lock.
+- **Gradle is required.** There is no offline-only path for Gradle graph resolution.
+- **Composite builds** (`includeBuild`) are scanned per included build. Cross-build edges are best effort.
+- **Dynamic versions** (`+`, `latest.release`, version ranges) are resolved when you lock, not by Bomly. A stale `gradle.lockfile` does not pick up new advisories until you re-lock.
 - **Annotation processors** that generate code at build time are invisible to source-based reachability.
-- **Kotlin Multiplatform** target-specific dependencies are all included; per-target reachability is not computed.
+- **Kotlin Multiplatform** target-specific dependencies are all included. Per-target reachability is not computed.

@@ -17,5 +17,4 @@ This page explains how Bomly builds a dependency graph for `pub` projects: the d
 
 ## Source details
 
-Bomly reads hosted, Git, and path sources from `pubspec.lock` or native pub
-output. An unrecognized source type stays unknown.
+Bomly reads hosted, Git, and path sources from `pubspec.lock` or from the output of the `dart` tool. An unrecognized source type stays unknown.

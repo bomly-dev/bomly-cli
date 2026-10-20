@@ -1,72 +1,70 @@
 ## What `scorecard` does
 
-`scorecard` fetches the latest [OpenSSF Scorecard](https://scorecard.dev) run for every package whose upstream source repository can be resolved to a `github.com/{owner}/{repo}` URL, and attaches the result to the package model.
+`scorecard` fetches the latest [OpenSSF Scorecard](https://scorecard.dev) run for every package whose source repository resolves to a `github.com/{owner}/{repo}` URL, and attaches the result to the package.
 
-A Scorecard run rates a project's security-engineering posture: branch protection, dependency-update tooling, signed releases, fuzzing coverage, presence of a SECURITY.md, etc. The matcher does not run the checks itself; it reads precomputed scores published weekly by the OpenSSF at `api.scorecard.dev`, so it is fast, requires no GitHub credentials, and adds no heavy dependencies.
+A Scorecard run rates a project's security practices: branch protection, dependency-update tooling, signed releases, fuzzing, a `SECURITY.md`, and more. The matcher does not run the checks itself. It reads the scores the OpenSSF publishes weekly at `api.scorecard.dev`, so it is fast, needs no GitHub credentials, and adds no heavy dependencies.
 
 ## When it runs
 
-`scorecard` is **opt-in**. It does not run under bare `--enrich`. Select it explicitly:
+`scorecard` is **opt-in** and does not run under plain `--enrich`. Select it explicitly:
 
 ```bash
 bomly scan --enrich --matchers +scorecard
 ```
 
-This avoids surprising users with extra latency (one HTTP call per unique repository) and keeps the default enrichment surface stable.
+Keeping it opt-in avoids surprising users with extra latency (one HTTP call per unique repository) and keeps the default enrichment set stable.
 
 ## Repository resolution
 
-For each package, the matcher resolves a github.com source repo in this order:
+For each package, the matcher looks for a github.com source repository in this order:
 
-1. PURL `repository_url` / `vcs_url` / `download_url` qualifier
-2. PURL of type `github` (`pkg:github/{owner}/{repo}@...`)
-3. PURL of type `golang` whose module path begins with `github.com/`
-4. The package's `resolvedUrl` if it points at github.com (common for npm tarballs)
+1. The `repository_url`, `vcs_url`, or `download_url` qualifier on the package URL.
+2. A package URL of type `github` (`pkg:github/{owner}/{repo}@...`).
+3. A package URL of type `golang` whose module path begins with `github.com/`.
+4. The package's `resolvedUrl` when it points at github.com, which is common for npm tarballs.
 
-Packages with no resolvable github.com source — and packages whose source is hosted elsewhere (GitLab, Bitbucket, internal Git) — are skipped silently. Multiple packages that share a single source repo (e.g. monorepos) are deduplicated; the repo is fetched once and the result is attached to every package that maps to it.
+Packages with no resolvable github.com source are skipped silently. So are packages hosted elsewhere (GitLab, Bitbucket, internal Git). Packages that share one source repository, for example a monorepo, are fetched once, and the result is attached to every package that maps to it.
 
 ## Network
 
 | Endpoint | Used for | Cache TTL |
 | --- | --- | --- |
-| `api.scorecard.dev/projects/{host}/{owner}/{repo}` | Per-repo Scorecard run | 24h |
+| `api.scorecard.dev/projects/{host}/{owner}/{repo}` | Per-repository Scorecard run | 24h |
 
-Cache directory (Unix/macOS): `~/.bomly/cache/scorecard/`. Cache failures are logged at WARN and never abort the scan. Repositories the OSSF has not scored return HTTP 404; the matcher records a `notScored` sentinel for the TTL so unscored repos are not retried on every run.
+The cache directory on Unix and macOS is `~/.bomly/cache/scorecard/`. A cache failure is logged as a warning and never stops the scan. A repository the OpenSSF has not scored returns HTTP 404. The matcher caches that answer for the TTL, so unscored repositories are not retried on every run.
 
-Each successful project response is limited to 4 MiB. Larger responses fail
-with a clear size error. Failed HTTP responses report the status without
-including the remote response body in errors or logs.
+Each successful response is limited to 4 MiB. A larger response fails with a clear size error. A failed HTTP response reports the status code without copying the remote response body into errors or logs.
 
 ## Output fields
 
 When attached, `package.scorecard` holds:
 
-- `source` — `"api.scorecard.dev"`
-- `repository` — `"github.com/{owner}/{repo}"`
-- `commitSha` — the commit Scorecard scored
-- `scorecardVersion` — Scorecard tool version that produced the run
-- `runDate` — ISO timestamp of the run
-- `aggregateScore` — overall score, `0.0`–`10.0` (a negative value means inconclusive)
-- `checks[]` — one entry per check with `name`, `score`, `reason`, `documentation` link
+- `source`: `"api.scorecard.dev"`
+- `repository`: `"github.com/{owner}/{repo}"`
+- `commitSha`: the commit Scorecard scored
+- `scorecardVersion`: the Scorecard tool version that produced the run
+- `runDate`: the ISO timestamp of the run
+- `aggregateScore`: the overall score from `0.0` to `10.0` (a negative value means inconclusive)
+- `checks[]`: one entry per check with `name`, `score`, `reason`, and a `documentation` link
 
-The text report adds a `Project Posture` section listing each unique repo with its score, run date, Scorecard version, and the number of packages it covers.
+The text report adds a "Project Posture" section listing each unique repository with its score, run date, Scorecard version, and the number of packages it covers.
 
 ## Examples
 
-### Annotate a scan with project posture
+### List project scores from a scan
 
 ```bash
 bomly scan --enrich --matchers +scorecard --json | jq '.graph.packages[] | select(.scorecard) | {name, score: .scorecard.aggregateScore}'
 ```
 
-### Inspect why a single package scored as it did
+### Inspect why a package scored as it did
 
-`bomly explain` does not yet surface scorecard data; for now read the JSON output or visit the canonical UI at `https://scorecard.dev/viewer/?uri=github.com/{owner}/{repo}`.
+`bomly explain` does not show Scorecard data yet. Read the JSON output, or open the Scorecard viewer at `https://scorecard.dev/viewer/?uri=github.com/{owner}/{repo}`.
 
 ## Limitations
 
-- **github.com only.** Projects hosted on GitLab, Bitbucket, Codeberg, or internal Git servers will be skipped.
-- **Sparse coverage for niche projects.** The OSSF runs Scorecard on a large but not exhaustive set of repositories. Less popular dependencies will return 404.
-- **Weekly refresh, not on-demand.** `aggregateScore` and per-check scores reflect the most recent OSSF run, not real-time state.
-- **No deps.dev fallback (yet).** Packages whose source repo only lives in registry metadata (npm `repository` field, PyPI `Home-page`, Maven SCM) will be skipped until a future revision wires the deps.dev project endpoint in.
-- **Signal-only.** Scorecard data is not yet evaluated by the policy auditor; there is no `--fail-on scorecard<N` gate.
+- **github.com only.** Projects hosted on GitLab, Bitbucket, Codeberg, or internal Git servers are skipped.
+- **Sparse coverage for niche projects.** The OpenSSF runs Scorecard on a large but not complete set of repositories. A less popular dependency may return 404.
+- **Weekly refresh, not on demand.** The scores reflect the most recent OpenSSF run, not the current state of the repository.
+- **No deps.dev fallback yet.** A package whose source repository only appears in registry metadata (the npm `repository` field, PyPI `Home-page`, Maven SCM) is skipped.
+- **Signal only.** The policy auditor does not evaluate Scorecard data. There is no `--fail-on` gate for a score.

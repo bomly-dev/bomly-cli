@@ -22,51 +22,29 @@ This page explains how Bomly builds a dependency graph for `uv` projects: the de
 
 ## How `uv` resolves
 
-`uv-detector` is **lockfile-first**. A readable `uv.lock` is the preferred source because it is deterministic and carries transitive dependency data. Bomly only falls back to uv environment inspection when a lockfile exists but cannot be parsed.
+`uv-detector` is **lockfile-first**. A readable `uv.lock` is the preferred source because it is deterministic and carries transitive dependency data. Bomly falls back to inspecting a uv environment only when a lockfile exists but cannot be parsed.
 
 | Path | Strategy | Command |
 | --- | --- | --- |
 | `uv.lock` present | Lockfile parser | None |
-| Lockfile unreadable | Frozen sync + inspect | `uv sync --frozen --no-install-project`, `uv pip install pip`, then `uv run --no-sync python -m pip inspect --local` |
+| Lockfile unreadable | Frozen sync and inspect | `uv sync --frozen --no-install-project`, `uv pip install pip`, then `uv run --no-sync python -m pip inspect --local` |
 | Lockfile missing | Fail | None |
 
-The `--frozen` flag prevents lockfile updates during environment preparation, and `--no-sync` prevents the inspect command from changing the environment. The inspected graph is accepted only when it contains the packages declared by the selected uv project.
+The `--frozen` flag stops uv from updating the lockfile, and `--no-sync` stops the inspect command from changing the environment. Bomly accepts the inspected graph only when it contains the packages the uv project declares.
 
-## Network behavior
-
-✅ The `uv.lock` parser is offline and does not execute uv.
-
-⚠️ The frozen sync fallback can download packages from PyPI or configured indexes, but it must not update the lockfile or project manifest.
+The lockfile parser runs nothing and never uses the network. The frozen sync fallback **may download** packages from PyPI or configured indexes. It does not update the lockfile or the project manifest. See [Network and privacy](../../NETWORK.md) for the shared rule.
 
 ## Prerequisites
 
 - A committed `uv.lock`.
-- `pyproject.toml` for evidence pattern matching.
+- A `pyproject.toml`, which is the evidence that triggers the detector.
 - For `--install-first`: `uv` on `PATH`.
-
-## `--install-first`
-
-`uv` supports `--install-first`. When passed, Bomly runs `uv sync --frozen --no-install-project`, then `uv pip install pip`, before resolving the graph.
-
-⚠️ **`--install-first` can download packages from PyPI** and writes to the uv-managed virtualenv without changing `uv.lock`.
-
-```bash
-bomly scan --install-first
-```
-
-### Customizing the install command
-
-Append flags to `uv sync --frozen --no-install-project` with repeatable `--install-arg`. Requires `--detectors uv-detector`. Bomly records the sanitized sync command in scan JSON under the manifest's resolution metadata.
-
-```bash
-# Refuse to update the lockfile; sync exactly what's locked
-bomly scan --install-first --detectors uv-detector \
-  --install-arg --frozen
-```
 
 ## Examples
 
 ### Fix a direct vulnerability
+
+Raise the range in `pyproject.toml`:
 
 ```toml
 [project]
@@ -75,9 +53,11 @@ dependencies = [
 ]
 ```
 
-`uv lock --upgrade-package requests`. Re-scan.
+Re-lock with `uv lock --upgrade-package requests` and re-scan.
 
 ### Pin a transitive vulnerability
+
+Upgrade the one package in the lockfile:
 
 ```bash
 uv lock --upgrade-package urllib3
@@ -92,19 +72,35 @@ constraint-dependencies = ["urllib3>=2.2.2"]
 
 Re-lock and re-scan.
 
+## Workspaces
+
+uv workspaces are scanned per workspace member. Each member is its own subproject.
+
+## `--install-first`
+
+With `--install-first`, Bomly runs `uv sync --frozen --no-install-project`, then `uv pip install pip`, before resolving the graph. That can download packages from PyPI and writes to the uv-managed environment without changing `uv.lock`.
+
+```bash
+bomly scan --install-first
+```
+
+To append flags to the sync command, repeat `--install-arg`. This requires `--detectors uv-detector`. Bomly records the command, with secrets removed, in the scan JSON under the manifest's resolution metadata.
+
+```bash
+# Refuse to update the lockfile; sync exactly what is locked
+bomly scan --install-first --detectors uv-detector \
+  --install-arg --frozen
+```
+
 ## Source details
 
-Bomly reads registry, Git, URL, path, and editable sources from each `uv.lock`
-package source table. An entry without source evidence stays unknown.
+Bomly reads registry, Git, URL, path, and editable sources from each package's source table in `uv.lock`. An entry without source evidence stays unknown.
 
 ## Reachability (experimental)
 
-> **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
-
-For uv-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
+With `--analyze`, the `pyreach` analyzer reports a package as reachable when app source imports it. Unreachable is a triage signal, not proof of safety; see [Reachability](../../REACHABILITY.md#unreachable-is-not-safe).
 
 ## Limitations
 
-- **uv lockfile format** is stable but still evolves; track upstream changes if you pin Bomly versions in CI.
-- **uv workspaces** are scanned per workspace member; each is its own subproject.
-- **No lockfile, no graph.** Bomly refuses to inspect an unprepared uv environment when `uv.lock` is missing because that can produce stale or unrelated dependencies.
+- **The uv lockfile format still evolves.** Track upstream changes if you pin Bomly versions in CI.
+- **No lockfile, no graph.** Bomly refuses to inspect an unprepared uv environment when `uv.lock` is missing, because that can produce stale or unrelated dependencies.

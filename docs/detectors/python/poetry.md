@@ -22,63 +22,40 @@ This page explains how Bomly builds a dependency graph for `poetry` projects: th
 
 ## How `poetry` resolves
 
-`poetry-detector` is **lockfile-first**. A readable `poetry.lock` is the preferred source because it is deterministic and carries transitive dependency data. Bomly only falls back to Poetry environment inspection when a lockfile exists but cannot be parsed.
+`poetry-detector` is **lockfile-first**. A readable `poetry.lock` is the preferred source because it is deterministic and carries transitive dependency data. Bomly falls back to inspecting a Poetry environment only when a lockfile exists but cannot be parsed.
 
 | Path | Strategy | Command |
 | --- | --- | --- |
 | `poetry.lock` present | Lockfile parser | None |
-| Lockfile unreadable | Locked install + inspect | `poetry install --no-root --sync`, then `poetry run python -m pip inspect --local` |
+| Lockfile unreadable | Locked install and inspect | `poetry install --no-root --sync`, then `poetry run python -m pip inspect --local` |
 | Lockfile missing | Fail | None |
 
-The inspected graph comes from Poetry's project-managed virtualenv after a locked install attempt. Bomly does not inspect an arbitrary ambient Python environment.
+The inspected graph comes from Poetry's project environment after a locked install. Bomly never inspects an arbitrary ambient Python environment.
 
-## Network behavior
-
-✅ The `poetry.lock` parser is offline and does not execute Poetry.
-
-⚠️ The locked install fallback can download packages from PyPI or configured Poetry sources, but it uses the existing lockfile and must not update project manifests.
+The lockfile parser runs nothing and never uses the network. The locked install fallback **may download** packages from PyPI or configured Poetry sources. It uses the existing lockfile and does not change project manifests. See [Network and privacy](../../NETWORK.md) for the shared rule.
 
 ## Prerequisites
 
 - A committed `poetry.lock`.
-- `pyproject.toml` for evidence pattern matching.
+- A `pyproject.toml`, which is the evidence that triggers the detector.
 - For `--install-first`: `poetry` on `PATH`.
-
-## `--install-first`
-
-`poetry` supports `--install-first`. When passed, Bomly runs `poetry install --no-root --sync` before resolving the graph.
-
-⚠️ **`--install-first` can download packages from PyPI** and writes to the Poetry-managed virtualenv without changing the lockfile.
-
-```bash
-bomly scan --install-first
-```
-
-### Customizing the install command
-
-Append flags to `poetry install --no-root --sync` with repeatable `--install-arg`. Requires `--detectors poetry-detector`. Bomly records the sanitized command in scan JSON under the manifest's resolution metadata.
-
-```bash
-# Production-only graph: skip dev dependencies and a specific group
-bomly scan --install-first --detectors poetry-detector \
-  --install-arg --without --install-arg dev \
-  --install-arg --without --install-arg docs
-```
 
 ## Examples
 
 ### Fix a direct vulnerability
+
+Raise the range in `pyproject.toml`:
 
 ```toml
 [tool.poetry.dependencies]
 requests = "^2.32.0"
 ```
 
-`poetry lock --no-update --regenerate`. Re-scan.
+Re-lock with `poetry lock --no-update --regenerate` and re-scan.
 
 ### Pin a transitive vulnerability
 
-Add the transitive dep at the top level so the resolver respects your version:
+Add the transitive package at the top level so the resolver respects your version:
 
 ```toml
 [tool.poetry.dependencies]
@@ -87,20 +64,34 @@ urllib3 = ">=2.2.2"
 
 Re-lock and re-scan.
 
+## `--install-first`
+
+With `--install-first`, Bomly runs `poetry install --no-root --sync` before resolving the graph. That can download packages from PyPI and writes to the Poetry-managed environment without changing the lockfile.
+
+```bash
+bomly scan --install-first
+```
+
+To append flags to that command, repeat `--install-arg`. This requires `--detectors poetry-detector`. Bomly records the command, with secrets removed, in the scan JSON under the manifest's resolution metadata.
+
+```bash
+# Production-only graph: skip the dev and docs groups
+bomly scan --install-first --detectors poetry-detector \
+  --install-arg --without --install-arg dev \
+  --install-arg --without --install-arg docs
+```
+
 ## Source details
 
-Bomly reads registry, Git, URL, and local-directory sources from each
-`poetry.lock` package source table. An unrecognized source type stays unknown.
+Bomly reads registry, Git, URL, and local-directory sources from each package's source table in `poetry.lock`. An unrecognized source type stays unknown.
 
 ## Reachability (experimental)
 
-> **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
-
-For Poetry-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
+With `--analyze`, the `pyreach` analyzer reports a package as reachable when app source imports it. Unreachable is a triage signal, not proof of safety; see [Reachability](../../REACHABILITY.md#unreachable-is-not-safe).
 
 ## Limitations
 
-- **Poetry 1.x and 2.x** lockfile formats are both supported.
-- **Optional extras** (`requests[socks]`) are recorded as a single distribution; extras-specific transitives appear in the lockfile and graph normally.
-- **Private indexes** (Poetry `source` configuration) require `~/.config/pypoetry/auth.toml` set up locally.
-- **No lockfile, no graph.** Bomly refuses to inspect an unprepared Poetry environment when `poetry.lock` is missing because that can produce stale or unrelated dependencies.
+- **Poetry 1.x and 2.x lockfiles** are both supported.
+- **Optional extras** (`requests[socks]`) are recorded as one distribution. The extra's own dependencies appear in the lockfile and the graph as usual.
+- **Private indexes** (Poetry `source` configuration) need `~/.config/pypoetry/auth.toml` set up locally.
+- **No lockfile, no graph.** Bomly refuses to inspect an unprepared Poetry environment when `poetry.lock` is missing, because that can produce stale or unrelated dependencies.

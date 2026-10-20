@@ -38,7 +38,7 @@ bomly scan -o spdx=sbom.spdx.json
 bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
 ```
 
-`-o` is repeatable. When every `-o` names a file and you set no `--format`, Bomly writes the files and prints nothing. The full rules are in [Output formats](OUTPUT_FORMATS.md#additional-output--o). SBOM formats are available on `scan` only.
+`-o` is repeatable. When every `-o` names a file and you set no `--format`, Bomly writes the files and prints nothing. The full rules are in [Output formats](OUTPUT_FORMATS.md#write-more-than-one-output--o). SBOM formats are available on `scan` only.
 
 ## License data needs `--enrich`
 

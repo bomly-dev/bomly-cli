@@ -334,7 +334,54 @@ Core passes these env vars. Plugin discovery: `~/.bomly/plugins/bomly-*` overrid
 - Generated docs are part of the contract: update `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, and `docs/SUPPORT_MATRIX.md` via `make generate` when their source packages change.
 - Fake binaries (npm, go, Gradle, plugin) are built in `TestMain` — see `internal/cli/root_test_main_test.go`.
 - No test conditionally skipped without a recorded reason.
-- Use plain language in documentation and user-facing text. Prefer short, direct sentences; explain necessary technical terms when they first appear.
+- Use plain language in documentation and user-facing text; the rules are under [Documentation style](#documentation-style) below.
+
+### Documentation style
+
+The pages under `docs/` are published on bomly.dev for developers and
+security managers, many of whom read English as a second language. Every
+page, new or edited, follows these rules:
+
+1. The first paragraph says what the page is for and who should read it, in
+   one or two sentences. No fragments ("Drop-in recipes for CI.").
+2. Sentences stay under about 25 words. Split a sentence instead of joining
+   clauses with semicolons or two dash asides.
+3. A term is defined or linked on first use: detector, matcher, auditor,
+   analyzer, enrich, subproject, module, PURL, SARIF, SBOM, SLSA, CRA, KEV,
+   VEX, MCP. Link to `docs/GLOSSARY.md`; do not redefine the term inline.
+4. No idioms or metaphors: turnkey, plumbing, trip up, sink, to taste, long
+   tail, shells out, pre-warm, smuggling vector, fixed point, lockstep.
+5. No internal names in user pages: Go identifiers, SDK issue numbers,
+   "the internal benchmark", release history ("gains a new stage",
+   "as before", "had no external consumers at the time").
+6. One lead-in sentence before every code block. A code comment never
+   carries the only explanation.
+7. Three or more parallel items with two or more attributes are a table.
+8. Headings use sentence case and US spelling.
+9. Each shared rule has one home page (the network rule on `NETWORK.md`,
+   the `-o` rule on `OUTPUT_FORMATS.md`, the touched-packages rule on
+   `commands/diff.md`, the reachability caveat on `REACHABILITY.md`,
+   install commands on `INSTALLATION.md`). Other pages state it in one
+   sentence and link to the home.
+10. Do not say what Bomly does not do "silently" or "rather than guess";
+    say what it does instead.
+
+Mechanics that go with the rules:
+
+- Generated pages (`DETECTORS.md`, `MATCHERS.md`, `AUDITORS.md`,
+  `detectors/`, `matchers/`, `auditors/`, `schemas/`, `CONFIG_REFERENCE.md`,
+  `SUPPORT_MATRIX.md`) are never edited under `docs/`. Their prose lives in
+  `internal/support/component_docs.go` and `internal/support/prose/`; fix it
+  there and run `make generate`.
+- A top-level page's file name is its public URL (`docs/SCAN_TARGETS.md` is
+  `bomly.dev/docs/scan-targets`) and the landing page has no redirects, so
+  top-level pages are never renamed or deleted. Move content between pages
+  instead. A new top-level page needs an entry in `docs/manifest.json`
+  (`TestDocsManifestMatchesTopLevelDocs` enforces the 1:1 match) and a line
+  in `docs/README.md`, which must list every page.
+- Nested pages belong under a folder the landing page knows how to list:
+  `commands/`, `detectors/`, `matchers/`, `auditors/`, `plugins/`,
+  `schemas/`.
 
 ### Fuzz tests
 

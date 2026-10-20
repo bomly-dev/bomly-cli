@@ -1,6 +1,6 @@
 # Bomly Documentation
 
-Start with [Getting Started](GETTING_STARTED.md) if you're new. Otherwise pick the section that matches what you're doing. The sections below follow the site navigation groups defined in [`manifest.json`](manifest.json), plus links to a few site pages that live outside the versioned docs (such as the FAQ).
+New to Bomly? Start with [Getting started](GETTING_STARTED.md). Otherwise pick the section that matches what you are doing. The sections follow the navigation groups in [`manifest.json`](manifest.json), plus a few site pages that live outside the versioned docs, such as the FAQ.
 
 ## Getting started
 
@@ -43,14 +43,14 @@ Running Bomly in CI and keeping pipelines healthy.
 
 ## Reference
 
-Specifications, matrices, and design deep dives. The generated pages are regenerated from code by `make generate` — treat those as authoritative.
+Specifications, matrices, and design detail. The generated pages (support matrix, config reference, schemas, and the per-component pages) are produced from the code by `make generate`, so they always match the binary.
 
 - [Support Matrix](SUPPORT_MATRIX.md) — every ecosystem and package manager
 - [Config Reference](CONFIG_REFERENCE.md) — every config key, env var, default, flag
 - [Exit Codes](EXIT_CODES.md) — what each process exit value means
 - [Interactive TUI](TUI.md) — keybindings and tabs for `--interactive`
 - [JSON Schemas](SCHEMAS.md) — scan, explain, diff output shapes
-- [Detector Reference](detectors/) — per-ecosystem detector pages, plus [Syft fallback](detectors/syft.md) for everything else
+- [Detector reference](detectors/) — per-ecosystem detector pages, plus the [Syft fallback](detectors/syft.md) for everything else
 - [Matcher Reference](matchers/) — per-matcher behavior, cache, output
 - [Auditor Reference](auditors/) — per-auditor options, examples, limitations
 - [Architecture](ARCHITECTURE.md) — the scan pipeline, domain model, and network behavior
@@ -64,7 +64,7 @@ Specifications, matrices, and design deep dives. The generated pages are regener
 
 Features that are still maturing.
 
-- [Reachability](REACHABILITY.md) — narrowing findings to code your app actually calls
+- [Reachability](REACHABILITY.md) — narrowing findings to packages your code can reach
 
 ## Project
 

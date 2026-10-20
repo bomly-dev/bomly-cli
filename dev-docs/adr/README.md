@@ -33,7 +33,8 @@ Copy [`TEMPLATE.md`](TEMPLATE.md) to `NNNN-<kebab-case-title>.md` with the
 next unused number, and add a row to the index. About 300 words, never more
 than about 400. One decision per file. A one-paragraph context, the decision
 as present-tense rules, the rejected alternative in a sentence, at most five
-consequences, and the test, lint rule or analyzer that enforces it. No
+consequences, and the test, lint rule or analyzer that enforces it (or
+"none; review only", so the absence is a stated choice). No
 implementation history or pull-request chronology; no per-ecosystem lists;
 identifiers only where the reader must go.
 

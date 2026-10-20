@@ -51,3 +51,7 @@ directory.
   does.
 - Subprocess stderr is streamed only at `-vv`, may contain secrets the tool
   printed, and is never stored in results.
+
+Enforced by: `TestPipeline_Run_CollectsDetectorReportedWarnings` and the
+fallback tests in `internal/engine/pipeline_test.go`; the
+`SanitizeUntrusted` tests in `internal/cli/render`.

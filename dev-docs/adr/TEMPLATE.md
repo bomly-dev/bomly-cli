@@ -25,4 +25,5 @@ One or two sentences naming the alternative and why it lost.
 
 - At most five bullets: trade-offs accepted, doors closed, visible changes.
 
-Enforced by: <the test, lint rule or analyzer that pins this decision>.
+Enforced by: <the test, lint rule or analyzer that pins this decision, or
+"none; review only" so the absence is a stated choice>.

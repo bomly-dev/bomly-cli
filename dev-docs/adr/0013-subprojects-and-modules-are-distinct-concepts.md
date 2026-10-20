@@ -46,3 +46,8 @@ hierarchy field; discovery rules hardcoded in the walker.
 - Every surface (TUI, text, Markdown, MCP) applies one derivation.
 - External detector plugins contribute discovery rules through the same
   descriptor fields, with no protocol change.
+
+Enforced by: `TestBuildHierarchy*` in `internal/output/hierarchy_test.go`;
+`TestPlanSubprojectsRecursivePrunesMultiModuleDescendants` and
+`TestPlanSubprojectsRecursiveDoesNotPruneAcrossPackageManagers` in
+`internal/cli/opts`.

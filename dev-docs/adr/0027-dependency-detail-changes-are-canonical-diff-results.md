@@ -39,3 +39,8 @@ Folding detail changes into add and remove; a per-renderer heuristic.
 
 - Manifest-level results preserve duplicate occurrences; the global JSON and
   MCP views deduplicate identical evidence and bound MCP output.
+
+Enforced by: `TestRun_PassesCanonicalDetailChangesOnlyToHeadAudit` in
+`internal/engine/diff`; `TestBuildDiffResponseReportsDependencyDetailTransitions`
+and `TestProjectedDependencyDetailReviewReasonsMatchCanonicalTransition` in
+`internal/output`; the `Compare` tests in the SDK.

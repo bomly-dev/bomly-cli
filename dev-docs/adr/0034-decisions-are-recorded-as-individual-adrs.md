@@ -46,3 +46,6 @@ files: their numbers are cited from code and lint configuration.
   `dev-docs/adr/README.md` indexes both.
 - `AGENTS.md` carries the bar in two sentences; this file carries the
   reasoning.
+
+Enforced by: none; the maintainer chose review over a test. A record that
+exceeds the budget or lacks a section is sent back in review.

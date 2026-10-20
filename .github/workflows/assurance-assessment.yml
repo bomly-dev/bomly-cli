@@ -399,7 +399,7 @@ jobs:
       - name: Mint release bot token
         # Commits the report to main and dispatches to the landing page. The
         # same app already pushes the version-bump commits.
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         id: app-token
         with:
           client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
@@ -414,7 +414,7 @@ jobs:
         # Issues is a newer grant on the release app than contents. Minting it
         # separately means an app that has not been granted it yet loses the
         # tracking issue, not the whole report.
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         id: issue-token
         continue-on-error: true
         with:

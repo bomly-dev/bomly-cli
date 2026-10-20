@@ -68,12 +68,12 @@ func TestGenerateSchemaReferenceMarkdownIncludesDocumentAndTypes(t *testing.T) {
 
 func TestRenderComponentDocs_IncludeGeneratedGuides(t *testing.T) {
 	detectors := RenderDetectorsOverviewMarkdown()
-	if !strings.Contains(detectors, "Detector Chains") {
+	if !strings.Contains(detectors, "## Detector chains") {
 		t.Fatalf("detector overview missing chain guidance:\n%s", detectors)
 	}
 
 	matchers := RenderMatchersOverviewMarkdown()
-	if !strings.Contains(matchers, "does not run network-backed matchers unless you opt in") {
+	if !strings.Contains(matchers, "Matchers only call out when you pass `--enrich`") || !strings.Contains(matchers, "(NETWORK.md)") {
 		t.Fatalf("matcher overview missing offline guidance:\n%s", matchers)
 	}
 

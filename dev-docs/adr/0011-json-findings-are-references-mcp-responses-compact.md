@@ -1,18 +1,51 @@
-# ADR-0011: JSON findings are references; MCP responses are compact projections
+# ADR-0011: Output documents are references; MCP responses are compact projections
 
 - **Date:** 2026-07-08
+- **Revised:** 2026-10-19 (folds the output half of ADR-0046)
 - **Status:** Accepted
 
-The `--format json` `findings[]` projection now mirrors `sdk.Finding` exactly: an identity-only package ref (display name, org, version, purl), `vulnerability_id`, and `dependency_refs` — no embedded package object and no flat advisory copies. Advisory data lives once in `packages[]` and consumers join by PURL, the way SARIF always did; text/markdown/TUI renderers were converted to the same join. `DiffResponse` gained a `packages[]` collection (PURL-deduplicated union of base and head registries, head wins) so diff audit findings resolve the same way. Rationale: the embedded copies made findings-heavy scan JSON ~10x larger than the data it contained (issue #245) and let the projection drift from the domain model.
+## Context
 
-The MCP server does not return the CLI JSON documents at all. Tool results land in an agent's context window and MCP clients truncate large results to errors, so `bomly_scan` / `bomly_diff` / `bomly_explain` return compact projections (`schema_version "mcp/1"`, `internal/mcp/types_compact.go`) built from the pipeline's domain data. MCP projects canonical package remediation suggestions; it does not select actions, versions, or package-manager advice. Groups are ranked KEV → severity → EPSS → fixability and hard-capped with explicit truncation counters. Audit may overlay policy status on matching vulnerability entries but cannot create or change suggestions. `bomly_explain` is the bounded drill-down (full advisory detail for one package); the CLI is the artifact channel for complete documents. The former `bomly_vuln_fix_context` tool was folded into these responses. Shortest dependency paths come from a bounded upward BFS over `Graph.Dependents`, never `CollectPathsTo` (all simple paths is exponential on dense graphs).
+Scan JSON once embedded a package copy and flat advisory fields inside every
+finding. Findings-heavy documents were about ten times larger than the data
+they held, and the projection drifted from the model. Separately, MCP tool
+results land in an agent's context window, and MCP clients truncate large
+results into errors.
 
-MCP tool failures expose only stable categories such as request validation,
-target preparation, target resolution, pipeline execution, and plugin
-inventory. Raw adapter errors never cross the protocol boundary because they
-may contain local paths, command output, URLs, or credentials. The server logs
-the tool, category, and unwrapped Go cause type without the arbitrary cause
-text. Detailed stage logs remain available at debug verbosity only when the
-component that produced the failure emits them independently. Validation
-messages intentionally remain generic because otherwise a rejected path, URL,
-or other user value could be copied into the protocol response.
+## Decision
+
+- `findings[]` mirror `sdk.Finding`: `package_ref` (a PURL),
+  `vulnerability_id`, `dependency_refs`. Advisory data lives once in
+  `packages[]` and consumers join by PURL, as SARIF always did. `diff`
+  carries a `packages[]` union of base and head (head wins) for the same
+  join.
+- `bomly scan` emits the SDK's `scan.Record` (`bomly.scan.v1`): the three
+  collections plus `subject` (repository, ref, commit; never a local path),
+  `run` and `verdict`, written through `scan.Encode`. The CLI defines no
+  projection types of its own; `diff` and `explain` reuse the same finding
+  and package shapes.
+- Every collection is written, `[]` when empty.
+- Each section carries a digest. The document as a whole changes every run
+  (`run.id`, timestamps), so consumers compare section digests.
+- MCP tools never return CLI documents. They return `mcp/1` compact
+  projections, ranked KEV, severity, EPSS, fixability, hard-capped with
+  truncation counters. `bomly_explain` is the bounded drill-down; the CLI is
+  the artifact channel. MCP projects canonical remediation and never selects
+  actions or versions.
+- MCP errors expose stable categories only (validation, target preparation,
+  resolution, pipeline, plugin inventory). Raw errors may carry paths, URLs
+  or credentials and never cross the protocol boundary.
+
+## Rejected
+
+Embedding package and advisory copies in findings; returning full CLI JSON
+over MCP.
+
+## Consequences
+
+- One document shape, owned by the SDK (ADR-0040). The CLI keeps the builders
+  that need pipeline context, and the renderers.
+- Renaming a finding field is an output-contract break and is treated as one.
+
+Enforced by: `scan/record_test.go` in the SDK;
+`TestDocumentCollectionsAreAlwaysArrays`.

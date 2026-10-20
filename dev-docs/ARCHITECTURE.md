@@ -4,22 +4,22 @@ This document explains how Bomly is structured today and how the main command fl
 
 ## Decision Records
 
-The design decisions behind this architecture are recorded as individual
-architecture decision records (ADRs) in [`adr/`](adr/README.md). Each decision
-is one file with an ID, date, and status. To record a new decision, copy
-[`adr/TEMPLATE.md`](adr/TEMPLATE.md), take the next number, and add a row to
-the [index](adr/README.md). This document stays the architecture narrative;
-it links to ADRs where a section's behavior comes from a recorded decision.
-
-An active cross-repo program to mature the SDK model (canonical-PURL
-identity on a typed node union, SBOM-complete typed fields, single-home
-PURL/SPDX behavior, Go 1.27) is planned in
-[`SDK_MATURITY_PLAN.md`](SDK_MATURITY_PLAN.md), backed by ADR-0037 through
-ADR-0039 and [ADR-0041](adr/0041-identity-is-the-canonical-purl-on-typed-nodes.md)
-(which supersedes ADR-0036's content-addressable design). The standing placement rule the program restores —
-model behavior lands in the SDK first; the CLI and plugins hold only what is
-theirs by nature — is
-[ADR-0040](adr/0040-the-sdk-is-the-default-home-for-behavior.md).
+The design decisions behind this architecture are recorded as architecture
+decision records (ADRs) in [`adr/`](adr/README.md): one short file per
+decision, with its rejected alternative and what enforces it. The README
+there says when a decision earns a record; most changes do not. This document
+stays the architecture narrative and links to an ADR where a section's
+behavior comes from one. The standing placement rule, that behavior about
+shared domain objects lands in the SDK first and the CLI and plugins hold
+only what is theirs by nature, is
+[ADR-0040](adr/0040-the-sdk-is-the-default-home-for-behavior.md); identity
+is [ADR-0041](adr/0041-identity-is-the-canonical-purl-on-typed-nodes.md),
+the typed SBOM model is
+[ADR-0037](adr/0037-sbom-assertions-are-typed-sdk-model-fields.md), and
+input bounds and strict parsing are
+[ADR-0026](adr/0026-untrusted-documents-have-input-limits.md). The
+[`SDK_MATURITY_PLAN.md`](SDK_MATURITY_PLAN.md) execution plan that carried
+those decisions into the SDK is kept as a dated record.
 
 ## Product Shape
 
@@ -246,7 +246,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `internal/engine/explain` | Dependency path traversal                                                                   |
 | `internal/engine/scan` | Scan command pipeline API                                                                    |
 | `internal/output`     | Text, JSON, SARIF rendering, plus structured response payloads and schema generation            |
-| `bomly-sdk/sbom` (external) | SPDX 2.3 and CycloneDX codecs, strict ingest, and document assertions (ADR-0045)          |
+| `bomly-sdk/sbom` (external) | SPDX 2.3 and CycloneDX codecs, strict ingest, and document assertions (ADR-0040)          |
 | `bomly-sdk/graphview` (external) | A node's published package URL, the children a document can name, top-level parents |
 | `internal/assurance`  | Release assurance framework: check-result contract, catalog, report and index generation, release-asset verification, plus the `sbominterop` and `perfrun` check tools and the `cmd` entry point |
 | `internal/benchmark`  | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets      |

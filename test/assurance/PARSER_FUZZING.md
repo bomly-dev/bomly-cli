@@ -25,7 +25,7 @@ the reader inventory, cache behavior, and intentional exclusions.
 | Matcher evidence | vulnerability consolidation and advisory aliases |
 | Release assurance | check-result documents, the assurance catalog, and `go test -json` streams |
 
-The SBOM codec's targets moved with the codec to `bomly-sdk/sbom` (ADR-0045)
+The SBOM codec's targets moved with the codec to `bomly-sdk/sbom` (ADR-0040)
 and run in that repository's fuzz workflow: automatic SPDX and CycloneDX
 decoding with Syft JSON identification and deterministic rejection
 (`FuzzUnmarshalAutoJSON`), multi-license composition on the export path

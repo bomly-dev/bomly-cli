@@ -1,12 +1,49 @@
-# ADR-0006: Three-collection domain model — dependencies, packages, findings
+# ADR-0006: The domain model is three collections joined by package URL
 
 - **Date:** 2026-06-04
+- **Revised:** 2026-10-19 (folds ADR-0001)
 - **Status:** Accepted
 
-`sdk` separates three pipeline concerns that the original model conflated:
+## Context
 
-1. **`sdk.Dependency`** (`sdk/dependency.go`) is a detection-time graph node. It carries identity (`ID`, `Name`, `Version`, `PURL`), detection metadata (`Scopes`, `Locations`, `FoundBy`), an optional direct/transitive/unknown `Relationship`, occurrence `Source`, edges through the `Graph`, and a `PackageRef` (PURL) that links to a matching artifact. It does **not** carry licenses, vulnerabilities, or scorecard data.
-2. **`sdk.Package`** (`sdk/package.go`) is a matching artifact keyed by PURL on a `sdk.PackageRegistry`. It carries `Licenses`, `Vulnerabilities` (OSV-aligned `sdk.Vulnerability`), `Scorecard`, `EOL`, and similar enrichment. There is one entry per unique PURL across the whole pipeline, so 50 dependencies referencing the same package share one set of CVEs and one license decision.
-3. **`sdk.Finding`** (`sdk/vulnerability.go`) is a reference-style audit result. It carries policy fields (`Severity`, `PolicyStatus`, `Reasons`, `Auditor`, stable `RuleID`) plus the references `PackageRef` (PURL) and, for vulnerability findings, `VulnerabilityID`. It does **not** copy CVSS / EPSS / KEV / CWE — consumers resolve those by following the references back into the registry.
+The original model put licenses, vulnerabilities and audit verdicts on the
+dependency graph node itself. Fifty occurrences of one package carried fifty
+copies of its advisories, every stage synchronized them by hand, and a
+finding embedded the data it was about.
 
-`sdk.Vulnerability` is OSV-aligned (id, aliases, summary, details, severity, affected, references, database_specific) and extended with Bomly's matching-stage fields (CVSS, EPSS, KEV, CWE, FixedVersions, AffectedSymbols, `Reachability`). The OSV matcher (repo `bomly-plugin-osv-matcher`, `plugin/response.go`) maps OSV responses directly to this shape; grype / depsdev / eol / scorecard and enabled external matchers write the equivalent records.
+## Decision
+
+The SDK model separates three concerns, joined by the canonical package URL:
+
+- The **dependency graph** holds detection-time nodes: identity, scopes,
+  locations, relationship, edges. It carries no enrichment. ADR-0041 later
+  typed its nodes.
+- The **package registry** holds one `Package` per canonical PURL with
+  licenses, vulnerabilities, scorecard and end-of-life data. Enrichment is
+  written once per package, never per occurrence.
+- **Findings** are references: policy fields plus `PackageRef` and, for
+  vulnerabilities, `VulnerabilityID`. Consumers follow the references;
+  nothing is copied.
+
+Reachability annotates the `Vulnerability` record on the registry package,
+not the finding, so `--analyze` is useful without `--audit`. Output resolves
+the annotation by (package ref, vulnerability id) when rendering.
+
+`Vulnerability` is OSV-aligned and extended with the matching-stage fields
+(CVSS, EPSS, KEV, fixed versions, reachability). Every matcher writes that
+one shape.
+
+## Rejected
+
+Graph-mutating enrichment (one copy of the advisories per occurrence) and
+findings that embed their package. Both duplicated data and drifted.
+
+## Consequences
+
+- Every renderer joins by PURL; the scan document is this model on the wire
+  (ADR-0011).
+- Vulnerability consolidation and remediation happen once per package
+  (ADR-0022).
+- Audit runs without analysis, and analysis without audit.
+
+Enforced by: the SDK model types; `dev-docs/MODELS.md` is the reference.

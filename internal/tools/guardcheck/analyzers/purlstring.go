@@ -19,7 +19,7 @@ import (
 // root with url.PathEscape, which leaves '@' alone, so a project named "app@2"
 // exported an identity that read back as "app" at version "2". The separators
 // are the specification's to escape, so the parts go into the kit and the
-// string comes out (ADR-0038).
+// string comes out (ADR-0040).
 //
 // Construction is a "pkg:"-prefixed value on either side of +, appended with
 // +=, or handed to a printf-style call. The value need not be a literal at

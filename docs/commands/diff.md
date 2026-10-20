@@ -57,6 +57,20 @@ bomly diff --base main --head HEAD --json   # structured delta for tooling
 
 The JSON shape is documented in the [diff schema](../schemas/diff.md).
 
+## What counts as a change
+
+`diff` compares the resolved graphs, not the manifests. Packages are reported as added, removed, or version-changed. A package can also have a **detail change** without a version change, when the same package occurrence changed in one of these ways:
+
+- its relationship changed between direct, transitive, and unknown;
+- its source changed, for example from a registry to Git or a workspace;
+- whether Bomly can look it up in a registry changed.
+
+A package can have a version change and a detail change in the same diff. JSON records each detail change as a `transition` under `results.dependencies.transitions` and under the matching manifest. Text, Markdown, the interactive view, and MCP show the same classification.
+
+The human-readable outputs ask for extra review when a known source changes to Git or a URL, or when vulnerability checks covered the package before the change but no longer do. These labels help reviewers find important changes. They do not change the exit code by themselves; only `--fail-on source-change` gates on a source change.
+
+Findings are classified by their advisory and package identity, independent of the version. A finding present on both sides is **persisted**, not one resolved finding plus one introduced finding.
+
 ## Exit codes
 
 Same table as every command ([Exit codes](../EXIT_CODES.md)): `2` when an introduced or persisted finding matches `--fail-on`, `3` or `5` when either side fails to resolve or has nothing to evaluate.

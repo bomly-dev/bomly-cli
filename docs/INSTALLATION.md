@@ -1,233 +1,95 @@
 # Installation
 
-Bomly ships as a release binary, package-manager entry, and Linux package. Pick the method that matches how you normally manage developer tools.
-
-## Quick install
-
-### macOS / Linuxbrew
-
-```bash
-brew install bomly-dev/tap/bomly
-bomly version
-```
-
-### Linux / macOS script
-
-```bash
-curl -fsSL https://bomly.dev/install.sh | sh
-bomly version
-```
-
-### Windows
-
-```powershell
-winget install Bomly.BomlyCLI
-bomly version
-```
-
-If you're ready to scan, jump to [Getting Started](GETTING_STARTED.md).
+This page lists every way to install, upgrade, verify, and remove Bomly. Pick the method that matches how you already manage developer tools. If you only want to get started, run one command from the first table and go to [Getting started](GETTING_STARTED.md).
 
 ## Install methods
 
-### Homebrew
+| Method | Platforms | Install | Upgrade | Uninstall |
+| --- | --- | --- | --- | --- |
+| Homebrew | macOS, Linux | `brew install bomly-dev/tap/bomly` | `brew upgrade bomly` | `brew uninstall bomly` |
+| Install script | Linux, macOS | `curl -fsSL https://bomly.dev/install.sh \| sh` | Run the script again | `rm "$(command -v bomly)"` |
+| Install script | Windows | `irm https://bomly.dev/install.ps1 \| iex` | Run the script again | Delete `bomly.exe` from `%LOCALAPPDATA%\Bomly\bin` |
+| WinGet | Windows | `winget install Bomly.BomlyCLI` | `winget upgrade Bomly.BomlyCLI` | `winget uninstall Bomly.BomlyCLI` |
+| Scoop | Windows | `scoop bucket add bomly https://github.com/bomly-dev/scoop-bucket` then `scoop install bomly` | `scoop update bomly` | `scoop uninstall bomly` |
+| Linux packages | Debian, Ubuntu, Fedora, RHEL, SUSE, Alpine, Arch | Download the `.deb`, `.rpm`, `.apk`, or `.pkg.tar.zst` from the release and install it with your package manager | Install the newer package | `apt remove bomly`, `rpm -e bomly`, and so on |
+| `go install` | Any with Go | `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` | Run it again | Delete the binary from `$(go env GOPATH)/bin` |
+| Release archive | Linux, macOS, Windows | See [Manual install](#manual-install-from-a-release-archive) | Replace the binary | Delete the binary |
 
-Homebrew is the preferred macOS path and also works for Linuxbrew users:
-
-```bash
-brew install bomly-dev/tap/bomly
-```
-
-Upgrade and uninstall:
-
-```bash
-brew upgrade bomly
-brew uninstall bomly
-```
-
-### WinGet
-
-WinGet is the preferred Windows package-manager path:
-
-```powershell
-winget install Bomly.BomlyCLI
-```
-
-Upgrade and uninstall:
-
-```powershell
-winget upgrade Bomly.BomlyCLI
-winget uninstall Bomly.BomlyCLI
-```
-
-### Scoop
-
-Scoop is a good fit for Windows developers who already manage CLI tools with buckets:
-
-```powershell
-scoop bucket add bomly https://github.com/bomly-dev/scoop-bucket
-scoop install bomly
-```
-
-Upgrade and uninstall:
-
-```powershell
-scoop update bomly
-scoop uninstall bomly
-```
-
-### Install scripts
-
-The install scripts download a GitHub Release archive, verify it against `SHA256SUMS`, and place `bomly` on your PATH.
-
-Linux / macOS:
+After any install, check the version:
 
 ```bash
-curl -fsSL https://bomly.dev/install.sh | sh
+bomly version
 ```
 
-Windows PowerShell:
+Notes on individual methods:
 
-```powershell
-irm https://bomly.dev/install.ps1 | iex
-```
+- **Install scripts** download the release archive, verify it against `SHA256SUMS`, and put `bomly` on your `PATH`. On Linux and macOS the default directory is `/usr/local/bin`; set `BOMLY_INSTALL_DIR` to change it. On Windows it is `%LOCALAPPDATA%\Bomly\bin`, which the script adds to your user `PATH`. Set `BOMLY_VERSION=v<version>` to pin a release and `BOMLY_BINARY=bomly-lite` to install the lite binary:
 
-Pin a version or install the lite binary:
+  ```bash
+  curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.28.3 sh
+  ```
 
-```bash
-curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.20.2 sh
-curl -fsSL https://bomly.dev/install.sh | BOMLY_BINARY=bomly-lite sh
-```
+  ```powershell
+  $env:BOMLY_VERSION = "v0.28.3"; irm https://bomly.dev/install.ps1 | iex
+  ```
 
-```powershell
-$env:BOMLY_VERSION = "v0.20.2"; irm https://bomly.dev/install.ps1 | iex
-$env:BOMLY_BINARY = "bomly-lite"; irm https://bomly.dev/install.ps1 | iex
-```
+- **Linux packages** are built for `amd64` and `arm64`. Install with `sudo dpkg -i`, `sudo rpm -i`, `sudo apk add --allow-untrusted`, or `sudo pacman -U`.
+- **`go install`** builds the full binary with Syft and Grype compiled in. It cannot build `bomly-lite`.
+- **In CI**, prefer a package manager where available, and pin a release tag rather than `latest`. See [CI integration](CI_INTEGRATION.md).
 
-By default, Unix installs to `/usr/local/bin`. Set `BOMLY_INSTALL_DIR` to choose another directory. Windows installs to `%LOCALAPPDATA%\Bomly\bin` and adds that directory to the user PATH.
+Bomly writes no configuration or cache during install. To remove its runtime state after uninstalling, delete `~/.bomly` (on Windows, `%USERPROFILE%\.bomly`).
 
-### Linux packages
+## `bomly` and `bomly-lite`
 
-Each release publishes native package artifacts for Linux `amd64` and `arm64`:
-
-- `.deb` for Debian and Ubuntu families.
-- `.rpm` for Fedora, RHEL, Rocky, AlmaLinux, and SUSE families.
-- `.apk` for Alpine.
-- Arch Linux package artifacts for users who prefer pacman-compatible local packages.
-
-Examples:
-
-```bash
-sudo dpkg -i bomly_VERSION_linux_amd64.deb
-sudo rpm -i bomly_VERSION_linux_amd64.rpm
-sudo apk add --allow-untrusted bomly_VERSION_linux_amd64.apk
-sudo pacman -U bomly_VERSION_linux_amd64.pkg.tar.zst
-```
-
-Use your package manager's normal remove command to uninstall, for example `sudo apt remove bomly` or `sudo rpm -e bomly`.
-
-### GitHub Releases
-
-GitHub Releases remain the canonical distribution point for all release artifacts. Each release publishes:
-
-- `bomly` archives for Linux, macOS, and Windows.
-- `bomly-lite` archives for users who prefer external `syft` and `grype` binaries on `PATH`.
-- Linux `.deb`, `.rpm`, `.apk`, and Arch package artifacts.
-- `SHA256SUMS` for checksum verification.
-
-Archive naming:
-
-- `bomly_<version>_<os>_<arch>.tar.gz`
-- `bomly-lite_<version>_<os>_<arch>.tar.gz`
-- Windows archives use `.zip`.
-
-Manual Linux / macOS install:
-
-```bash
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/bomly_0.20.2_linux_amd64.tar.gz
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS
-sha256sum --check SHA256SUMS --ignore-missing
-tar -xzf bomly_0.20.2_linux_amd64.tar.gz
-sudo install -m 0755 bomly /usr/local/bin/
-```
-
-Manual Windows install:
-
-```powershell
-$archive = "bomly_0.20.2_windows_amd64.zip"
-Invoke-WebRequest -Uri "https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/$archive" -OutFile $archive
-Invoke-WebRequest -Uri "https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS" -OutFile SHA256SUMS
-Get-FileHash .\$archive -Algorithm SHA256
-Expand-Archive -Path $archive -DestinationPath .
-# Move bomly.exe somewhere on your PATH.
-```
-
-Each archive also contains `LICENSE`, `NOTICE`, and a `licenses/` directory with third-party license text.
-
-### `go install`
-
-Use this path if you already have Go on `PATH`:
-
-```bash
-go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
-```
-
-`go install` builds the full Bomly binary with builtin Syft and Grype support. It does not install `bomly-lite`.
-
-## `bomly` vs `bomly-lite`
-
-| Artifact | Behavior |
+| Binary | What it is |
 | --- | --- |
-| `bomly` | Full default binary with compiled-in Syft and Grype support. No extra Syft or Grype binaries required. |
-| `bomly-lite` | Alternate binary that shells out to external `syft` and `grype` binaries on `PATH`. Smaller download, but you manage Syft and Grype versions. |
+| `bomly` | The default. Syft and Grype are compiled in, so nothing else is needed |
+| `bomly-lite` | A smaller binary that runs the `syft` and `grype` binaries already on your `PATH`. You manage their versions |
 
-Most users want `bomly`. Pick `bomly-lite` only if you already manage `syft` and `grype` across your fleet.
-
-If you choose `bomly-lite`, install Syft and Grype with Anchore's official scripts:
+Most users want `bomly`. Choose `bomly-lite` only when you already install Syft and Grype yourself. If you do, Anchore's scripts install both:
 
 ```bash
 curl -sSfL https://get.anchore.io/syft  | sh -s -- -b /usr/local/bin
 curl -sSfL https://get.anchore.io/grype | sh -s -- -b /usr/local/bin
 ```
 
-## Verify release checksums
+## Manual install from a release archive
 
-Releases include `SHA256SUMS` alongside every archive and package. The commands below use `v0.20.2` and one archive per platform — substitute the release and artifact you are verifying, and download both the archive and the checksum file first.
+Every release on [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases) publishes `bomly` and `bomly-lite` archives for Linux, macOS, and Windows, the Linux packages, a `SHA256SUMS` file, its signature, and a provenance file. Archives are named `bomly_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) and contain the binary, `LICENSE`, `NOTICE`, and a `licenses/` directory with third-party license text.
 
-Linux (GNU coreutils):
+The commands below use release `v0.28.3` on Linux `amd64`. Replace the version and platform with yours.
+
+On Linux or macOS, download the archive and the checksum file, verify, and install:
 
 ```bash
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/bomly_0.20.2_linux_amd64.tar.gz
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.28.3/bomly_0.28.3_linux_amd64.tar.gz
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.28.3/SHA256SUMS
 sha256sum --check SHA256SUMS --ignore-missing
+tar -xzf bomly_0.28.3_linux_amd64.tar.gz
+sudo install -m 0755 bomly /usr/local/bin/
 ```
 
-macOS (the system `shasum`; select the artifact's line first):
+On macOS, replace the `sha256sum` line with `grep " bomly_0.28.3_darwin_arm64.tar.gz$" SHA256SUMS | shasum -a 256 -c`. A verified archive prints one `OK` line.
 
-```bash
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/bomly_0.20.2_darwin_arm64.tar.gz
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS
-grep " bomly_0.20.2_darwin_arm64.tar.gz$" SHA256SUMS | shasum -a 256 -c
-```
-
-Either way, each verified archive prints one `OK` line and the command exits `0`:
-
-```text
-bomly_0.20.2_darwin_arm64.tar.gz: OK
-```
-
-PowerShell:
+On Windows, download, compare the hash, and extract:
 
 ```powershell
-Get-FileHash .\bomly_0.20.2_windows_amd64.zip -Algorithm SHA256
-# Compare the printed hash against the matching line in SHA256SUMS.
+$archive = "bomly_0.28.3_windows_amd64.zip"
+Invoke-WebRequest -Uri "https://github.com/bomly-dev/bomly-cli/releases/download/v0.28.3/$archive" -OutFile $archive
+Invoke-WebRequest -Uri "https://github.com/bomly-dev/bomly-cli/releases/download/v0.28.3/SHA256SUMS" -OutFile SHA256SUMS
+Get-FileHash .\$archive -Algorithm SHA256   # compare with the matching line in SHA256SUMS
+Expand-Archive -Path $archive -DestinationPath .
+# Move bomly.exe somewhere on your PATH.
 ```
 
-### Verify the signature
+## Verify a release
 
-`SHA256SUMS` is itself signed keylessly with [cosign](https://docs.sigstore.dev/cosign/signing/overview/), tying the release to the exact GitHub Actions workflow run that built it:
+Two more checks prove that a release came from Bomly's own build pipeline.
+
+**The checksum file is signed.** `SHA256SUMS` is signed with [cosign](https://docs.sigstore.dev/cosign/signing/overview/), using a short-lived certificate tied to the GitHub Actions workflow run that built the release. Verify it with:
 
 ```bash
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS.sigstore.json
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.28.3/SHA256SUMS.sigstore.json
 cosign verify-blob \
   --bundle SHA256SUMS.sigstore.json \
   --certificate-identity-regexp "^https://github.com/bomly-dev/bomly-cli/.github/workflows/release.yml@.*$" \
@@ -235,68 +97,22 @@ cosign verify-blob \
   SHA256SUMS
 ```
 
-A valid signature prints exactly:
+A valid signature prints `Verified OK`.
 
-```text
-Verified OK
-```
-
-### Verify SLSA provenance
-
-Each release also publishes a single `multiple.intoto.jsonl` SLSA Build Level 3 provenance file covering every release artifact, attesting which source commit and workflow produced them:
+**Every artifact has build provenance.** Each release publishes one `multiple.intoto.jsonl` file: a SLSA (Supply-chain Levels for Software Artifacts) Build Level 3 attestation that records which source commit and workflow produced each artifact. Verify an archive against it with [slsa-verifier](https://github.com/slsa-framework/slsa-verifier/releases):
 
 ```bash
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/bomly_0.20.2_linux_amd64.tar.gz
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/multiple.intoto.jsonl
-slsa-verifier verify-artifact bomly_0.20.2_linux_amd64.tar.gz \
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.28.3/multiple.intoto.jsonl
+slsa-verifier verify-artifact bomly_0.28.3_linux_amd64.tar.gz \
   --provenance-path multiple.intoto.jsonl \
   --source-uri github.com/bomly-dev/bomly-cli \
-  --source-tag v0.20.2
+  --source-tag v0.28.3
 ```
 
-`slsa-verifier` is available from the [slsa-framework/slsa-verifier releases](https://github.com/slsa-framework/slsa-verifier/releases).
-
-## CI installation
-
-For pinned CI recipes, see [CI integration](CI_INTEGRATION.md). Prefer a package-manager install when your CI environment supports it. If you download archives directly, pin a specific tag rather than `latest`.
-
-## Upgrading
-
-Use the package manager that installed Bomly:
-
-- Homebrew: `brew upgrade bomly`
-- WinGet: `winget upgrade Bomly.BomlyCLI`
-- Scoop: `scoop update bomly`
-- Linux packages: install the newer package artifact with your system package manager.
-- Go: re-run `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest`.
-- Install script: re-run the same script, optionally with `BOMLY_VERSION`.
-
-Check the current version before and after:
-
-```bash
-bomly version
-```
-
-## Uninstall
-
-Use the package manager that installed Bomly. For manual archive or install-script installs, remove the binary from its install directory:
-
-```bash
-rm "$(command -v bomly)"
-```
-
-Bomly does not write configuration or cache state during install. To also clear runtime state:
-
-```bash
-rm -rf ~/.bomly
-```
-
-```powershell
-Remove-Item -Recurse $env:USERPROFILE\.bomly
-```
+[Release assurance](ASSURANCE.md) describes every check a release goes through.
 
 ## Next
 
-- [Getting Started](GETTING_STARTED.md) - run your first scan in five minutes.
-- [CI integration](CI_INTEGRATION.md) - drop-in recipes for GitHub Actions, GitLab, Jenkins, Azure DevOps, CircleCI.
-- [Plugins](PLUGINS.md) - install and enable external detectors, matchers, and auditors.
+- [Getting started](GETTING_STARTED.md) — run your first scan
+- [CI integration](CI_INTEGRATION.md) — pinned installs for GitHub Actions, GitLab, Jenkins, Azure DevOps, CircleCI
+- [Plugins](PLUGINS.md) — install and enable external components

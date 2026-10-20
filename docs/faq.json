@@ -212,8 +212,8 @@
               "answer": "Use `bomly diff`. `bomly diff --base main --head HEAD` compares two Git refs, `bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json` compares two SBOM files, and `--image` compares two container tags or digests. Findings are grouped into introduced, resolved, and persisted, so you can see exactly what a change adds or fixes.",
               "links": [
                 {
-                  "label": "Scan targets",
-                  "href": "/docs/scan-targets"
+                  "label": "diff command",
+                  "href": "/docs/commands/diff"
                 },
                 {
                   "label": "CI integration",

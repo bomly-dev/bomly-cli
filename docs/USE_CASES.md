@@ -1,16 +1,29 @@
-# Use Cases
+# Use cases
 
-Recipes for the jobs people actually use Bomly for. Each one is a goal, the command that does it, what you get back, and where to go deeper. New to Bomly? Start with [Getting Started](GETTING_STARTED.md) first.
+This page is a set of recipes, one per job people use Bomly for. Each recipe states the goal, the command, what you get back, and where to read more. New to Bomly? Start with [Getting started](GETTING_STARTED.md).
+
+| Goal | Command |
+| --- | --- |
+| Gate a pull request | `bomly diff --base main --head HEAD --enrich --audit --fail-on high` |
+| Generate SBOMs | `bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json` |
+| Triage by reachability | `bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable` |
+| Enforce a license policy | `bomly scan --enrich --audit --allow-license MIT --fail-on any` |
+| Catch typosquats and banned packages | `bomly scan --enrich --audit --protected-package react --deny-package event-stream --fail-on any` |
+| Scan offline | `bomly scan` |
+| Scan a container image | `bomly scan --image ghcr.io/example/app:latest --enrich --audit --fail-on high` |
+| Diff two releases | `bomly diff --base v1.2.0 --head v1.3.0 --enrich --audit` |
+| Explain a dependency | `bomly explain send` |
+| Explore interactively | `bomly scan --enrich --interactive` |
 
 ## Gate a pull request on dependency vulnerabilities
 
-**Goal:** fail a PR when its dependency changes carry a high-severity vulnerability, without nagging about debt the PR didn't touch.
+**Goal:** fail a PR when its dependency changes carry a high-severity vulnerability, without complaining about packages the PR did not touch.
 
 ```bash
 bomly diff --base main --head HEAD --enrich --audit --fail-on high
 ```
 
-`diff` audits only the packages the change touched and classifies their findings as introduced / resolved / persisted, so untouched debt elsewhere in the repo never blocks a PR. Introduced and persisted findings both gate — persisted means the changed package still ships a known issue at its new version. Exit code `2` means the change carries a gating finding; see [Exit codes](EXIT_CODES.md).
+**You get:** added, removed, and changed packages, and their findings classified as introduced, resolved, or persisted. Only the packages the change touched are audited, and both introduced and persisted findings gate. The [diff command](commands/diff.md) page explains the classification. Exit code `2` means the change carries a gating finding.
 
 <details>
 <summary>Sample output — an <code>express</code> upgrade that drags in one new advisory</summary>
@@ -39,11 +52,11 @@ Version changed (9)
   Run again with --format json to see remediation details.
 ```
 
-With `--fail-on high`, this run exits `2`: the introduced finding is only medium, but the persisted high on `path-to-regexp@0.1.12` means the upgrade still ships a known high-severity issue. The gate holds until a bump reaches a fixed version — or the finding is accepted into a committed [baseline](BASELINES.md).
+With `--fail-on high` this run exits `2`. The introduced finding is only medium, but `path-to-regexp` still has a high-severity issue after the upgrade. The gate holds until a version with the fix, or until the finding is accepted into a committed [baseline](BASELINES.md).
 
 </details>
 
-→ Turnkey version for GitHub PRs: the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) ([setup](CI_INTEGRATION.md#turnkey-pr-reviews-with-bomly-guard)).
+For GitHub pull requests, the [Bomly Guard action](BOMLY_GUARD.md) runs this command for you and posts the result as a PR comment.
 
 ## Generate and publish an SBOM
 
@@ -53,21 +66,21 @@ With `--fail-on high`, this run exits `2`: the introduced finding is only medium
 bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
 ```
 
-Both files are written in one pass from the same resolved graph, and a successful run prints nothing — add `--format text` if you also want the terminal report in the build log. Use `--format spdx` (or `cyclonedx`) to stream a single SBOM to stdout instead. Details: [SBOM formats](SBOM.md).
+**You get:** both files from one scan. Add `--enrich` when the SBOM is for someone else, because most lockfiles carry no license data. Details and the `-o` rules: [SBOM formats](SBOM.md).
 
 ## Triage vulnerabilities by reachability
 
-**Goal:** cut a long advisory list down to the ones your code actually calls.
+**Goal:** cut a long advisory list down to the ones your code can reach.
 
 ```bash
 bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable
 ```
 
-`--analyze` annotates each advisory with a reachability status; combining `--fail-on high --fail-on reachable` fails only on advisories that are both high severity *and* reachable. Reachability is experimental and tier-dependent — an `unknown` status is not "safe." Read [Reachability](REACHABILITY.md) before relying on this gate.
+**You get:** a reachability status on each advisory, and a gate that fails only on advisories that are both high severity and reachable. Reachability is experimental, and "unreachable" is not "safe". Read [Reachability](REACHABILITY.md) before you rely on this gate.
 
 ## Enforce a license policy
 
-**Goal:** block dependencies under licenses you can't ship.
+**Goal:** block dependencies under licenses you cannot ship.
 
 ```bash
 # Allowlist: permit only these, fail on anything else
@@ -76,11 +89,11 @@ bomly scan --enrich --audit \
   --fail-on any
 ```
 
-Licenses are matched as SPDX expressions. Use `--deny-license` to block specific licenses instead of allowlisting, and `--license-exempt-package` to waive one package. See the [license auditor](auditors/license.md).
+**You get:** a finding for every package whose license is outside the list. Licenses are matched as SPDX expressions. Use `--deny-license` to block specific licenses instead, and `--license-exempt-package` to skip the check for one package. See the [license auditor](auditors/license.md).
 
 ## Catch typosquats and banned packages
 
-**Goal:** flag dependency names that impersonate packages you trust, or that you've banned outright.
+**Goal:** flag dependency names that look like packages you trust, or that you have banned.
 
 ```bash
 bomly scan --enrich --audit \
@@ -90,22 +103,22 @@ bomly scan --enrich --audit \
   --fail-on any
 ```
 
-The check itself is name-based — no enrichment data feeds it — but the CLI currently requires `--enrich` alongside `--audit`, so this run does contact the enrichment services. See the [package auditor](auditors/package.md).
+**You get:** a finding for each name close to a protected one, and for each denied package. The check itself only compares names, but `--audit` requires `--enrich`, so this run does contact the enrichment services. See the [package auditor](auditors/package.md).
 
-## Scan offline / air-gapped
+## Scan offline
 
-**Goal:** analyze dependencies without contacting enrichment services.
+**Goal:** analyze dependencies without contacting any service.
 
 ```bash
-bomly scan                         # matcher network is off; detector behavior varies
+bomly scan                         # no enrichment calls
 bomly scan --sbom --path sbom.json # read an SBOM you already have
 ```
 
-Without `--enrich`, matchers make **zero** outbound HTTP calls. Note that some build-tool detectors (Go, Maven, Gradle) may fetch packages during normal resolution — pre-warm the local cache or commit a lockfile to stay fully offline. See [Detectors → Network behavior](DETECTORS.md#network-behavior).
+**You get:** the dependency graph with no license or vulnerability data. Without `--enrich` Bomly makes no enrichment calls, but a detector that runs your build tool (Go, Maven, Gradle) may download packages. Commit a lockfile or fill the build tool's cache first to stay fully offline. See [Network and privacy](NETWORK.md).
 
 ## Scan and audit a container image
 
-**Goal:** find what's inside an image and gate on it.
+**Goal:** find out what is inside an image and gate on it.
 
 ```bash
 # Inventory an image (native lockfile detectors in layers + Syft for OS packages)
@@ -121,18 +134,21 @@ bomly scan --image ghcr.io/example/app:latest -o spdx=image.spdx.json
 bomly scan --image ghcr.io/example/app@sha256:<digest> --enrich --audit
 ```
 
-Bomly pulls the image using your host's registry credentials — the same ones `docker`/`podman` use — so private images work once you've authenticated (`docker login ghcr.io`). Native detectors still parse lockfiles found in layers; everything else falls through to Syft. See [Scan targets](SCAN_TARGETS.md) for the full container behavior and exit codes.
+**You get:** every package in the image. Native detectors read the lockfiles they find in the layers, and Syft covers the rest, including operating-system packages. Bomly uses your host's registry credentials (the same ones `docker` and `podman` use), so private images work once you have run `docker login`. See [Scan targets](SCAN_TARGETS.md).
 
 ### Gate a base-image upgrade in CI
 
+In a GitHub Actions job, install Bomly and audit the image you just built:
+
 ```yaml
-      - name: Install Bomly
-        run: curl -fsSL https://bomly.dev/install.sh | sh
-      - name: Audit the built image
-        run: bomly scan --image ${{ env.IMAGE }}:${{ github.sha }} --enrich --audit --fail-on high --format sarif > image.sarif
+steps:
+  - name: Install Bomly
+    run: curl -fsSL https://bomly.dev/install.sh | sh
+  - name: Audit the built image
+    run: bomly scan --image ${{ env.IMAGE }}:${{ github.sha }} --enrich --audit --fail-on high --format sarif > image.sarif
 ```
 
-Exit code `2` fails the job on a policy violation; upload `image.sarif` to the Security tab as in [CI Integration](CI_INTEGRATION.md).
+Exit code `2` fails the job on a policy violation. Upload `image.sarif` to the Security tab as shown in [CI integration](CI_INTEGRATION.md).
 
 ## Diff two releases
 
@@ -149,7 +165,7 @@ bomly diff --sbom --base old.spdx.json --head new.spdx.json
 bomly diff --image ghcr.io/example/app --base 1.4.0 --head 1.5.0 --enrich --audit --fail-on high
 ```
 
-You get added, removed, and updated dependencies, plus introduced, resolved, and persisted findings when `--audit` is set. Great for release notes, upgrade reviews, and catching what a base-image bump dragged in.
+**You get:** added, removed, and changed dependencies, plus introduced, resolved, and persisted findings when `--audit` is set. Use it for release notes, upgrade reviews, and base-image bumps.
 
 ## Understand why a dependency is there
 
@@ -159,7 +175,7 @@ You get added, removed, and updated dependencies, plus introduced, resolved, and
 bomly explain send
 ```
 
-`explain` prints every dependency path that introduces the package:
+**You get:** every dependency path that introduces the package:
 
 ```text
 package    send@0.18.0
@@ -172,7 +188,7 @@ introduced by:
         └─ send@0.18.0 [analyzed] (transitive)
 ```
 
-Add `--audit` to see findings in that path's context. Full reference: [explain](commands/explain.md).
+Add `--enrich --audit` to see the package's findings alongside the paths. Full reference: [explain](commands/explain.md).
 
 ## Explore results interactively
 
@@ -182,10 +198,10 @@ Add `--audit` to see findings in that path's context. Full reference: [explain](
 bomly scan --enrich --interactive
 ```
 
-Opens the terminal UI to navigate packages, findings, and dependency paths. Keybindings: [TUI](TUI.md).
+**You get:** a terminal UI with tabs for packages, vulnerabilities, licenses, findings, and dependency paths. Keybindings: [TUI](TUI.md).
 
 ## See also
 
-- [CI Integration](CI_INTEGRATION.md) — drop-in recipes for GitHub Actions, GitLab, Jenkins, Azure, CircleCI
-- [Output Formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
-- [Config Reference](CONFIG_REFERENCE.md) — every flag, env var, and config key
+- [CI integration](CI_INTEGRATION.md) — recipes for GitHub Actions, GitLab, Jenkins, Azure DevOps, CircleCI
+- [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
+- [Config reference](CONFIG_REFERENCE.md) — every flag, environment variable, and config key

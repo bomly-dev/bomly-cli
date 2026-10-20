@@ -40,8 +40,10 @@ Each detector reports a package's origin from the field its own lockfile records
 | What the lockfile records | SPDX 2.3 | CycloneDX |
 | --- | --- | --- |
 | The exact file the package was fetched from | `downloadLocation` | `distribution` external reference |
-| The repository it was resolved from, plus the revision when the manifest names one | `downloadLocation` as `git+<url>@<revision>`; `sourceInfo` when an artifact already holds the download location | `vcs` external reference (URL only; CycloneDX has no revision field) |
+| The repository it was resolved from, plus the revision when the manifest names one (a commit, or for GitHub Actions the tag or branch as written) | `downloadLocation` as `git+<url>@<revision>`; `sourceInfo` when an artifact already holds the download location | `vcs` external reference: `git+<url>@<revision>` when a revision is recorded, the plain repository URL otherwise |
 | Neither | `NOASSERTION` | No reference |
+
+A pinned repository is written as the same string in both formats, `git+<url>@<revision>`. That is the version-control locator form SPDX 2.3 defines, and the form the package-URL `vcs_url` qualifier uses. CycloneDX has no field of its own for a revision, so the locator goes in the URL; a reader who sees `git+` knows to parse a revision from it rather than open it. A repository with nothing to pin stays a plain URL in CycloneDX, because that is a location a reader can open.
 
 What each ecosystem yields:
 
@@ -63,7 +65,7 @@ Four kinds of value are never published:
 - **Non-web locations**: `ssh://`, `git@host:org/repo`, and similar transport addresses.
 - **URLs with credentials.** A private registry URL can embed a token.
 
-Every published origin is an absolute `http` or `https` URL with a host, a non-empty path, and no credentials. Values are re-serialized from a parse rather than copied, and the same check runs again at export, so a plugin's origin is held to the same rule as a built-in detector's.
+Every published origin is an absolute `http` or `https` URL with a host, a non-empty path, and no credentials. Values are re-serialized from a parse rather than copied, and the same check runs again at export, so a plugin's origin is held to the same rule as a built-in detector's. Both formats then compose the validated repository URL into the `git+<url>@<revision>` locator when a revision is recorded; CycloneDX keeps the plain URL when none is.
 
 ## Document identity
 

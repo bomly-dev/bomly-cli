@@ -417,6 +417,33 @@ func TestSBOMProjectVersionDescribesTheCheckoutNotTheURL(t *testing.T) {
 // TestSBOMProjectVersionFallsBackToCommitThenRef covers the targets git
 // cannot describe: the resolved commit is the next best identity, and the
 // ref as typed is the last resort rather than an omitted version.
+// The root's description explains the absence of a content hash in the
+// document itself, per target kind; a target that describes itself gets none.
+func TestSBOMProjectRootDescriptionFollowsTheTargetKind(t *testing.T) {
+	cases := []struct {
+		kind plugin.ExecutionTargetKind
+		want string
+	}{
+		{plugin.ExecutionTargetFilesystem, "Source tree"},
+		{plugin.ExecutionTargetGitRepository, "Source tree"},
+		{plugin.ExecutionTargetContainerImage, "Container image"},
+		{plugin.ExecutionTargetKind(""), ""},
+		{plugin.ExecutionTargetKind("sbom"), ""},
+	}
+	for _, tc := range cases {
+		got := sbomProjectRootDescription(plugin.ExecutionTarget{Kind: tc.kind})
+		if tc.want == "" {
+			if got != "" {
+				t.Errorf("kind %q: description = %q, want none", tc.kind, got)
+			}
+			continue
+		}
+		if !strings.HasPrefix(got, tc.want) || !strings.Contains(got, "no content hash") {
+			t.Errorf("kind %q: description = %q, want one starting %q that says no content hash applies", tc.kind, got, tc.want)
+		}
+	}
+}
+
 func TestSBOMProjectVersionFallsBackToCommitThenRef(t *testing.T) {
 	cases := []struct {
 		name    string

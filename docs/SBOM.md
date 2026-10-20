@@ -1,376 +1,60 @@
-# SBOM Formats
+# SBOM formats
 
-Bomly reads and writes the two open SBOM standards used in production today. It writes SPDX 2.3 and CycloneDX 1.7, and ingests SPDX 2.3 plus CycloneDX 1.4 through 1.7.
+This page shows how to write, read, convert, and compare Software Bills of Materials (SBOMs) with Bomly. Read it when someone asks you for an SBOM or hands you one. The field-by-field mapping lives in the [SBOM field reference](SBOM_REFERENCE.md).
 
-## What's an SBOM?
+Bomly writes SPDX 2.3 and CycloneDX 1.7. It reads SPDX 2.3 and CycloneDX 1.4 through 1.7.
 
-A Software Bill of Materials is a structured list of every package in a piece of software, with enough metadata (versions, licenses, suppliers, hashes) for an outside tool to make decisions about it. It is the dependency graph as a portable file.
+## What an SBOM is
 
-You produce an SBOM once and consume it many times: in PR checks, in release artifacts, in supplier audits, in attestation pipelines.
+An SBOM is a structured list of every package in a piece of software, with enough detail (versions, licenses, suppliers, hashes) for another tool to make decisions about it. It is your dependency graph as a portable file. You produce it once and use it many times: in pull request checks, as a release artifact, in supplier audits, and in attestation pipelines.
 
-## Format comparison
+## Which format to pick
 
 | | SPDX 2.3 | CycloneDX 1.7 |
 | --- | --- | --- |
 | Steward | Linux Foundation | OWASP |
-| Primary use case | Software supply chain and license compliance | Component analysis and vulnerability management |
+| Main use | Supply chain and license compliance | Component analysis and vulnerability management |
 | Bomly write target | `spdx` | `cyclonedx` |
-| Encoding | JSON (also Tag-Value and YAML upstream) | JSON (also XML upstream) |
-| Vulnerability data | Add-on (SPDX 3.0) | First-class (`vulnerabilities` array) |
+| Encoding Bomly writes | JSON | JSON |
+| Vulnerability data | Not in 2.3 | Built in (`vulnerabilities` array) |
 | File hashes | Yes | Yes |
-| Relationship edges | Rich `DESCRIBES`, `DEPENDS_ON`, etc. | `dependencies` graph |
-| Adoption | NTIA reference, ISO/IEC 5962 | OWASP standard, broad scanner support |
+| Relationships | `DESCRIBES`, `DEPENDS_ON`, and more | `dependencies` graph |
+| Adoption | NTIA reference, ISO/IEC 5962 | OWASP standard, wide scanner support |
 
-In practice: pick **SPDX** when a regulator or customer asks for it; pick **CycloneDX** when a vulnerability scanner is on the other end. Producing both is cheap.
+Pick SPDX when a regulator or customer asks for it. Pick CycloneDX when a vulnerability scanner will read the file. Producing both costs nothing extra.
 
-## Writing an SBOM
+## Write an SBOM
 
-Use `--format <format>` for the primary stdout output, or `-o <format>[=<path>]` when you want an SBOM alongside another output. The format alone writes to stdout; `format=path` writes to a file:
+Use `--format <format>` to print the SBOM, or `-o <format>=<path>` to write it to a file next to your normal output:
 
 ```bash
-# One format to stdout
+# Print one format
 bomly scan --format spdx
 
-# One format to a file
+# Write one format to a file
 bomly scan -o spdx=sbom.spdx.json
 
-# Two formats in one scan
-bomly scan \
-  -o spdx=sbom.spdx.json \
-  -o cyclonedx=sbom.cdx.json
-
-# One format to stdout, one to a file
-bomly scan -o spdx -o cyclonedx=sbom.cdx.json
+# Write both formats in one scan
+bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
 ```
 
-Constraints:
+`-o` is repeatable. When every `-o` names a file and you set no `--format`, Bomly writes the files and prints nothing. The full rules are in [Output formats](OUTPUT_FORMATS.md#additional-output--o). SBOM formats are available on `scan` only.
 
-- At most one `-o` may omit `=<path>`. Two stdout outputs would collide.
-- `-o spdx=` (empty path) is an error.
-- When every `-o` names a file and `--format` is not set, a successful run writes the files and prints nothing — add `--format text` if you also want the terminal report.
-- `--format spdx`, `--format cyclonedx`, `-o spdx`, and `-o cyclonedx` are supported by `scan` only.
-- Paths are resolved relative to the current working directory.
+## License data needs `--enrich`
 
-## Ingesting an SBOM
+Most lockfiles do not record licenses. Only npm and pnpm do. For every other ecosystem (Go, Maven, Python, Cargo, and the rest), a plain `bomly scan -o cyclonedx=...` writes components with no license data, and SPDX writes `NOASSERTION`.
 
-Skip detection entirely and load an existing SBOM as input:
-
-```bash
-bomly scan --sbom --path ./vendor.spdx.json
-```
-
-This is fast, offline, and useful for:
-
-- Auditing a vendor SBOM against your policy.
-- Re-running policy on an SBOM you produced in a previous CI step.
-- Diffing SBOMs across releases.
-
-Format is auto-detected by content. The supported ingest formats are SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON; anything else is rejected as an unsupported format. Most SBOM producers, including Syft, can emit one of the supported formats directly (for example `syft <target> -o spdx-json`).
-
-### What Bomly refuses to import
-
-An SBOM is refused when its JSON does not have a single unambiguous reading:
-
-- **A repeated object member name.** `{"purl": "pkg:npm/a@1", "purl": "pkg:npm/b@1"}`
-  parses under most JSON readers, and which value wins depends on how the
-  reader is written. Two tools can therefore read two different packages out
-  of one file. For a document whose whole purpose is to state what you depend
-  on, that is a smuggling vector.
-- **Bytes that are not valid UTF-8.** Readers usually substitute a replacement
-  character, so what a consumer sees is not what the document carried.
-- **An escaped character that does not exist.** `"\ud800"` is half of a
-  UTF-16 pair with no other half. The JSON standard (RFC 8259, section 8.2)
-  says software receiving such a text behaves unpredictably: some readers
-  substitute a replacement character, some fail, and none can agree on what
-  the string was. Bomly refuses the document rather than guess.
-
-All three are refused with an error naming the class, and the repeated member
-and its path or the byte offset of the bad sequence, so you can find the spot.
-The fix is to regenerate the document with a producer that emits each member
-once and writes every string as Unicode text — Bomly will not guess which
-reading you meant.
-
-Checking for a repeated name means remembering the names already seen in an
-object, and holding them until that object closes. The check therefore costs
-memory in proportion to the names open at once — across every object currently
-being read, not just the widest one. Bomly refuses a document that would hold
-more than 100,000 of them, or more than 16 MB of them, rather than spend that
-memory — a count alone is not a size, since a few long names can outweigh very
-many short ones. Neither format produces anything close: components live in an
-array, so a document being read has a handful of small objects open at a time,
-however many components it lists. Passing the largest files through unchecked
-would put the gap exactly where a crafted one would aim.
-
-A document is also refused when one of its components carries a package URL
-that cannot be made well-formed. Skipping that component would drop it and
-every relationship naming it, and a scan of what remained would report clean
-while a genuinely vulnerable dependency was simply absent from the answer. The
-error names the component so the fix can be made in the document.
-
-Beyond those, nothing was tightened. A document with unknown members, unusual
-nesting, many thousands of components, or fields Bomly does not model still
-imports exactly as before.
-
-### What an ingested document keeps
-
-Ingest reads more than package coordinates. What a source document asserted
-about each component is carried through the scan and written back out:
-supplier, originator or publisher, description, homepage, checksums, CPEs,
-and the document's own external references with the category and type it
-stated.
-
-The document's claims about *itself* are kept too — its identity, name, data
-license, timestamp, credited people, organizations and tools, and its comment.
-
-Every one of those values is untrusted input that Bomly re-publishes under its
-own name, so each is re-checked on the way in *and* on the way out. A value
-that cannot be published — a credential in a URL, a local path, a control
-character, a malformed CPE or digest — is dropped rather than passed along.
-Email addresses are never retained on a contact.
-
-## Diffing SBOMs
-
-Compare two SBOM files without re-running detectors on either side:
-
-```bash
-bomly diff --sbom --base ./v1.0.spdx.json --head ./v1.1.spdx.json
-```
-
-Useful for release notes, supplier-update reviews, and CI checks on prebuilt SBOMs.
-
-## What Bomly puts in the SBOM
-
-Both formats carry:
-
-- Package name, version, PURL.
-- Dependency relationships from the detector graph.
-- File-level evidence when the detector provided it.
-- Content hashes captured at detection time, when the ecosystem records them:
-  npm/pnpm/yarn/bun lockfile integrity values, Go module `go.sum` tree
-  hashes (the `h1:` SHA-256 dirhash, hex-encoded — the same convention
-  cyclonedx-gomod uses), SHA-256 digests of GitHub Actions workflow and
-  action manifests, and the pinned commit ID of SHA-pinned actions. Values
-  are normalized to lowercase hex so they are schema-valid in both formats.
-- License identifiers normalized to the current SPDX license list: deprecated
-  ids such as `GPL-2.0` are rewritten to their replacements (`GPL-2.0-only`)
-  inside expressions, in both formats. See "How licenses are written" below.
-- The package namespace as CycloneDX `group` — an npm scope (`@scope`), a Go
-  module owner (`github.com/google`), a Maven group (`org.apache.commons`).
-  It is taken from the PURL, so the two always agree. SPDX 2.3 has no
-  equivalent field; there the namespace is carried inside the PURL.
-- An SPDX `primaryPackagePurpose` for every package (LIBRARY for registry
-  packages, APPLICATION for the primary component, and so on).
-- Remediation guidance on CycloneDX vulnerability entries: when enrichment
-  knows fixed versions, each vulnerability carries a `recommendation`
-  ("Upgrade <package> to <version>"). No guidance is invented when no fix is
-  known. SPDX 2.3 has no equivalent field.
-- Where each package came from, when its lockfile says: an exact download
-  location or a source repository. See "Where a package came from" below.
-
-### How licenses are written
-
-A license value can be a recognized SPDX identifier, a compound expression, or
-text that means nothing to a machine. The formats keep these apart and tools
-score them differently, so Bomly checks each value rather than guessing from
-where it came:
-
-| The value | CycloneDX | SPDX 2.3 `licenseDeclared` |
-|---|---|---|
-| One SPDX identifier (`MIT`) | `license.id`, spelled canonically | the identifier |
-| A compound expression (`MIT OR Apache-2.0`) | `expression` | the expression |
-| Anything else (`see LICENSE file`) | `license.name`, as free text | a `LicenseRef-*` identifier, with the original text in `hasExtractedLicensingInfos` |
-| Nothing | no `licenses` key | `NOASSERTION` |
-
-When a source records several licenses for one package, it is saying which
-licenses it found — not whether they all apply or whether you may choose
-between them. Bomly does not fill that gap in:
-
-- **CycloneDX** lists them as separate entries, which asserts no relationship.
-- **SPDX 2.3** has only one expression field and no way to list licenses
-  without relating them, so it joins them with `AND`. That overstates
-  obligations rather than understating them, but it does say more than the
-  source did. This is the one place the two formats differ on purpose.
-
-When a source *does* state the relationship, it puts it in one value —
-`Apache-2.0 OR MIT` is how registries record dual licensing — and both formats
-publish that expression exactly as given. Dual-licensed packages are therefore
-unaffected: Bomly never rewrites an `OR` into an `AND`.
-
-SPDX `licenseConcluded` is always `NOASSERTION`. "Concluded" means the license
-the document's author determined for themselves, usually by examining the
-package's contents. Bomly reports what a lockfile or registry declares and
-analyzes no contents, so it has nothing of its own to conclude — and SPDX
-defines `NOASSERTION` for exactly that. The declared field still carries the
-license, and reading the document back recovers it.
-
-#### License data usually needs `--enrich`
-
-Most lockfiles do not record licenses. Only npm and pnpm write them into the
-lockfile, so for every other ecosystem — Go, Maven, Python, Cargo, and the rest
-— a plain `bomly scan -o cyclonedx=...` produces components with no license
-data at all (SPDX writes `NOASSERTION`).
-
-Add `--enrich` to fill them in from the deps.dev license matcher:
+Add `--enrich` to fill licenses in from the deps.dev license matcher:
 
 ```bash
 bomly scan --enrich -o cyclonedx=bom.cdx.json -o spdx=bom.spdx.json
 ```
 
-This matters for compliance review. Third-party SBOM quality checkers — the
-CRA-oriented profiles among them — report missing license data as an error, and
-a reviewer reading the file cannot tell "no license recorded" apart from "not
-looked up". If you are producing an SBOM to hand to someone else, run it with
-`--enrich`.
+This matters for compliance review. SBOM quality checkers report missing license data as an error, and a reviewer cannot tell "no license recorded" from "not looked up". If you are producing an SBOM for someone else, run it with `--enrich`. Enrichment also adds hashes, CPE identifiers, vulnerabilities, and end-of-life data; the [field reference](SBOM_REFERENCE.md#what-enrichment-adds) lists where each lands.
 
-### Where a package came from
+## Producer metadata for regulated consumers
 
-Each detector reports the origin of the packages it resolves, reading the field
-its own lockfile records it in. Bomly does not infer origin from the shape of a
-URL, because the same string means different things in different ecosystems.
-
-A detector reports one of two things, or nothing at all:
-
-| What the lockfile records | SPDX 2.3 | CycloneDX |
-|---|---|---|
-| The exact file the package was fetched from | `downloadLocation` | `distribution` external reference |
-| The repository it was resolved from, and the revision when the manifest names one: a commit, or for GitHub Actions the tag or branch exactly as written | `downloadLocation` as `git+<url>`, with `@<revision>` when present; `sourceInfo` when a download location is already taken by an artifact | `vcs` external reference (URL only) |
-| Neither | `NOASSERTION` | no reference |
-
-CycloneDX external references have no field for a revision, so the revision a
-detector reported appears only in the SPDX form.
-
-What each ecosystem yields:
-
-- **npm, pnpm, yarn, bun** — the registry tarball recorded in the lockfile.
-  Yarn Classic appends the package checksum to that URL; it identifies
-  contents rather than a location, so it is dropped. pnpm v9 entries that
-  record only an integrity hash report nothing.
-- **uv, poetry, pipenv, pip** — a repository plus the commit that was locked,
-  or a direct archive URL, depending on the recorded source type.
-- **GitHub Actions** — the repository named by the first two segments of a
-  `uses:` reference (`https://github.com/actions/checkout`, also for a
-  sub-directory action such as `github/codeql-action/upload-sarif` and for a
-  reusable workflow), at the ref written after `@`: a commit when the step is
-  SHA-pinned, otherwise the tag or branch exactly as the workflow wrote it.
-  A SHA-pinned step additionally keeps the commit as a `SHA-1` hash: a Git
-  object ID is a SHA-1, so that is its honest algorithm label, and the origin
-  beside it says the value is a commit rather than a content digest. Local
-  references (`./path` and the self-repository form `$/path`) are files in
-  the scanned tree and report nothing. The host is github.com; a repository
-  scanned with `--url` from a GitHub Enterprise Server or GHE.com host
-  reports no origin, because such an instance resolves a reference on the
-  instance first and may fall back to github.com, and the workflow file does
-  not say which one answered.
-- **cargo, Bundler, SwiftPM, pub** — the repository and resolved commit for
-  git dependencies and source-control pins. SwiftPM and pub report the same
-  origin whether the build tool ran or Bomly read the committed file: the tools
-  do not print a commit, so it is read back from `Package.resolved` and
-  `pubspec.lock`.
-- **Go modules, Maven, Gradle, NuGet, and the other detectors** — nothing yet;
-  their manifests do not record a per-package location.
-- Packages found by Syft, and packages read from an ingested SBOM, carry no
-  detector origin.
-
-With `--enrich`, a package can also get a repository it has no lockfile claim
-to. The OpenSSF Scorecard matcher resolves a canonical source repository from a
-package's identity, and that repository is used whenever the detector reported
-no repository of its own — including for the ecosystems listed above as
-yielding nothing, for Syft-detected packages, and **for packages that already
-have a download location**. An artifact and a repository answer different
-questions (which file was fetched, where the source lives), so a package can
-carry both: the artifact stays the SPDX `downloadLocation` and the CycloneDX
-`distribution` reference, while the repository becomes the `vcs` reference and,
-in SPDX, the package's source info. Only a detector-asserted repository
-displaces it.
-
-It is a network lookup keyed on package identity rather than a claim any
-manifest made, so it is weaker evidence, and no revision is attached: a
-Scorecard repository names a project, not a resolved commit. Without
-`--enrich`, or without the scorecard matcher selected, nothing of this kind
-appears.
-
-Four kinds of value are never published, in any ecosystem:
-
-- **Registry and index roots** (`https://rubygems.org/`, `https://pub.dev`, the
-  crates.io index). They say where an ecosystem fetches from, not where a
-  package came from — and once out of context, a private server URL is
-  indistinguishable from a repository.
-- **Local paths** — workspace members, editable installs, `file:` and `path:`
-  dependencies. These describe the machine that ran the scan.
-- **Non-web locations** — `ssh://`, `git@host:org/repo`, and similar remotes
-  that name a transport rather than a fetchable address.
-- **URLs carrying credentials.** A lockfile pointing at a private registry can
-  embed a token; publishing it in an SBOM would leak a live secret.
-
-Every origin a detector reports is an absolute `http`/`https` URL with a host, a
-non-empty path, and no embedded credentials. Values are re-serialized from a
-parse rather than copied from the lockfile, and the same check runs again at
-export, so origin supplied by a plugin is held to the same rule as origin from a
-built-in detector. SPDX then composes the validated repository URL into its
-`git+<url>@<revision>` locator form, which is the only place a revision
-appears.
-
-### Document identity
-
-Every generated document carries a stable identity:
-
-- A generated `urn:uuid` serial number (CycloneDX `serialNumber`; the same
-  nonce forms the SPDX document namespace, so the two exports of one scan are
-  correlatable). Two cases differ, and both apply only when the scan read
-  SBOMs rather than lockfiles:
-  - **One source document** (a conversion). The output keeps that document's
-    identity instead of minting a new one, because it restates one document
-    rather than describing a new subject. This is what makes
-    export → ingest → export reproduce the same bytes. A CycloneDX serial can
-    only hold a UUID URN, so an SPDX namespace that is not one is linked
-    instead of adopted (see below). The document *name* is unaffected: it
-    stays the scanned project's name.
-  - **Several source documents** (a merge). The output mints its own identity
-    — both formats give a document exactly one, and adopting a source's would
-    name a document that is not this one — and *links* each source. CycloneDX
-    writes a document-level external reference of type `bom`, carrying a
-    BOM-Link (`urn:cdx:<serial>/<version>`) for a CycloneDX source or the
-    namespace URI for an SPDX one. SPDX writes an `externalDocumentRefs`
-    entry naming the same identity, with a SHA-256 checksum over the source
-    document's bytes, which the specification requires on every entry; the
-    CycloneDX reference carries that checksum too, so the link stays usable
-    if the merged document is later converted to SPDX. The checksum is
-    computed while the source document is being read, because it cannot be
-    recovered from the parsed model afterwards — a source that reached Bomly
-    without those bytes is left unnamed in SPDX rather than written as an
-    invalid reference. People and tools credited by any source are credited by
-    the merged document too.
-  - Source links are read back on import, so provenance survives more than one
-    conversion: converting a merged document again produces a document that
-    still names the documents behind it, in either format.
-- The producing tool with its version (CycloneDX `metadata.tools[]`; SPDX
-  `Creator: Tool: bomly-cli-<version>`), plus one tool entry per detector that
-  contributed to the graph.
-- A project version on the primary component and the project's own
-  (first-party) modules: `git describe --tags --always --dirty` run on the
-  checkout the scan read, which is the local path or the temporary clone of
-  a `--url` target (with or without `--ref`). When Git cannot describe it,
-  the resolved commit is used, then the `--ref` value as typed. When none
-  of those is available the version is omitted rather than invented.
-- A CycloneDX lifecycle phase (`pre-build` for source scans, `post-build`
-  for container images) and a composition completeness declaration:
-  `complete` for unfiltered, warning-free scans, `incomplete` when a
-  `--scope` filter dropped part of the graph, `unknown` when resolution was
-  degraded. SPDX 2.3 has no equivalent fields.
-- A primary component describing the scanned project. When the dependency
-  graph has a single root, that root is the primary component. When a scan
-  discovers multiple manifests (several ecosystems, several workflow files),
-  Bomly synthesizes a primary component named after the scanned project with a
-  `pkg:generic` PURL; it depends on every graph root, so the exported
-  dependency graph is connected and both formats agree on the document's
-  subject. The synthesized component is not repeated in the CycloneDX
-  component inventory, and Bomly skips it when re-ingesting its own SBOMs.
-
-### Provenance metadata (EU CRA readiness)
-
-The optional `sbom` config section embeds producer metadata that regulated
-consumers (for example the EU Cyber Resilience Act's SBOM expectations) ask
-for:
+The EU Cyber Resilience Act (CRA) and similar rules expect an SBOM to name its producer and a security contact. Set them once in your config file:
 
 ```yaml
 sbom:
@@ -380,179 +64,65 @@ sbom:
   support_end: "2030-12-31"                        # CRA Art. 13(8)
 ```
 
-CycloneDX: `metadata.manufacturer`, `security-contact` / `advisories`
-external references on the primary component, and a `bomly:support_end_date`
-metadata property. SPDX 2.3 has no first-class fields for most of these, so
-Bomly emits an `Organization` creator, the supplier on the primary package,
-and the contact fields in the creation-info comment.
+CycloneDX carries these as `metadata.manufacturer`, external references on the primary component, and a `bomly:support_end_date` property. SPDX 2.3 has no fields for most of them, so Bomly writes an `Organization` creator, the supplier on the primary package, and the contacts in the creation-info comment. When `manufacturer` is set it also becomes the supplier of the primary component in both formats. Bomly never invents supplier or contact data: until the `sbom` section is configured, CRA profile checks will report it missing.
 
-When `manufacturer` is set, it becomes the supplier of the primary component
-in both formats (CycloneDX `metadata.manufacturer`, SPDX `PackageSupplier` on
-the package the document DESCRIBES). Supplier is not defaulted to anything
-when the field is unset, and per-component supplier and description data is
-never invented: those fields stay absent unless a data source actually
-provides them. Third-party CRA profile checks will flag the missing
-manufacturer/contact metadata until the `sbom` section is configured.
+## Read an SBOM
 
-When `--enrich` is set, components are enriched from the matching-stage package
-registry (keyed by PURL):
-
-- Licenses learned during matching (preferred over detection-time licenses).
-- Content digests as component hashes (CycloneDX `hashes`, SPDX `checksums`).
-- CPEs (CycloneDX `cpe`, SPDX `SECURITY`/`cpe23Type` external references).
-- Vulnerabilities — CycloneDX as a first-class `vulnerabilities` array (ratings,
-  CWEs, advisories, `affects`); SPDX as `SECURITY`/`advisory` external references.
-- End-of-life status (CycloneDX `bomly:eol*` properties, SPDX package comment).
-- A source repository resolved by the OpenSSF Scorecard matcher, used only when
-  the detector reported no repository of its own (see "Where a package came
-  from" above).
-
-Reachability annotations and other Bomly-specific metadata are emitted in the JSON output (`--json` or `--format json`), not in the standard SBOM formats. See [Output formats](OUTPUT_FORMATS.md).
-
-### Preservation and conversion limits
-
-Bomly preserves component identity (including PURL), dependency edges, roots,
-scope, package type, licenses, digests, CPEs, and the enrichment fields
-described above when the destination format has an equivalent representation.
-An ingested document keeps more than that list — supplier, originator,
-description, homepage, copyright, its own external references, and the
-document's own assertions all survive the round trip; see
-[What an ingested document keeps](#what-an-ingested-document-keeps) for the
-full set. Encoding is deterministic when the scan timestamp and document
-identifiers are fixed.
-
-Some information necessarily becomes less specific during conversion:
-
-- Vulnerabilities survive a CycloneDX round trip and are lost across SPDX.
-  A CycloneDX export carries ratings, CWEs, affected component references,
-  descriptions, advisory URLs, and the VEX `analysis` block — state,
-  justification, responses, detail — and ingest reads all of them back into
-  the package registry, so a document that says a package is `not_affected`
-  because the code is not reachable yields a scan that says so too. An SPDX
-  2.3 export carries each vulnerability as a package security advisory
-  reference and nothing more, because the format has no slot for a rating or
-  an analysis; what survives an SPDX round trip is the advisory reference
-  itself, preserved as an ordinary external reference like any other the
-  source stated. End-of-life records survive both formats (see the `bomly:eol*`
-  properties and the SPDX package comment above).
-- SPDX `licenseDeclared` and `licenseConcluded` are read as the two claims
-  they are and written back to the field each came from; a document that
-  concluded a license re-exports it as concluded, not restated as declared.
-  Bomly concludes nothing itself, so `licenseConcluded` is `NOASSERTION`
-  exactly when no source concluded anything.
-- The format and specification version a document was decoded as is
-  recorded on its assertions (`format`, for example `cyclonedx-1.6+json`)
-  and reaches the scan document; a conversion never re-emits it, since the
-  output format's own header says what the output is.
-- Scope is a set in Bomly and a single value in both formats. A package
-  reachable from both a runtime and a development root carries both scopes, so
-  each format gets Bomly's projection in its native field — runtime wins a
-  mixed set and maps to CycloneDX `required`, development-only maps to
-  `excluded` — with the full set written beside it in a carrier the importer
-  prefers: a `bomly:scopes` CycloneDX property, and the `scope=` field of the
-  SPDX package comment. A Bomly document therefore round-trips its scope set
-  exactly, and a document from any other producer still yields a usable scope.
-  Reading the other way, CycloneDX `required` becomes runtime, while
-  `optional` and `excluded` become development — the specification defines an
-  optional component as one that is not installed or otherwise reachable, so
-  it is absent from what runs.
-- A scope carrier naming a token this build does not recognize keeps the
-  scopes it does recognize. The carrier is Bomly's own, so an unreadable token
-  is almost always one a newer Bomly wrote; refusing the whole value would have
-  left the component unscoped, which in SPDX — where there is no native scope
-  field to fall back on — meant losing the scope entirely. The tokens that were
-  not read are reported as a warning naming the file.
-- A source document's own scope word is preserved and written back. A
-  component a CycloneDX document marked `optional` re-exports as `optional`,
-  not as Bomly's projection of the set it derives — so `optional` and
-  `excluded` do not collapse into `required` across a round trip that asserted
-  neither. The word yields to the projection when Bomly's own scope set stops
-  meaning what the word meant, for example once the package turns out to be
-  reachable from a development root as well. SPDX 2.3 has no scope field, so
-  the word is carried only through a CycloneDX export; an SPDX document still
-  carries the full set in its package comment.
-- Package origin is written on export but not read back on ingest: scanning an
-  SBOM produces packages with no origin, so re-exporting that graph emits
-  `NOASSERTION` and no distribution or vcs reference. Origin comes from a
-  lockfile, and an ingested document is not one. This is why references of
-  type `distribution` and `vcs` are the two Bomly does not preserve from a
-  source document: they are the shape Bomly's own origin export takes, and
-  nothing in a document distinguishes Bomly's emission from a third party's —
-  so reading them back would let a detector's guess about where a package came
-  from re-enter as though the document had asserted it. SPDX drops a third
-  type for the same reason — Bomly's own `bomly-package-origin` reference —
-  and re-derives the `purl` and CPE references from the component's identity
-  and CPE list, so ingesting them would grow the document on every round trip.
-  Every other reference type is preserved with the category and type the
-  source stated.
-- Bomly relationship confidence (`direct`, `transitive`, or `unknown`), source
-  provenance, reachability analysis, policy findings, and run diagnostics are
-  report data rather than portable SBOM fields. Use JSON when those distinctions
-  must survive export and import.
-- A CycloneDX document has one metadata component. When an input graph has
-  multiple roots, every root remains in the dependency graph and the
-  synthesized primary component (see "Document identity" above) links them.
-  An export that names no project falls back to the first deterministic root
-  instead; the internal benchmark is the only caller that does. The primary
-  component is written with the same detail as an inventory entry, so a
-  package that is
-  both the document's subject and a component describes itself the same way
-  in both places.
-- A conversion is a fixed point within a format, not across one. A CycloneDX
-  serial can hold only a UUID URN, so an SPDX source converted to CycloneDX is
-  linked rather than adopted, and converting back produces a different
-  document. See "Document identity" above for how sources are named.
-- The CycloneDX `group` namespace survives a CycloneDX round trip. SPDX 2.3
-  has no group field, so an SPDX round trip recovers the namespace only from
-  the PURL.
-- SPDX 2.3 holds one license expression per package, so several licenses are
-  composed with `AND` there while CycloneDX lists them (see "How licenses are
-  written" above). Every license is kept either way: a value SPDX cannot hold
-  verbatim becomes a `LicenseRef-*`, which is a valid expression element, so a
-  mixed set composes rather than losing its members. Reading an SPDX document
-  back gives the composed expression per field — one declared claim, one
-  concluded claim when the document states both — so a CycloneDX list that
-  went out as `A AND B` returns as the single expression `A AND B` rather
-  than as two entries.
-- End-of-life data survives a round trip through either format (the
-  `bomly:eol*` properties, the SPDX package comment) but not its source: the
-  matcher that asserted the record is not named in a document, so a
-  re-imported record carries no `source`. Re-run with `--enrich` to attribute
-  it again.
-- A component's own identifier does not survive. Ingest re-mints each node's
-  identity from its package URL, so the source document's `bom-ref` or
-  `SPDXID` is not carried into the graph and not re-emitted. Anything that
-  compares identifiers across a conversion should compare package URLs
-  instead.
-- SPDX relationships are flattened on export. Ingest accepts the whole
-  `*_DEPENDENCY_OF` family, but export writes only `DEPENDS_ON` and
-  `DESCRIBES`, so a source document's `DEV_DEPENDENCY_OF` comes back as
-  `DEPENDS_ON`. The development scope itself is preserved separately, through
-  the scope carrier described above.
-- An SPDX scope carrier that Bomly cannot fully read leaves the component
-  unscoped. The `scope=` comment field decodes all-or-nothing, so one unknown
-  token beside a known one yields no scope at all, and SPDX — unlike
-  CycloneDX — has no native scope field to fall back on (tracked as
-  bomly-dev/bomly-sdk#64).
-
-Before treating a generated file as a release artifact, validate it with the
-standard validator required by the receiving system. Bomly's tests parse every
-emitted target back through the corresponding typed codec and exercise
-round-trip identity and edge preservation; receiving systems can impose
-additional profile rules beyond the base format.
-
-## Format conversion
-
-To convert between formats, run a scan and emit both in one pass:
+Pass an existing SBOM as the scan target. Bomly skips detection and loads the file:
 
 ```bash
-bomly scan --sbom --path ./in.spdx.json --format cyclonedx > out.cdx.json
+bomly scan --sbom --path ./vendor.spdx.json
 ```
 
-Bomly does not advertise a one-shot `convert` command — the scan pipeline is the conversion path.
+Reading an SBOM is fast and offline. Use it to audit a vendor's SBOM against your policy, to re-run policy on an SBOM a previous CI step produced, or to compare SBOMs across releases. The format is detected from the content. Most SBOM producers, including Syft, can write one of the supported formats (for example `syft <target> -o spdx-json`).
+
+Bomly keeps what the source document asserted about each component (supplier, description, homepage, checksums, CPEs, external references) and about itself (identity, name, timestamp, creators), and writes it back out on export. Every value is re-checked on the way in and the way out. Values that cannot be published safely, such as a URL with a credential or a local path, are dropped.
+
+### What Bomly refuses to read
+
+An SBOM is refused when its JSON has more than one possible reading, or when a component cannot be identified:
+
+| Problem | Why it is refused |
+| --- | --- |
+| A repeated member name in one object | Different JSON readers pick different values, so two tools would read two different packages from one file |
+| Bytes that are not valid UTF-8 | Readers substitute characters, so what a consumer sees is not what the file carried |
+| An escape with no valid character (`"\ud800"`) | The JSON standard leaves the result undefined |
+| A package URL that cannot be made well-formed | Skipping the component would silently drop it and every relationship that names it |
+
+The error names the problem and where it is. Regenerate the document with a producer that writes each member once and every string as Unicode text. Documents with unknown fields, unusual nesting, or many thousands of components read fine. The size limits of the duplicate-name check are in the [field reference](SBOM_REFERENCE.md#strict-ingest-limits).
+
+## Convert between formats
+
+Read one format and write the other:
+
+```bash
+bomly scan --sbom --path ./in.spdx.json -o cyclonedx=out.cdx.json
+bomly scan --sbom --path ./in.cdx.json  -o spdx=out.spdx.json
+```
+
+There is no separate `convert` command. The scan pipeline is the conversion path, so you can add `--enrich` or `--audit` in the same run. Converting a single document keeps that document's identity, so export, read, export reproduces the same bytes within one format. Some fields have no equivalent in the other format; the [conversion limits table](SBOM_REFERENCE.md#preservation-and-conversion-limits) lists what changes.
+
+## Compare two SBOMs
+
+Compare two SBOM files without re-running detectors on either side:
+
+```bash
+bomly diff --sbom --base ./v1.0.spdx.json --head ./v1.1.spdx.json
+```
+
+Use it for release notes, supplier-update reviews, and CI checks on prebuilt SBOMs. See the [diff command](commands/diff.md).
+
+## Validate before you ship
+
+Before you treat a generated file as a release artifact, validate it with the validator the receiving system requires. Bomly's own tests parse every emitted document back and check that identity and edges survive, but a receiving system can impose profile rules beyond the base format.
+
+## What Bomly writes
+
+Both formats carry the package name, version, and package URL (PURL), the dependency relationships from the detector graph, content hashes when the lockfile records them, licenses normalized to the current SPDX list, where each package came from when the lockfile says, a stable document identity, and a primary component for the scanned project. Reachability results, policy findings, and run diagnostics are report data, not SBOM fields; use JSON output when you need them. The [SBOM field reference](SBOM_REFERENCE.md) has the mapping for every field.
 
 ## See also
 
+- [SBOM field reference](SBOM_REFERENCE.md) — how every field is written, read, and converted
 - [Scan targets](SCAN_TARGETS.md) — every input Bomly accepts
-- [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM details
+- [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, and `-o` rules
 - [SBOM detector](detectors/sbom/sbom.md) — ingest specifics

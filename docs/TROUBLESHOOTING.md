@@ -145,6 +145,34 @@ BOMLY_LOGO=rain bomly --help
 
 The animation is skipped even when `BOMLY_LOGO` is set if `BOMLY_NO_ANIMATION`, `CI`, or `BOMLY_QUIET` is set, and `NO_COLOR` switches to a plain uncolored logo. When stderr is not a terminal (pipes, redirects), no logo is printed at all.
 
+## "Nothing to evaluate" (exit 5)
+
+The scan found no project to scan. The report says what was searched, which filters were active, every manifest candidate it saw, and why each was skipped:
+
+```text
+Nothing to evaluate: no subprojects discovered for execution target with the applied filters
+  target: /home/me/monorepo
+  search: target root only (no --recursive)
+  manifest candidates found (depth <= 3) — all skipped: not scanned without --recursive
+    - api/go.mod (gomod)
+    - web/package.json (npm)
+  hint: manifests exist in subdirectories (e.g. api); retry with --recursive
+```
+
+Each reason names the setting to change:
+
+| Reason | What to do |
+| --- | --- |
+| `not scanned without --recursive` | The manifest is in a nested directory. Add `--recursive` (see [Monorepos](MONOREPOS.md)) |
+| `below --max-depth N` | Raise `--max-depth`, or use `--max-depth 0` for no limit |
+| `excluded by --exclude <pattern>` | Drop or narrow that `--exclude` pattern |
+| `excluded by --ecosystems <list>` | The candidate's ecosystem is outside your `--ecosystems` selection |
+| `detector filter excludes every <pm> detector (...)` | `--detectors` or `--exclude-detectors` removed every detector that could handle it |
+
+The probe looks at most 3 levels below the target and lists at most 8 candidates.
+
+A missing toolchain is a different failure. The manifest is found, and the scan fails at resolution with exit 3 and a message such as `subproject web (javascript/npm): no usable detector: npm-native not ready (npm not on PATH); npm not ready (no committed lockfile)`. Install the named tool, commit a lockfile, or select a detector that reads committed files.
+
 ## Need more detail
 
 Re-run with `-v` (INFO) or `-vv` (DEBUG). DEBUG logs include subprocess

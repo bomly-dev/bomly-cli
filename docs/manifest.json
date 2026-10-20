@@ -58,6 +58,12 @@
       "group": "start"
     },
     {
+      "slug": "monorepos",
+      "title": "Monorepos",
+      "description": "Recursive discovery, nested subprojects, and workspace modules in one scan.",
+      "group": "start"
+    },
+    {
       "slug": "output-formats",
       "title": "Output formats",
       "description": "Text, JSON, SARIF, and SBOM artifacts \u2014 when to use each and how to combine them.",
@@ -66,7 +72,7 @@
     {
       "slug": "sbom",
       "title": "SBOM formats",
-      "description": "SPDX 2.3 vs. CycloneDX 1.7, when to pick which, ingest and conversion recipes.",
+      "description": "Write, read, convert, and compare SPDX 2.3 and CycloneDX 1.7 SBOMs.",
       "group": "start"
     },
     {
@@ -202,6 +208,12 @@
       "group": "reference"
     },
     {
+      "slug": "sbom-reference",
+      "title": "SBOM field reference",
+      "description": "How every SBOM field is written, read, and converted between SPDX and CycloneDX.",
+      "group": "reference"
+    },
+    {
       "slug": "glossary",
       "title": "Glossary",
       "description": "Every Bomly term, one sentence each.",
@@ -210,7 +222,7 @@
     {
       "slug": "reachability",
       "title": "Reachability",
-      "description": "Confirm whether a vulnerability is actually reachable from your code. Experimental.",
+      "description": "Check whether your code can reach a vulnerable package. Experimental.",
       "group": "experimental",
       "experimental": true
     }

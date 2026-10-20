@@ -1,26 +1,14 @@
-# How To Implement An Auditor Plugin
+# How to implement an auditor plugin
 
-An auditor plugin evaluates the dependency graph and package registry after detection and optional enrichment. Use an auditor when you want to produce findings, risk scores, or policy-style decisions from data Bomly already has.
+An auditor plugin checks the dependency graph and package data after detection and optional enrichment, and reports findings. Write one when you want findings, risk scores, or policy decisions from data Bomly already has.
 
-An auditor is one `plugin.Module` with `Kind: plugin.PluginKindAuditor`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `runtime.ServeModule` — you write the component once. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to auditors.
+[Plugin authoring](authoring.md) covers the module model, repository layout, configuration, testing, packaging, and protocol rules shared by every role. This guide covers only what is specific to auditors. The SDK reference for the types used below is the [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) and [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) packages.
 
-The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) documents `Module`, `AuditorModule`, the `Auditor` interface, `AuditRequest`, and `AuditResult`; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) documents the reference-style findings and risk-score types used below; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) documents `ServeModule`.
+## Start from the template
 
-## Start From The Template
+Start from the [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin-template) repository. It ships a working matcher. To turn it into an auditor, change the module kind, the descriptor, and the role method; the layout, manifest, tests, and release workflow stay the same, with `"kind": "auditor"` in `bomly-plugin.json`.
 
-Start from the [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin-template) repository ("Use this template" on GitHub). It ships a working matcher; turning it into an auditor means changing the module kind, the descriptor, and the role method — the layout, manifest, tests, and release workflow stay the same:
-
-```text
-plugin/                  importable package: descriptor, Config, Auditor, Module()
-cmd/<binary-name>/
-  main.go                one line: runtime.ServeModule(plugin.Module())
-bomly-plugin.json        package manifest ("kind": "auditor")
-testdata/                fixtures for unit tests
-.github/workflows/       CI and the release workflow
-go.mod                   pins a released github.com/bomly-dev/bomly-sdk version
-```
-
-## The Module
+## The module
 
 ```go
 package plugin
@@ -102,7 +90,7 @@ The binary entrypoint stays one line:
 func main() { runtime.ServeModule(plugin.Module()) }
 ```
 
-## What Each Part Does
+## What each part does
 
 - `Descriptor` is the auditor's static registration: name (must equal the manifest `id`), display name, aliases, tags, support, and config schema.
 - `New` constructs the auditor once per execution, with a `plugin.HostContext` for the logger, HTTP client, runtime info, and configuration.
@@ -112,7 +100,7 @@ func main() { runtime.ServeModule(plugin.Module()) }
 
 Auditors run during `--audit`, which evaluates existing data. Do not make network calls from an auditor unless the plugin explicitly documents that behavior. Honor the context in long evaluations.
 
-## Read Graph And Registry Data
+## Read graph and registry data
 
 Bomly gives auditors the same core scan data used by built-in auditors:
 
@@ -122,7 +110,7 @@ Bomly gives auditors the same core scan data used by built-in auditors:
 - `req.Target` may be present when a command focuses on one dependency.
 - `req.DependencyDetailChanges` contains the canonical head-side dependency detail transitions during a diff audit. It is empty for scans, explains, and the base side of a diff. This optional protocol-v1 field may be absent when an older core calls the plugin.
 
-## The Findings Contract
+## The findings contract
 
 Auditors emit **reference-style** findings that point at registry packages by PURL — they never copy full package or vulnerability records:
 
@@ -148,7 +136,7 @@ Auditors may also return `RiskScores` — normalized per-package scores referenc
 
 ## Configuration
 
-Declare a typed `Config` struct with `json`, `doc:`, and `default:` tags, advertise it with `ConfigSchema: plugin.MustConfigSchemaFor(Config{})`, and decode it in `New` with `host.DecodeConfig(&cfg)`. Users set the block under `plugins.auditors.<name>`:
+Declare a typed `Config` struct, advertise it with `ConfigSchema`, and decode it in `New` as described in [Plugin authoring](authoring.md#configuration). Users set the block under `plugins.auditors.<name>`:
 
 ```yaml
 plugins:
@@ -158,48 +146,19 @@ plugins:
         - totally-not-suspicious
 ```
 
-The same block reaches the component in both execution modes. See [Configuration in the plugin guide](../PLUGINS.md#configuration-and-proxy-support) for details and the deprecated flat form.
+## Test it
 
-## Test It
-
-Unit-test policy evaluation and finding construction, and run the SDK conformance suite:
-
-```go
-func TestConformance(t *testing.T) {
-    conformance.Test(t, conformance.Config{
-        Module:       Module(),
-        ManifestPath: filepath.Join("..", "bomly-plugin.json"),
-        SampleConfig: json.RawMessage(`{"deniedPackages":["left-pad"]}`),
-    })
-}
-```
-
-Local development loop:
+Unit-test policy evaluation and finding construction, then run the conformance suite and the local loop described in [Plugin authoring](authoring.md#test-a-plugin). `--auditors +<name>` adds the auditor to the default set; `--auditors <name>` runs only it:
 
 ```bash
-go build -o ./bin/bomly-plugin-policy ./cmd/bomly-plugin-policy
-bomly plugins install ./bin/bomly-plugin-policy --dev
-bomly plugins enable com.example.policy-auditor
 bomly scan --path ./my-project --audit --auditors +com.example.policy-auditor --json
-bomly plugins verify com.example.policy-auditor
-bomly plugins test com.example.policy-auditor
-bomly plugins doctor com.example.policy-auditor
 ```
 
-`--auditors +<name>` adds the auditor to the default set; `--auditors <name>` runs only it. See [Testing a plugin](../PLUGINS.md#test-a-plugin) for the shared workflow, including `conformance.ProbeBinary`.
+## Checklist
 
-## Package And Release
+In addition to the [checklist for every plugin](authoring.md#checklist-for-every-plugin):
 
-Follow the template's release workflow: one archive per platform named `<name>_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) containing the binary, `bomly-plugin.json`, `README.md`, and `LICENSE`, plus a `SHA256SUMS` file. The manifest's `entrypoint` map names the binary per platform, and `descriptor.Name` must equal the manifest `id`. See [Package and release](../PLUGINS.md#package-and-release-a-plugin).
-
-## Implementation Checklist
-
-- Read `req.Graph` and `req.Registry`; emit reference-style findings — never inline package or vulnerability payloads.
+- Read `req.Graph` and `req.Registry`; emit reference-style findings, never inline package or vulnerability payloads.
 - Give every finding a stable `RuleID` free of versions and occurrence data.
 - Use actionable titles and clear policy statuses.
 - Return `AuditorRuns` and `AuditorFindings` with the auditor name.
-- Avoid external network calls unless the plugin explicitly documents them.
-- Honor context cancellation in long evaluations.
-- Wrap errors with useful context; avoid panics.
-- Do not log secrets, tokens, or credentials.
-- Add unit tests for policy evaluation and finding construction, plus `conformance.Test`.

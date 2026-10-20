@@ -1,26 +1,14 @@
-# How To Implement An Analyzer Plugin
+# How to implement an analyzer plugin
 
-An analyzer plugin runs code analysis after enrichment. Use an analyzer when you want to annotate vulnerabilities with reachability data — whether the scanned project can actually reach the vulnerable package or symbol — for a language the built-in analyzers do not cover, or with a technique they do not use.
+An analyzer plugin runs code analysis after enrichment and marks each vulnerability as reachable or not from the scanned project. Write one for a language the built-in analyzers do not cover, or for a technique they do not use. Analyzers run when a scan passes `--analyze` (which requires `--enrich`), after matchers and before auditors.
 
-An analyzer is one `plugin.Module` with `Kind: plugin.PluginKindAnalyzer`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `runtime.ServeModule` — you write the component once. Analyzers run when a scan passes `--analyze` (which requires `--enrich`), after matchers and before auditors. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to analyzers.
+[Plugin authoring](authoring.md) covers the module model, repository layout, configuration, testing, packaging, and protocol rules shared by every role. This guide covers only what is specific to analyzers. The SDK reference for the types used below is the [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) and [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) packages.
 
-The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) documents `Module`, `AnalyzerModule`, the `Analyzer` interface, `AnalyzeRequest`, and `AnalyzeResult`; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) documents the PURL-keyed package registry and the `Reachability` annotation used below; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) documents `ServeModule`.
+## Start from the template
 
-## Start From The Template
+Start from the [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin-template) repository. It ships a working matcher. To turn it into an analyzer, change the module kind, the descriptor, and the role method; the layout, manifest, tests, and release workflow stay the same, with `"kind": "analyzer"` in `bomly-plugin.json`.
 
-Start from the [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin-template) repository ("Use this template" on GitHub). It ships a working matcher; turning it into an analyzer means changing the module kind, the descriptor, and the role method — the layout, manifest, tests, and release workflow stay the same:
-
-```text
-plugin/                  importable package: descriptor, Config, Analyzer, Module()
-cmd/<binary-name>/
-  main.go                one line: runtime.ServeModule(plugin.Module())
-bomly-plugin.json        package manifest ("kind": "analyzer")
-testdata/                fixtures for unit tests
-.github/workflows/       CI and the release workflow
-go.mod                   pins a released github.com/bomly-dev/bomly-sdk version
-```
-
-## The Module
+## The module
 
 ```go
 package plugin
@@ -115,7 +103,7 @@ The binary entrypoint stays one line:
 func main() { runtime.ServeModule(plugin.Module()) }
 ```
 
-## What Each Part Does
+## What each part does
 
 - `Descriptor` is the analyzer's static registration: name (must equal the manifest `id`), supported languages, tiers, capabilities, and config schema.
 - `New` constructs the analyzer once per execution, with a `plugin.HostContext` for the logger, HTTP client, runtime info, and configuration.
@@ -125,7 +113,7 @@ func main() { runtime.ServeModule(plugin.Module()) }
 
 All methods receive a context. Honor cancellation: analysis can be expensive, and a cancelled scan should stop the analyzer promptly. Check `ctx.Err()` between phases and pass the context into any subprocess or HTTP call.
 
-## Reachability Semantics
+## Reachability semantics
 
 Analyzers annotate `Vulnerability.Reachability` on packages in the PURL-keyed registry (`req.Registry`). They must not add or remove dependency nodes, rewrite graph identity, or alter vulnerability identity — only attach reachability:
 
@@ -147,7 +135,7 @@ Use the statuses honestly: `model.ReachabilityReachable` when you found evidence
 
 **Never fail the scan.** Analyzer failures degrade: if your toolchain is missing, a file does not parse, or an internal step errors, report `unknown` with a reason (or return an error, which Bomly downgrades to a pipeline warning) — but prefer returning partial results over returning an error. The scan must complete either way.
 
-## Registry Deltas (`package-updates-v1`)
+## Registry deltas (`package-updates-v1`)
 
 Analyzers can respond in two shapes:
 
@@ -162,9 +150,9 @@ The rules:
 
 `model.ApplyPackageUpdates` implements the same merge the host uses, which makes the legacy fallback a one-liner (see the `Analyze` example above) and is handy in tests.
 
-## Configuration, HTTP, And Cache
+## Configuration
 
-Declare a typed `Config` struct with `json`, `doc:`, and `default:` tags, advertise it with `ConfigSchema: plugin.MustConfigSchemaFor(Config{})`, and decode it in `New` with `host.DecodeConfig(&cfg)`. Users set the block under `plugins.analyzers.<name>`:
+Declare a typed `Config` struct, advertise it with `ConfigSchema`, and decode it in `New` as described in [Plugin authoring](authoring.md#configuration). Users set the block under `plugins.analyzers.<name>`:
 
 ```yaml
 plugins:
@@ -173,50 +161,21 @@ plugins:
       maxDepth: 10
 ```
 
-The same block reaches the component in both execution modes. See [Configuration in the plugin guide](../PLUGINS.md#configuration-and-proxy-support) for details and the deprecated flat form.
+If the analyzer calls an external service, use `HostContext.HTTPClient()` and document every endpoint in the README. If the analysis is deterministic for a fixed input (lockfile hash, toolchain version), cache it inside the plugin; a cache failure is a warning, not an error.
 
-If the analyzer calls an external service, use `HostContext.HTTPClient()` so proxy settings work consistently, and document every endpoint in the README. If the analysis is deterministic for a fixed input (lockfile hash, toolchain version), add caching inside the plugin; cache failures are non-fatal — log a warning and continue.
+## Test it
 
-## Test It
-
-Unit-test the analysis logic and both response shapes, and run the SDK conformance suite (it exercises the package-updates contract for modules that advertise the capability):
-
-```go
-func TestConformance(t *testing.T) {
-    conformance.Test(t, conformance.Config{
-        Module:       Module(),
-        ManifestPath: filepath.Join("..", "bomly-plugin.json"),
-        SampleConfig: json.RawMessage(`{"maxDepth":5}`),
-    })
-}
-```
-
-Local development loop:
+Unit-test the analysis logic and both response shapes, then run the conformance suite and the local loop described in [Plugin authoring](authoring.md#test-a-plugin). `--analyzers +<name>` adds the analyzer to the default set; `--analyzers <name>` runs only it. The scan JSON records the analyzer under `metadata.analyzer_runs`, and annotated vulnerabilities carry your `reachability` block:
 
 ```bash
-go build -o ./bin/bomly-plugin-myreach ./cmd/bomly-plugin-myreach
-bomly plugins install ./bin/bomly-plugin-myreach --dev
-bomly plugins enable com.example.myreach-analyzer
 bomly scan --path ./my-project --enrich --analyze --analyzers +com.example.myreach-analyzer --json
-bomly plugins verify com.example.myreach-analyzer
-bomly plugins test com.example.myreach-analyzer
-bomly plugins doctor com.example.myreach-analyzer
 ```
 
-`--analyzers +<name>` adds the analyzer to the default set; `--analyzers <name>` runs only it. The scan JSON records the analyzer under `metadata.analyzer_runs`, and annotated vulnerabilities carry your `reachability` block. See [Testing a plugin](../PLUGINS.md#test-a-plugin) for the shared workflow, including `conformance.ProbeBinary`.
+## Checklist
 
-## Package And Release
-
-Follow the template's release workflow: one archive per platform named `<name>_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) containing the binary, `bomly-plugin.json`, `README.md`, and `LICENSE`, plus a `SHA256SUMS` file. The manifest's `entrypoint` map names the binary per platform, and `descriptor.Name` must equal the manifest `id`. See [Package and release](../PLUGINS.md#package-and-release-a-plugin).
-
-## Implementation Checklist
+In addition to the [checklist for every plugin](authoring.md#checklist-for-every-plugin):
 
 - Annotate `Vulnerability.Reachability` on registry packages; do not rewrite graph or vulnerability identity.
-- Never abort the scan: degrade to `unknown` (with a reason) or partial results on any failure.
+- Never abort the scan: degrade to `unknown` with a reason, or to partial results.
 - Advertise `SupportedLanguages`, `SupportedTiers`, and `Capabilities` accurately.
 - Return `PackageUpdates` only when `req.AcceptPackageUpdates` is true; otherwise return the full registry.
-- Honor context cancellation in long-running analysis.
-- Make network calls through `HostContext.HTTPClient()` and document every endpoint.
-- Wrap errors with useful context; avoid panics.
-- Do not log secrets, tokens, or credentials.
-- Add unit tests for the analysis logic and both response shapes, plus `conformance.Test`.

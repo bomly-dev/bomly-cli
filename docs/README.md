@@ -11,8 +11,9 @@ Install Bomly and run your first scan.
 - [Tutorial](TUTORIAL.md) — from first scan to a CI gate on a real project, with representative output from the workflow
 - [Use Cases](USE_CASES.md) — recipes for PR gates, SBOMs, triage, license and offline scans
 - [Scan Targets](SCAN_TARGETS.md) — directories, Git repos, containers, SBOMs
+- [Monorepos](MONOREPOS.md) — recursive discovery, subprojects, and workspace modules
 - [Output Formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
-- [SBOM Formats](SBOM.md) — SPDX vs. CycloneDX, write and ingest
+- [SBOM Formats](SBOM.md) — write, read, convert, and compare SPDX and CycloneDX
 - [FAQ](https://bomly.dev/faq) — quick answers on privacy, accounts, tool differences, and first-scan surprises (source: [`faq.json`](faq.json))
 
 ## How it works
@@ -23,7 +24,8 @@ What Bomly does, and why each piece exists.
 - [Detectors](DETECTORS.md) — turning project evidence into a dependency graph
 - [Matchers](MATCHERS.md) — enriching the graph with vulnerability, license, lifecycle data
 - [Auditors](AUDITORS.md) — evaluating the graph against policy
-- [Plugins](PLUGINS.md) — install, trust, configure, and package external plugins
+- [Plugins](PLUGINS.md) — install, trust, select, and configure external plugins
+- [Plugin authoring](plugins/authoring.md) — write, test, package, and release a plugin
 - Plugin implementation guides: [detector](plugins/how-to-implement-detector.md), [matcher](plugins/how-to-implement-matcher.md), [auditor](plugins/how-to-implement-auditor.md), [analyzer](plugins/how-to-implement-analyzer.md)
 - Example plugin repos: [Bun detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector), [ClearlyDefined matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher), [EOL lifecycle matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher), [Meme auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor)
 - [MCP Server](MCP.md) — connect Bomly to Claude Code, Cursor, VS Code, or another MCP client
@@ -55,6 +57,7 @@ Specifications, matrices, and design deep dives. The generated pages are regener
 - [Network and Privacy](NETWORK.md) — every network trigger, what it transmits, and how to stay offline
 - [Security and Trust Boundaries](SECURITY.md) — permissions, network behavior, plugins, input limits, and residual risks
 - [Release assurance](ASSURANCE.md) — the checks every release goes through, what they prove, and where to read the per-release report
+- [SBOM field reference](SBOM_REFERENCE.md) — how every SBOM field is written, read, and converted
 - [Glossary](GLOSSARY.md) — every term, one sentence each
 
 ## Experimental

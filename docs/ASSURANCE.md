@@ -17,8 +17,8 @@ explains what the checks are, when they run, and what they do and do not prove.
 | Post-release assessment | After the release is published | How the binaries people actually download behave |
 
 Splitting the work this way is deliberate. Checks that can be flaky, or that
-need a fix in the source tree, run **before** a version number exists, so a
-problem is fixed by a normal pull request instead of by a broken release.
+need a fix in the source tree, run **before** a version number exists. A
+problem found there is fixed by a normal pull request, not by a broken release.
 Checks that describe the published files can only run once those files exist.
 
 ## How the report is organized

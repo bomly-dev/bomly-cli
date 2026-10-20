@@ -112,7 +112,7 @@ Bomly gives auditors the same core scan data used by built-in auditors:
 
 ## The findings contract
 
-Auditors emit **reference-style** findings that point at registry packages by PURL — they never copy full package or vulnerability records:
+Auditors emit **reference-style** findings: each finding points at a registry package by PURL instead of copying the package or vulnerability record:
 
 ```go
 finding := model.Finding{

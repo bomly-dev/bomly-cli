@@ -1,6 +1,6 @@
 # Reachability
 
-> **Experimental.** Reachability is opt-in (`--analyze`) and still maturing. The output shape is stable, but ecosystem coverage is growing, and the JavaScript, Python, and JVM analyzers work at package precision: they confirm that your code imports the vulnerable package, not that it calls the vulnerable function. Read [Unreachable is not safe](#unreachable-is-not-safe) before you gate CI on it.
+> **Experimental.** Reachability is opt-in (`--analyze`) and still maturing. The output shape is stable, but ecosystem coverage is growing. The JavaScript, Python, and JVM analyzers work at package precision: they confirm that your code imports the vulnerable package, not that it calls the vulnerable function. Read [Unreachable is not safe](#unreachable-is-not-safe) before you gate CI on it.
 
 Reachability answers one question per vulnerability: can the scanned project reach the vulnerable code at all? Use it to stop chasing high-severity advisories in transitive packages your code never imports. This page explains what the analyzers check, what the results mean, and where they appear.
 

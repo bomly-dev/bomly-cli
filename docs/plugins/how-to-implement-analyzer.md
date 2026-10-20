@@ -115,7 +115,7 @@ All methods receive a context. Honor cancellation: analysis can be expensive, an
 
 ## Reachability semantics
 
-Analyzers annotate `Vulnerability.Reachability` on packages in the PURL-keyed registry (`req.Registry`). They must not add or remove dependency nodes, rewrite graph identity, or alter vulnerability identity — only attach reachability:
+Analyzers annotate `Vulnerability.Reachability` on packages in the PURL-keyed registry (`req.Registry`). They must not add or remove dependency nodes, rewrite graph identity, or alter vulnerability identity. They only attach reachability:
 
 ```go
 pkg, ok := req.Registry.Get("pkg:golang/example.com/mod@v1.2.3")
@@ -131,9 +131,16 @@ for i := range pkg.Vulnerabilities {
 }
 ```
 
-Use the statuses honestly: `model.ReachabilityReachable` when you found evidence, `model.ReachabilityUnreachable` when the analysis completed and found none (state your tier — package-tier unreachable does not mean safe), `model.ReachabilityUnknown` with a `Reason` when the analysis could not complete, and leave the annotation absent when the vulnerability is outside your scope.
+Use the statuses honestly:
 
-**Never fail the scan.** Analyzer failures degrade: if your toolchain is missing, a file does not parse, or an internal step errors, report `unknown` with a reason (or return an error, which Bomly downgrades to a pipeline warning) — but prefer returning partial results over returning an error. The scan must complete either way.
+| Status | When to report it |
+| --- | --- |
+| `model.ReachabilityReachable` | You found evidence of a path |
+| `model.ReachabilityUnreachable` | The analysis completed and found none. State your tier; package-tier unreachable does not mean safe |
+| `model.ReachabilityUnknown` with a `Reason` | The analysis could not complete |
+| No annotation | The vulnerability is outside your scope |
+
+**Never fail the scan.** If your toolchain is missing, a file does not parse, or an internal step fails, report `unknown` with a reason and return the results you have. Bomly downgrades a returned error to a pipeline warning, but partial results are more useful than an error. The scan must complete either way.
 
 ## Registry deltas (`package-updates-v1`)
 

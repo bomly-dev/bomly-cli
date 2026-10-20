@@ -87,6 +87,6 @@ Same table as every command ([Exit codes](../EXIT_CODES.md)): `2` when an introd
 
 ## See also
 
-- [scan](scan.md) — the shared target, gate, and output flags
-- [Bomly Guard](../BOMLY_GUARD.md) — this command as a turnkey GitHub Action
+- [scan](scan.md) — the shared target, step, and output flags
+- [Bomly Guard](../BOMLY_GUARD.md) — this command as a ready-made GitHub Action
 - [Use Cases → Release diff](../USE_CASES.md) — reviewing dependency changes between releases

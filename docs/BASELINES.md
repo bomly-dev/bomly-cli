@@ -25,7 +25,7 @@ The baseline commands run the normal audited pipeline, so they need `--enrich`. 
 | `bomly baseline prune --enrich` | Removes entries no longer found by a complete audit. Never adds findings |
 | `bomly baseline inspect [--path <dir>]` | Prints the baseline a project would use |
 
-Writes go to a temporary file first and then replace the baseline in one step. The write commands work only on a writable local project, and they refuse to change the baseline when the scan reports reduced detector, matcher, analyzer, or auditor coverage, because a partial scan would record a partial truth.
+Writes go to a temporary file first and then replace the baseline in one step. The write commands work only on a writable local project. They refuse to change the baseline when the scan reports reduced detector, matcher, analyzer, or auditor coverage, because a partial scan would record a partial truth.
 
 ## How Bomly finds the baseline
 

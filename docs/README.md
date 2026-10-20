@@ -29,7 +29,7 @@ What Bomly does, and why each piece exists.
 - Plugin implementation guides: [detector](plugins/how-to-implement-detector.md), [matcher](plugins/how-to-implement-matcher.md), [auditor](plugins/how-to-implement-auditor.md), [analyzer](plugins/how-to-implement-analyzer.md)
 - Example plugin repos: [Bun detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector), [ClearlyDefined matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher), [EOL lifecycle matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher), [Meme auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor)
 - [MCP Server](MCP.md) — connect Bomly to Claude Code, Cursor, VS Code, or another MCP client
-- [Bomly Guard](BOMLY_GUARD.md) — the turnkey GitHub Action for PR dependency review
+- [Bomly Guard](BOMLY_GUARD.md) — the GitHub Action for pull request dependency review
 
 ## Operations
 

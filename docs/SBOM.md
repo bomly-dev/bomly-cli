@@ -118,7 +118,15 @@ Before you treat a generated file as a release artifact, validate it with the va
 
 ## What Bomly writes
 
-Both formats carry the package name, version, and package URL (PURL), the dependency relationships from the detector graph, content hashes when the lockfile records them, licenses normalized to the current SPDX list, where each package came from when the lockfile says, a stable document identity, and a primary component for the scanned project. Reachability results, policy findings, and run diagnostics are report data, not SBOM fields; use JSON output when you need them. The [SBOM field reference](SBOM_REFERENCE.md) has the mapping for every field.
+Both formats carry:
+
+- the package name, version, and package URL (PURL);
+- the dependency relationships from the detector graph;
+- content hashes, when the lockfile records them;
+- licenses, normalized to the current SPDX list;
+- where each package came from, when the lockfile says;
+- a stable document identity and a primary component for the scanned project.
+ Reachability results, policy findings, and run diagnostics are report data, not SBOM fields; use JSON output when you need them. The [SBOM field reference](SBOM_REFERENCE.md) has the mapping for every field.
 
 ## See also
 

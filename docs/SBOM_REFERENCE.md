@@ -18,7 +18,7 @@ This page says exactly how Bomly writes, reads, and converts each part of an SBO
 
 ## How licenses are written
 
-A license value can be an SPDX identifier, a compound expression, or free text. The formats keep these apart and tools score them differently, so Bomly checks each value instead of guessing from its source:
+A license value can be an SPDX identifier, a compound expression, or free text. The formats keep these apart, and tools score them differently. Bomly therefore checks each value instead of guessing from its source:
 
 | The value | CycloneDX | SPDX 2.3 `licenseDeclared` |
 | --- | --- | --- |

@@ -157,7 +157,7 @@ The rules:
 
 ## Degrade, do not fail
 
-Enrichment failures should not sink a scan. If the upstream service is down or a response does not parse, prefer returning partial results — the packages you did enrich, with `UnmatchedPackages` counted in `MatcherStats` — over returning an error. Report a completely unavailable dependency (missing token, unreachable endpoint) through `Ready` with a clear reason instead of failing mid-`Match`. Cache lookups that fail are non-fatal: log a warning and continue without the cache.
+An enrichment failure should not stop a scan. If the upstream service is down or a response does not parse, return partial results: the packages you did enrich, with `UnmatchedPackages` counted in `MatcherStats`. Do not return an error. Report a completely unavailable dependency (missing token, unreachable endpoint) through `Ready` with a clear reason instead of failing mid-`Match`. Cache lookups that fail are non-fatal: log a warning and continue without the cache.
 
 ## Configuration
 

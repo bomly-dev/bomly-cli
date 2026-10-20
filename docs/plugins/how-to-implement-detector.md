@@ -145,7 +145,7 @@ Hand off gracefully instead of failing hard:
 
 ## Discovery metadata
 
-Detector plugins participate in subproject discovery and scan planning through descriptor fields, aggregated across every registered detector exactly like the built-ins:
+Detector plugins take part in project discovery and scan planning through descriptor fields. Bomly aggregates them across every registered detector, built-in or external:
 
 - `PackageManagerSupport.EvidencePatterns` — file names (such as `bun.lock`) whose presence plans this detector for a directory.
 - `DetectorDescriptor.IgnoredDirectories` — directory basename globs recursive discovery (`--recursive`) must not descend into (a Node detector declares `node_modules`, a Maven detector declares `target`).

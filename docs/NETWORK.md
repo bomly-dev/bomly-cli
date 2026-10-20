@@ -2,7 +2,7 @@
 
 Bomly contacts no vulnerability or license service, sends no telemetry, and checks for no updates unless you ask it to. This page is the complete list of what can make Bomly reach the network, what it sends, and how to keep a run offline. Read it when you need to approve Bomly for a restricted environment.
 
-A plain `bomly scan` of a local directory with committed lockfiles reads files and exits. There is one exception. When a lockfile detector cannot resolve a project, the detector chain may fall back to a detector that runs your build tool (Maven, Gradle, Go, and others), and that tool may download dependencies under its own configuration. The table and the offline recipe below cover it.
+A plain `bomly scan` of a local directory with committed lockfiles reads files and exits. There is one exception. When a lockfile detector cannot resolve a project, the detector chain may fall back to a detector that runs your build tool (Maven, Gradle, Go, and others). That tool may download dependencies under its own configuration. The table and the offline recipe below cover it.
 
 ## What triggers network access
 

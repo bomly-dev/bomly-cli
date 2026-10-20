@@ -311,9 +311,9 @@ Every origin a detector reports is an absolute `http`/`https` URL with a host, a
 non-empty path, and no embedded credentials. Values are re-serialized from a
 parse rather than copied from the lockfile, and the same check runs again at
 export, so origin supplied by a plugin is held to the same rule as origin from a
-built-in detector. SPDX then composes the validated repository URL into its
-`git+<url>@<revision>` locator form, which is the only place a revision
-appears.
+built-in detector. Both formats then compose the validated repository URL
+into the `git+<url>@<revision>` locator form when a revision is recorded;
+CycloneDX keeps the plain URL when none is.
 
 ### Document identity
 

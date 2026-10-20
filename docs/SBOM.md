@@ -233,11 +233,16 @@ A detector reports one of two things, or nothing at all:
 | What the lockfile records | SPDX 2.3 | CycloneDX |
 |---|---|---|
 | The exact file the package was fetched from | `downloadLocation` | `distribution` external reference |
-| The repository it was resolved from, and the revision when the manifest names one: a commit, or for GitHub Actions the tag or branch exactly as written | `downloadLocation` as `git+<url>`, with `@<revision>` when present; `sourceInfo` when a download location is already taken by an artifact | `vcs` external reference (URL only) |
+| The repository it was resolved from, and the revision when the manifest names one: a commit, or for GitHub Actions the tag or branch exactly as written | `downloadLocation` as `git+<url>`, with `@<revision>` when present; `sourceInfo` when a download location is already taken by an artifact | `vcs` external reference: `git+<url>@<revision>` when a revision is recorded, the plain repository URL otherwise |
 | Neither | `NOASSERTION` | no reference |
 
-CycloneDX external references have no field for a revision, so the revision a
-detector reported appears only in the SPDX form.
+A pinned repository is written as the same string in both formats,
+`git+<url>@<revision>`, which is the version-control locator form SPDX 2.3
+defines and the package-URL `vcs_url` qualifier uses. CycloneDX has no field
+of its own for a revision and does not say what a `vcs` URL may carry, so the
+locator goes in the URL; a reader who sees `git+` knows to parse a revision
+from it rather than open it. A repository with nothing to pin stays a plain
+URL in CycloneDX, because that is a location a reader can open.
 
 What each ecosystem yields:
 
@@ -306,9 +311,9 @@ Every origin a detector reports is an absolute `http`/`https` URL with a host, a
 non-empty path, and no embedded credentials. Values are re-serialized from a
 parse rather than copied from the lockfile, and the same check runs again at
 export, so origin supplied by a plugin is held to the same rule as origin from a
-built-in detector. SPDX then composes the validated repository URL into its
-`git+<url>@<revision>` locator form, which is the only place a revision
-appears.
+built-in detector. Both formats then compose the validated repository URL
+into the `git+<url>@<revision>` locator form when a revision is recorded;
+CycloneDX keeps the plain URL when none is.
 
 ### Document identity
 

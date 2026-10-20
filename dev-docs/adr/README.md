@@ -91,7 +91,7 @@ Each file is a stub naming where the decision lives now. Cleaned up
 | ADR-0007 | [Package locations are detector-relative today](0007-package-locations-are-detector-relative-today.md) | Retired: implementation, see `internal/engine/consolidation` |
 | ADR-0008 | [Python graph resolution is lockfile-first, validated, and provenance-backed](0008-python-graph-resolution-is-lockfile-first.md) | Retired: one ecosystem, see `internal/detectors/python` |
 | ADR-0009 | [Detector fallbacks are loud, annotated degradations](0009-detector-fallbacks-are-loud-annotated-degradations.md) | Folded into ADR-0024 |
-| ADR-0010 | [Detector logs are request-scoped by subproject](0010-detector-logs-are-request-scoped-by-subproject.md) | Retired: logging plumbing, see `AGENTS.md` |
+| ADR-0010 | [Detector logs are request-scoped by subproject](0010-detector-logs-are-request-scoped-by-subproject.md) | Retired: logging plumbing, see `detectorLogger` in `internal/engine/pipeline_resolve.go` |
 | ADR-0012 | [Recursive discovery prunes native multi-module roots per package manager](0012-recursive-discovery-prunes-native-multi-module-roots.md) | Folded into ADR-0013 |
 | ADR-0014 | [Per-module manifest emission lives in detectors, not consolidation](0014-per-module-manifest-emission-lives-in-detectors.md) | Folded into ADR-0013, ADR-0015 and ADR-0033 |
 | ADR-0016 | [Unresolved dependency parents use an explicit unknown relationship](0016-unresolved-parents-use-explicit-unknown-relationship.md) | Folded into ADR-0033 |

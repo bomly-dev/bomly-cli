@@ -14,7 +14,7 @@ require (
 	github.com/bomly-dev/bomly-plugin-pyreach-analyzer v0.4.0
 	github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.3.0
 	github.com/bomly-dev/bomly-plugin-syft-detector v0.6.0
-	github.com/bomly-dev/bomly-sdk v0.14.8
+	github.com/bomly-dev/bomly-sdk v0.14.10
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
@@ -157,7 +157,7 @@ require (
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
-	github.com/github/go-spdx/v2 v2.7.0 // indirect
+	github.com/github/go-spdx/v2 v2.7.1 // indirect
 	github.com/glebarez/go-sqlite v1.23.0 // indirect
 	github.com/glebarez/sqlite v1.11.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect

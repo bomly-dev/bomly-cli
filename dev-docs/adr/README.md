@@ -2,7 +2,7 @@
 
 An ADR records a choice Bomly made between viable alternatives, so the next
 person who proposes the other alternative finds the reasoning instead of
-re-deriving it. The directory holds 20 live records and the stubs of 28
+re-deriving it. The directory holds 21 live records and the stubs of 28
 retired ones; the full text of a retired record is in git history.
 
 ## When to write one
@@ -73,6 +73,7 @@ The rule itself is [ADR-0034](0034-decisions-are-recorded-as-individual-adrs.md)
 | ADR-0044 | 2026-09-12 | [A guard must be able to fail and know its reach](0044-a-guard-must-be-able-to-fail-and-know-its-reach.md) |
 | ADR-0047 | 2026-10-03 | [Release assurance is a catalog plus a per-check result contract](0047-release-assurance-is-a-catalog-and-a-result-contract.md) |
 | ADR-0048 | 2026-10-19 | [OSV stays opt-in; Grype keeps its database fresh](0048-osv-stays-opt-in-and-grype-keeps-its-database-fresh.md) |
+| ADR-0049 | 2026-10-19 | [A pinned origin is one VCS locator in every export](0049-a-pinned-origin-is-one-vcs-locator-in-every-export.md) |
 
 ## Retired
 

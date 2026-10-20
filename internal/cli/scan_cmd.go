@@ -279,9 +279,31 @@ func scanSBOMBuildOptions(logger *zap.Logger, target plugin.ExecutionTarget, pro
 	}
 	if name := strings.TrimSpace(project.Name); name != "" {
 		opts.DocumentName = name
-		opts.ProjectRoot = &sbom.ProjectRoot{Name: name, Version: sbomProjectVersion(logger, target, project)}
+		opts.ProjectRoot = &sbom.ProjectRoot{
+			Name:        name,
+			Version:     sbomProjectVersion(logger, target, project),
+			Description: sbomProjectRootDescription(target),
+		}
 	}
 	return opts
+}
+
+// sbomProjectRootDescription says what the synthesized primary component is,
+// so a consumer finds the reason it carries no content hash in the document
+// itself rather than in Bomly's documentation (issue #508). A source tree is
+// described from its manifests and lockfiles and is not a distributed
+// artifact, so no hash applies to it; a container image is inventoried from
+// its filesystem, not from an archive of it. Other targets, such as a
+// re-exported SBOM, describe themselves and get no statement from Bomly.
+func sbomProjectRootDescription(target plugin.ExecutionTarget) string {
+	switch target.Kind {
+	case plugin.ExecutionTargetGitRepository, plugin.ExecutionTargetFilesystem:
+		return "Source tree of the scanned project, described from its manifests and lockfiles. A source tree is not a distributed artifact, so no content hash applies to it and no files were analyzed."
+	case plugin.ExecutionTargetContainerImage:
+		return "Container image the scan inventoried from its filesystem. The document describes the image's contents, not an archive of it, so no content hash applies to the root."
+	default:
+		return ""
+	}
 }
 
 // sbomProjectVersion picks the version the SBOM's primary component carries

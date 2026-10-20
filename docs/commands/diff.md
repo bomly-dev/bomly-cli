@@ -59,7 +59,7 @@ The JSON shape is documented in the [diff schema](../schemas/diff.md).
 
 ## Exit codes
 
-Same table as every command ([Exit Codes](../EXIT_CODES.md)): `2` when an audited head-side finding matches `--fail-on`, `3`/`5` when either side fails to resolve or has nothing to evaluate.
+Same table as every command ([Exit codes](../EXIT_CODES.md)): `2` when an introduced or persisted finding matches `--fail-on`, `3` or `5` when either side fails to resolve or has nothing to evaluate.
 
 ## See also
 

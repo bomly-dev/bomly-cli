@@ -52,7 +52,7 @@ separate network behavior.
 
 **`--fail-on`** — An audit gate. Vulnerability tokens include severity (`any` / `low` / `medium` / `high` / `critical`), `reachable`, and `exploitable`; repeated vulnerability tokens combine with AND. The diff-only `source-change` token independently fails package source changes to Git or a URL. See [Auditors](AUDITORS.md).
 
-**Exit code** — `0` success, `1` execution error, `2` policy violation, `3` resolution failure, `4` invalid input. See [Exit codes](EXIT_CODES.md).
+**Exit code** — `0` success, `1` execution error, `2` policy violation, `3` resolution failure, `4` invalid input, `5` nothing to evaluate. See [Exit codes](EXIT_CODES.md).
 
 ## SBOM
 

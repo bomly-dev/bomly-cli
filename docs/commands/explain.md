@@ -26,7 +26,7 @@ introduced by:
         └─ send@0.18.0 [analyzed] (transitive)
 ```
 
-Every path is shown, not just the shortest one — here `send` enters both directly through `express` and again through `serve-static`, which matters when you're deciding what to bump.
+Every path is shown, not just the shortest one. Here `send` comes in through `express` and again through `serve-static`. That matters when you decide what to upgrade. `[analyzed]` marks a package that reachability analysis looked at.
 
 ## Naming the package
 

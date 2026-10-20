@@ -19,7 +19,7 @@ If you intentionally disabled Syft fallback (`--detectors -syft-detector`) and t
 
 ## "invalid `--fail-on` value" (exit 4)
 
-The token is not one of `any` / `low` / `medium` / `high` / `critical` / `reachable`. Tokens are case-insensitive; the error message lists the accepted set.
+The value is not one of `any`, `low`, `medium`, `high`, `critical`, `reachable`, `exploitable`, or (for `bomly diff`) `source-change`. Values are case-insensitive. The error message lists the accepted set.
 
 ```bash
 bomly scan --audit --fail-on critical    # correct
@@ -117,7 +117,7 @@ A plugin was built against a different version of Bomly's plugin SDK. Rebuild th
 Either you didn't pass `--analyze`, or the analyzer for the ecosystem isn't applicable.
 
 - Reachability is opt-in. Add `--analyze`.
-- Each ecosystem has its own analyzer (Go: `govulncheck`; JS/TS: `jsreach`; Python: `pyreach`; JVM: `jvmreach`). If your project's ecosystem isn't listed, status will stay `not_applicable`.
+- Each ecosystem has its own analyzer (Go: `govulncheck`; JS/TS: `jsreach`; Python: `pyreach`; JVM: `jvmreach`). If your project's ecosystem has no analyzer, every status stays `unknown`.
 
 See [Reachability](REACHABILITY.md) for ecosystem coverage.
 

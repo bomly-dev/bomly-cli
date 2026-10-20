@@ -36,7 +36,7 @@ The Components tree groups manifests the way the project is actually laid out: m
 | --- | --- |
 | `↑` / `k` | Move up one row |
 | `↓` / `j` | Move down one row |
-| `Home` / `g` | Jump to top |
+| `Home` (or `g` on tabs without grouping) | Jump to top |
 | `End` / `G` | Jump to bottom |
 | `PgUp` / `Ctrl+u` | Half-page up |
 | `PgDn` / `Ctrl+d` | Half-page down |

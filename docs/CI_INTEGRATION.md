@@ -86,38 +86,9 @@ The diff audits only the packages the PR touched, so findings on untouched packa
 
 Cuts cold-start enrichment time from minutes to seconds. Cache TTLs are listed in [Matchers](MATCHERS.md#cache).
 
-### Turnkey PR reviews with Bomly Guard
+### Pull request reviews with Bomly Guard
 
-The recipes above call the CLI directly. For GitHub pull requests, the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) wraps the same `bomly diff --enrich --audit` flow into a single step.
-
-```yaml
-name: Bomly Guard
-
-on:
-  pull_request:
-
-permissions:
-  contents: read
-  pull-requests: write
-  security-events: write
-
-jobs:
-  guard:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: bomly-dev/bomly-guard@v1
-        with:
-          fail-on: high
-          deny-licenses: GPL-3.0-only
-          comment-summary-in-pr: on-failure
-```
-
-The action's inputs map onto the CLI policy flags. See [Bomly Guard](BOMLY_GUARD.md) for the full input and output reference.
-
-The action installs the Bomly CLI — not project package managers. Add ecosystem setup steps (e.g. `actions/setup-node`, `actions/setup-java`) before Bomly Guard when your project uses build-tool-backed detectors or `install-first`. See [Package Manager Setup](BOMLY_GUARD.md#package-manager-setup).
+For GitHub pull requests, the [Bomly Guard action](BOMLY_GUARD.md) wraps `bomly diff --enrich --audit` in one step and posts the result as a PR comment. Its quick start, required permissions, and inputs are on that page. The action installs Bomly, not your package managers; add setup steps such as `actions/setup-node` before it when your project needs them (see [Package manager setup](BOMLY_GUARD.md#package-manager-setup)).
 
 ## GitLab CI
 
@@ -148,10 +119,10 @@ bomly:
         - "**/package-lock.json"
         - "**/pom.xml"
     paths:
-      - .cache/bomly
+      - .bomly-cache
 ```
 
-GitLab natively renders CycloneDX SBOMs through `reports:cyclonedx`. To point Bomly's cache at the GitLab cache, export `XDG_CACHE_HOME` or configure matcher-specific cache directories in `~/.bomly/config.yaml`.
+GitLab renders CycloneDX SBOMs through `reports:cyclonedx`. GitLab can only cache paths inside the project directory, and Bomly's default cache is `~/.bomly/cache`. To use the GitLab cache, set each matcher's `cache_dir` to a path under the project (for example `.bomly-cache/grype`) in your config file or with the `BOMLY_*_CACHE_DIR` environment variables listed in the [Config reference](CONFIG_REFERENCE.md).
 
 ## Jenkins
 
@@ -243,7 +214,7 @@ For local enforcement:
   hooks:
     - id: bomly
       name: bomly scan
-      entry: bomly scan --audit --fail-on critical --format text
+      entry: bomly scan --enrich --audit --fail-on critical --format text
       language: system
       pass_filenames: false
       stages: [pre-push]

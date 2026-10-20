@@ -127,7 +127,7 @@ Bomly pulls the image using your host's registry credentials — the same ones `
 
 ```yaml
       - name: Install Bomly
-        run: curl -sSfL https://github.com/bomly-dev/bomly-cli/releases/latest/download/bomly_linux_amd64.tar.gz | tar -xz -C /usr/local/bin bomly
+        run: curl -fsSL https://bomly.dev/install.sh | sh
       - name: Audit the built image
         run: bomly scan --image ${{ env.IMAGE }}:${{ github.sha }} --enrich --audit --fail-on high --format sarif > image.sarif
 ```

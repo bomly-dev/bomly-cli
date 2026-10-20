@@ -100,7 +100,7 @@
     {
       "slug": "plugins",
       "title": "Plugins",
-      "description": "Install, enable, verify, and build external detectors, matchers, and auditors.",
+      "description": "Install, enable, verify, and build external detectors, matchers, auditors, and analyzers.",
       "group": "concepts",
       "hasChildren": true
     },

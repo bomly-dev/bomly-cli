@@ -18,13 +18,13 @@ Drop-in pipeline snippets for GitHub Actions, GitLab CI, Jenkins, Azure DevOps, 
 
 ### MCP server (Official)
 
-`bomly mcp serve` is built into the binary and works with any MCP client that supports stdio transport. Documented host setups: Claude Code, Cursor, VS Code, GitHub Copilot, and Codex.
+`bomly mcp serve` is built into the binary and works with any MCP client that supports stdio transport. The guide shows setup for Claude Code, Cursor, and VS Code.
 → [MCP Server](MCP.md)
 
 ### Agent guidance snippet (Official)
 
 A ready-made instruction block for `CLAUDE.md` / `AGENTS.md` / `copilot-instructions.md` that has coding agents run a dependency diff before committing lockfile changes.
-→ [MCP Server → Agent workflows](MCP.md)
+→ [MCP Server → Example prompts](MCP.md#example-prompts)
 
 ## GitHub code scanning
 
@@ -38,7 +38,7 @@ Official install channels: Homebrew tap (`bomly-dev/tap`), WinGet (`Bomly.BomlyC
 
 ## Plugins
 
-External detectors, matchers, and auditors install as managed plugins (versioned, verified, disabled until enabled). Official plugin repositories:
+External detectors, matchers, auditors, and analyzers install as managed plugins (versioned, verified, disabled until enabled). Official plugin repositories:
 
 - **ClearlyDefined license matcher (Official)** — license enrichment from clearlydefined.io. → [bomly-plugin-clearlydefined-matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher)
 - **EOL lifecycle matcher (Official)** — end-of-life status from endoflife.date. → [bomly-plugin-eol-matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher)

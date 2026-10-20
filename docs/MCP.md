@@ -1,59 +1,49 @@
-# MCP Server
+# MCP server
 
-Bomly can run as a local Model Context Protocol (MCP) server. This lets an MCP-aware agent call Bomly's dependency graph tools directly instead of asking you to paste scan output into chat.
+Bomly can run as a local server for the Model Context Protocol (MCP), the standard AI coding agents use to call tools. An agent such as Claude Code, Cursor, or VS Code can then run `scan`, `explain`, and `diff` itself instead of asking you to paste output into the chat. This page shows how to connect each client, what the tools return, and how to fix common problems.
 
-The server is local and stdio-based:
+The server is local and talks over standard input and output:
 
-- the MCP client starts `bomly mcp serve` as a child process
-- Bomly reads the same project files the CLI can read
-- tool results are returned as structured JSON
-- Bomly does not host a remote MCP endpoint
+- the MCP client starts `bomly mcp serve` as a child process;
+- Bomly reads the same project files the CLI can read;
+- results come back as structured JSON;
+- there is no hosted Bomly endpoint, account, or API key.
 
 ## Prerequisites
 
-Install Bomly first and make sure the `bomly` executable is on `PATH`:
+Install Bomly and make sure `bomly` is on `PATH`:
 
 ```bash
 bomly version
 ```
 
-If that command fails, install Bomly from [Installation](INSTALLATION.md) or use the absolute path to the binary in your MCP client config.
-
-Start the server by hand when you want to check that the command works:
+If that fails, install from [Installation](INSTALLATION.md), or use the binary's absolute path in your client config. To check that the server itself starts, run it by hand; it prints a banner to stderr and then waits for a client:
 
 ```bash
 bomly mcp serve
 ```
 
-The command writes its startup banner to stderr and then waits for an MCP client on stdio. It is not meant to be used as an interactive shell command after startup.
+### Without installing the CLI
 
-## Without Installing The CLI First
-
-If you would rather not install Bomly separately, the [`bomly-mcp`](https://www.npmjs.com/package/bomly-mcp) npm package starts the same server:
+The [`bomly-mcp`](https://www.npmjs.com/package/bomly-mcp) npm package starts the same server and downloads the CLI for you:
 
 ```bash
 npx -y bomly-mcp
 ```
 
-Its install step downloads the release archive for your platform from GitHub Releases and checks it against `SHA256SUMS`, the file published with each release that lists the SHA-256 checksum of every archive in it. If the archive's checksum does not match the one listed there, the install fails and nothing is unpacked. Otherwise the binary is unpacked inside the package, together with the `LICENSE`, `NOTICE`, and `licenses/` files the archive carries. Set `BOMLY_MCP_VERSION` to pin a different CLI version.
+Its install step downloads the release archive for your platform from GitHub Releases and checks it against the release's `SHA256SUMS` file. If the checksum does not match, nothing is unpacked. Set `BOMLY_MCP_VERSION` to pin a CLI version. Anywhere below that a config uses `"command": "bomly"` with `"args": ["mcp", "serve"]`, you can use `"command": "npx"` with `"args": ["-y", "bomly-mcp"]` instead. If `bomly` is already on `PATH`, prefer it: it starts faster and your package manager updates it.
 
-Anywhere below that a config uses `"command": "bomly"` with `"args": ["mcp", "serve"]`, you can use `"command": "npx"` with `"args": ["-y", "bomly-mcp"]` instead. If `bomly` is already on `PATH`, prefer it: the server starts faster and you update it with your package manager.
+## Connect a client
 
-## Claude Code
+### Claude Code
 
-Add Bomly as a local stdio server:
+Add Bomly as a local server:
 
 ```bash
 claude mcp add --transport stdio bomly -- bomly mcp serve
 ```
 
-Or, without a separate CLI install:
-
-```bash
-claude mcp add --transport stdio bomly -- npx -y bomly-mcp
-```
-
-For a project-scoped config you can also commit a `.mcp.json` file:
+Or commit a project-scoped `.mcp.json`:
 
 ```json
 {
@@ -68,11 +58,11 @@ For a project-scoped config you can also commit a `.mcp.json` file:
 }
 ```
 
-Claude Code prompts before using project-scoped servers from `.mcp.json`. Use `/mcp` inside Claude Code to inspect the connection and available tools.
+Claude Code asks before it uses a project-scoped server. Run `/mcp` inside Claude Code to inspect the connection and the tools.
 
-## Cursor
+### Cursor
 
-Create or update `.cursor/mcp.json` in a project, or `~/.cursor/mcp.json` for your user:
+Create or update `.cursor/mcp.json` in the project, or `~/.cursor/mcp.json` for your user:
 
 ```json
 {
@@ -87,11 +77,11 @@ Create or update `.cursor/mcp.json` in a project, or `~/.cursor/mcp.json` for yo
 }
 ```
 
-Then open Cursor's MCP settings and confirm that the Bomly server is enabled. If Cursor cannot start the server, run `bomly mcp serve` in a terminal from the same environment Cursor uses.
+Then confirm in Cursor's MCP settings that the server is enabled. If Cursor cannot start it, run `bomly mcp serve` in a terminal from the same environment Cursor uses.
 
-## VS Code
+### VS Code
 
-Create or update `.vscode/mcp.json` in a workspace, or your user MCP config:
+Create or update `.vscode/mcp.json` in the workspace, or your user MCP config:
 
 ```json
 {
@@ -105,122 +95,88 @@ Create or update `.vscode/mcp.json` in a workspace, or your user MCP config:
 }
 ```
 
-Use the command palette action `MCP: List Servers` or `MCP: Open Workspace Folder MCP Configuration` to inspect the server. VS Code also supports sandbox settings for local stdio servers if you want to restrict filesystem or network access.
+Use the command palette actions `MCP: List Servers` or `MCP: Open Workspace Folder MCP Configuration` to inspect it. VS Code can also sandbox local servers if you want to restrict file or network access.
 
 ## Tools
 
-Bomly registers four MCP tools.
+Bomly registers four tools. The three graph tools use the same detectors, matchers, auditors, and analyzers as the CLI, so coverage matches the [Support matrix](SUPPORT_MATRIX.md).
 
-| Tool | Use it for | Required arguments | Optional arguments | Enrichment behavior |
-| --- | --- | --- | --- | --- |
-| `bomly_scan` | Scan a path, Git URL, container image, or SBOM and return a compact dependency summary. | None | `path`, `image`, `url`, `ref`, `enrich`, `audit`, `analyze`, policy arguments, `ecosystems`, `scope`, `recursive`, `max_depth`, `exclude` | `enrich` adds vulnerabilities and remediation. `audit` adds policy results and requires `enrich`. |
-| `bomly_explain` | Show why one package is present, with full advisory details when enriched. | `package` | `path`, `enrich`, `audit`, `analyze`, policy arguments, `recursive`, `max_depth`, `exclude` | `enrich` adds vulnerabilities and remediation. `audit` adds policy results and requires `enrich`. |
-| `bomly_diff` | Compare dependencies between Git refs, container images, or SBOM files. | `base`, `head` | `path`, `image`, `sbom`, `enrich`, `audit`, `analyze`, policy arguments, `recursive`, `max_depth`, `exclude` | `enrich` adds head-side remediation. `audit` adds the policy finding delta and requires `enrich`. |
-| `bomly_plugins` | List built-in and installed external plugins with their enabled state. | None | None | Does not enrich package data. |
+| Tool | Use it for | Required | Optional |
+| --- | --- | --- | --- |
+| `bomly_scan` | Scan a path, Git URL, container image, or SBOM | None | `path`, `image`, `url`, `ref`, `enrich`, `audit`, `analyze`, policy arguments, `ecosystems`, `scope`, `recursive`, `max_depth`, `exclude` |
+| `bomly_explain` | Show why one package is present, with full advisory detail when enriched | `package` | `path`, `enrich`, `audit`, `analyze`, policy arguments, `recursive`, `max_depth`, `exclude` |
+| `bomly_diff` | Compare dependencies between Git refs, image tags, or SBOM files | `base`, `head` | `path`, `image`, `sbom`, `enrich`, `audit`, `analyze`, policy arguments, `recursive`, `max_depth`, `exclude` |
+| `bomly_plugins` | List built-in and installed external components with their enabled state | None | None |
 
-MCP coverage matches Bomly CLI coverage: `bomly_scan`, `bomly_explain`, and `bomly_diff` use the same detector, matcher, auditor, and analyzer registry as the CLI. See [Support Matrix](SUPPORT_MATRIX.md) for the current ecosystem and package-manager list.
+The arguments mirror the CLI flags. `enrich` adds vulnerabilities and fix suggestions, and `audit` and `analyze` both require it. The policy arguments are `fail_on`, `allow_vulnerability_ids`, `allow_licenses`, `deny_licenses`, `license_exempt_packages`, `deny_packages`, `deny_groups`, `protected_packages`, `typosquat_threshold`, `typosquat_mode`, `warn_only`, and `baseline`. Per-call values layer over the server's resolved configuration and are validated with the same rules as the flags. For `bomly_diff`, `base` and `head` are Git refs by default; set `image` to compare two image tags or digests, or `sbom: true` to compare two SBOM files.
 
-The policy arguments shared by scan, explain, and diff are `fail_on`,
-`allow_vulnerability_ids`, `allow_licenses`, `deny_licenses`,
-`license_exempt_packages`, `deny_packages`, `deny_groups`, `protected_packages`,
-`typosquat_threshold`, `typosquat_mode`, `warn_only`, and `baseline`. Per-call values layer
-over the server's resolved configuration and are validated with the same rules
-as CLI flags.
+## What the tools return
 
-## Compact Responses And Drill-Down
-
-MCP tool results land in an agent's context window, so they use a compact response shape (`schema_version: "mcp/1"`), sized for tool-result limits and versioned independently of the CLI JSON documents in [JSON Schemas](SCHEMAS.md). A realistic enriched scan that serializes to megabytes as a full document comes back as a few KB of actionable data.
+Tool results land in the agent's context window, so they use a compact shape (`schema_version: "mcp/1"`) that is versioned separately from the CLI JSON documents. A scan that is megabytes as a full document comes back as a few kilobytes.
 
 `bomly_scan` returns:
 
-- **`summary`** — manifest/package counts, `subprojects` and `modules` counts for scans that span nested projects or workspace/reactor members (omitted for flat scans), vulnerable vs clean packages, findings by severity, and whether enrich/audit ran. A clean non-audited scan also returns a capped package inventory. The full hierarchy is derived from `manifests[].subproject` + `path` in the complete CLI JSON document.
-- **`remediations`** — possible changes for vulnerable packages. Each group names the package and, when known, the manifest to update. Bomly sorts the most urgent groups first. `recommended_version` appears only when the available data supports one complete recommendation.
-  - `direct-bump` means updating a package declared directly in the project.
-  - `transitive-override` means pinning an indirect package with the package manager's override feature.
-  - `lockfile-refresh` means asking the package manager to resolve a newer indirect package version.
-  - `no-fix-upstream` means the advisory source says no fixed version exists.
-  - `manual-review` means the available data does not support a specific change.
-- **`informational`** — findings that do not currently require a change. This includes warning-only findings and vulnerabilities allowed by audit policy or below the selected failure threshold.
-- **`diagnostics`** — pipeline warnings (detector fallbacks, matcher failures) so partial results explain themselves, plus the [CI-readiness warnings](CI_READINESS.md) detectors record while resolving: package-manager, lockfile-format, and install-policy mismatches that fail a CI install even after the vulnerability is fixed.
-- **`truncation`** — explicit counters whenever a cap cut anything; nothing is dropped silently.
+| Field | Content |
+| --- | --- |
+| `summary` | Manifest and package counts, `subprojects` and `modules` counts when the scan spans nested projects, vulnerable and clean package counts, findings by severity, and whether enrich and audit ran. A clean scan without audit also includes a capped package list |
+| `remediations` | Suggested changes for vulnerable packages, most urgent first. Each group names the package and, when known, the manifest to edit. `recommended_version` appears only when the data supports one complete recommendation |
+| `informational` | Findings that need no change now: warning-only findings, and vulnerabilities allowed by policy or below the failure threshold |
+| `diagnostics` | Pipeline warnings (detector fallbacks, matcher failures) and the [CI-readiness warnings](CI_READINESS.md), so partial results explain themselves |
+| `truncation` | Counters for anything a size cap cut, so the agent knows what it did not see |
 
-Each finding carries advisory identifiers (`vuln_id`, aliases), severity, classification (`fix_available`, `no_fix_upstream`, `wont_fix`, `policy_only`), the shortest dependency path, and KEV/EPSS/reachability signals — but no descriptions, reference URLs, or CVSS vectors.
+Each remediation group carries one of these actions:
 
-For the omitted detail:
+| Action | Meaning |
+| --- | --- |
+| `direct-bump` | Update a package declared directly in the project |
+| `transitive-override` | Pin an indirect package with the package manager's override feature |
+| `lockfile-refresh` | Ask the package manager to resolve a newer indirect version |
+| `no-fix-upstream` | The advisory source says no fixed version exists |
+| `manual-review` | The data does not support a specific change |
 
-- **One package**: call `bomly_explain` with `enrich`. Its response carries the package's full advisory records and remediation context, bounded to that package. Add `audit` when you also need policy results; `audit` requires `enrich`.
-- **The complete document**: run the CLI (`bomly scan --format json -o <file>`). The MCP server intentionally never returns the full scan document; it does not fit tool-result limits on real projects.
+Each finding carries the advisory identifiers, severity, classification (`fix_available`, `no_fix_upstream`, `wont_fix`, `policy_only`), the shortest dependency path, and the KEV, EPSS, and reachability signals, but no descriptions, reference URLs, or CVSS vectors. For that detail, call `bomly_explain` with `enrich` on one package; its response carries the full advisory records for that package only. The server never returns the complete scan document, because it does not fit tool-result limits on real projects. When you need it, run the CLI: `bomly scan --format json -o scan.json`.
 
-With `enrich`, `bomly_diff` returns remediation groups for vulnerable packages
-on the head side. With `audit` (which requires `enrich`), it also returns findings bucketed into a
-`security_delta`: `introduced`, `resolved`, and `persisted`. By default `base`
-and `head` are Git refs; set `image` to compare two container tags or digests,
-or `sbom: true` to compare two SBOM files.
+`bomly_diff` with `enrich` returns fix suggestions for vulnerable packages on the head side. With `audit` it also returns the findings grouped as `introduced`, `resolved`, and `persisted` under `security_delta`.
 
-## Example Prompts
+## Example prompts
 
-After the server is connected, ask your agent for focused dependency tasks:
+Once the server is connected, ask for focused dependency tasks:
 
 ```text
-Use Bomly to scan this project and summarize high-severity findings.
+Use Bomly to scan this project and summarize the high-severity findings.
 ```
 
 ```text
-Use Bomly to explain why lodash is present before changing package.json.
+Use Bomly to explain why lodash is present before you change package.json.
 ```
 
 ```text
 Use Bomly to diff this branch against main and tell me whether the PR introduces new vulnerable dependencies.
 ```
 
-For repeatable team behavior, put a short instruction in your repository's agent guidance:
+For repeatable team behavior, add a line to your repository's agent instructions (`CLAUDE.md`, `AGENTS.md`, or `copilot-instructions.md`):
 
 ```text
 Before committing dependency or lockfile changes, use Bomly's MCP tools to run a dependency diff against the base branch and explain any new vulnerable package.
 ```
 
-This is a workflow hint, not a security guarantee. Review the tool output and the proposed code changes.
+This is a workflow hint, not a security guarantee. Review the tool output and the proposed changes.
 
-## Security And Network Behavior
+## Security and network behavior
 
-Bomly's MCP server runs as your user on your machine. Treat it like running the Bomly CLI from the same repository:
-
-- it can read project files that the Bomly process can access
-- it can invoke package-manager tools used by detectors if those tools are on `PATH`
-- it inherits the environment passed by your MCP client
-- it does not need a Bomly account, API key, or token
-
-Network enrichment is opt-in via `enrich` for `bomly_scan`, `bomly_explain`, and `bomly_diff`. Without enrichment, matchers do not call vulnerability, license, lifecycle, or scorecard services. Some detectors may still invoke package-manager commands, and those tools can contact package registries as part of normal dependency resolution. See [Detectors](DETECTORS.md#network-behavior) for the detector-level breakdown.
+The server runs as your user on your machine. Treat it like running the CLI from the same repository: it can read the project files your user can read, it can run the package-manager tools detectors use when they are on `PATH`, and it inherits the environment your client passes. Enrichment is opt-in through the `enrich` argument; without it Bomly contacts no vulnerability or license service. [Network and privacy](NETWORK.md) lists everything that can reach the network.
 
 ## Troubleshooting
 
-### A Tool Reports Only A Short Failure Category
+### A tool reports only a short failure category
 
-MCP tool errors use short messages such as `scan pipeline failed` or
-`diff target resolution failed`. Bomly does not send raw internal errors to the
-MCP client because they can contain local paths, command output, URLs, or
-credentials.
+Tool errors are short, such as `scan pipeline failed` or `diff target resolution failed`. Bomly does not send raw internal errors to the client, because they can contain local paths, command output, URLs, or credentials. Request validation works the same way: it names the category, not the rejected value, so an agent may need to check the tool schema or retry with fewer options to find an invalid combination.
 
-Run the server with `bomly -vv mcp serve` and reproduce the request to inspect
-the safe stage logs emitted independently by the component that failed. The
-MCP error log itself records only the stable category and the Go type of the
-unwrapped cause, never the cause text. The MCP client must keep stdout reserved
-for the protocol.
-
-Request validation uses the same short category instead of echoing the rejected
-value. This keeps paths, URLs, and other user input out of the protocol and
-logs, but it also means an agent may need to inspect the tool schema or retry
-with fewer options to identify an invalid combination.
+To see the detail, run the server with `bomly -vv mcp serve` and repeat the request. The components log their own stage details; the MCP error log records only the category.
 
 ### `spawn bomly ENOENT`
 
-Your MCP client cannot find `bomly` on `PATH`. Run:
-
-```bash
-which bomly
-```
-
-Then either fix the client environment or use the absolute path:
+The client cannot find `bomly` on `PATH`. Run `which bomly`, then fix the client's environment or use the absolute path:
 
 ```json
 {
@@ -229,39 +185,24 @@ Then either fix the client environment or use the absolute path:
 }
 ```
 
-### The Server Starts But No Tools Appear
+### The server starts but no tools appear
 
-Check the MCP client's server status panel first. Then run:
+Check the client's server status panel first. Then run `bomly mcp serve` in a terminal. If it exits at once, fix the printed error. If you changed the config recently, restart the server or reset the client's cached tool list.
 
-```bash
-bomly mcp serve
-```
+### A scan takes a long time
 
-If the command exits immediately, fix the printed error. If you recently changed the config, restart the MCP server or reset the client's cached tool list.
+The tools run the real pipeline. Large repositories, container images, Git clones, enrichment, and build-tool-backed detectors take longer than a lockfile-only scan. Narrow the request where you can, for example `{"path": "./services/api", "scope": "runtime"}`. If your client has per-tool timeouts, raise the timeout for the Bomly server rather than retrying the same scan.
 
-### A Scan Takes A Long Time
+### A detector says a package manager is missing
 
-The MCP tools run the real Bomly pipeline. Large repositories, container images, Git clones, enrichment, and build-tool-backed detectors can take longer than small lockfile-only scans.
+Bomly does not install package managers. Install the one the project uses, or run from an environment that has it. Lockfile-parser detectors and SBOM ingest need no package-manager binaries.
 
-Use narrower arguments when possible:
+### A scan says "no subprojects discovered"
 
-```json
-{
-  "path": "./services/api",
-  "scope": "runtime"
-}
-```
+The error lists the target, the search scope, the active filters, and every manifest candidate under the target with the reason it was skipped. Check these in order:
 
-For clients with per-tool timeouts, increase the timeout for the Bomly server rather than retrying the same scan in a loop.
+- `path` points at the project root;
+- no `ecosystems` filter excludes what is there;
+- if the candidates are in subdirectories, pass `recursive: true`, because discovery looks only at the target root by default; `max_depth` and `exclude` bound the walk.
 
-### A Detector Says A Package Manager Is Missing
-
-Bomly does not install package managers for you. Install the package manager the project uses, or scan from an environment where that tool is already available. Lockfile-parser detectors and SBOM ingest do not need package-manager binaries.
-
-### I Need The Full Scan Document
-
-MCP responses are intentionally compact. When an agent (or you) needs the complete three-collection JSON document, run the CLI instead: `bomly scan --format json -o scan.json`. For advisory detail on a single package, `bomly_explain` returns it without the size cost.
-
-### A Scan Says "No Subprojects Discovered"
-
-The error is a short report: the target and search scope, any active filters, and every manifest candidate that exists under the target with the reason discovery skipped it (`- web/package.json (npm) — skipped: not scanned without --recursive`, or `— skipped: excluded by --ecosystems go`; a reason shared by every candidate is stated once in the section header). Check that the `path` argument points at the project root and that no `ecosystems` filter excludes what is actually there. When the probe reports manifests in subdirectories only (a monorepo of independent projects), pass `recursive: true` — discovery inspects only the target root by default. `max_depth` and `exclude` bound the recursive walk; see [Scan targets](SCAN_TARGETS.md#recursive-discovery----recursive).
+[Troubleshooting](TROUBLESHOOTING.md#nothing-to-evaluate-exit-5) lists every skip reason and its fix.

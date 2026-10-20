@@ -1,17 +1,17 @@
 # Integrations
 
-Tools and surfaces that Bomly plugs into. Entries are tagged **Official** (built and maintained by the Bomly project) or **Community** (maintained by their own authors — direct support questions to them). To suggest an addition, open a pull request that adds an entry in the same format.
+This page lists the tools and services Bomly connects to, with one line and a link each. Use it to find the right guide for your CI system, editor, or package manager. Entries marked **Official** are built and maintained by the Bomly project. **Community** entries are maintained by their own authors, who also answer support questions. To add one, open a pull request with an entry in the same format.
 
 ## CI / CD
 
 ### Bomly Guard (Official)
 
-The turnkey GitHub Action: runs `bomly diff` against a pull request's merge base and reports dependency changes, findings, and an updatable PR comment, with optional SARIF upload to code scanning.
+The GitHub Action for pull requests. It runs `bomly diff` against the merge base, fails the check on policy violations, posts or updates one PR comment, and can upload SARIF to code scanning.
 → [bomly-dev/bomly-guard](https://github.com/bomly-dev/bomly-guard) · [Guard guide](BOMLY_GUARD.md)
 
 ### Direct CLI recipes (Official)
 
-Drop-in pipeline snippets for GitHub Actions, GitLab CI, Jenkins, Azure DevOps, and CircleCI, plus a pre-commit hook for local enforcement.
+Copy-and-paste recipes for GitHub Actions, GitLab CI, Jenkins, Azure DevOps, and CircleCI, plus a pre-commit hook.
 → [CI Integration](CI_INTEGRATION.md)
 
 ## AI agents and editors
@@ -23,44 +23,38 @@ Drop-in pipeline snippets for GitHub Actions, GitLab CI, Jenkins, Azure DevOps, 
 
 ### Agent guidance snippet (Official)
 
-A ready-made instruction block for `CLAUDE.md` / `AGENTS.md` / `copilot-instructions.md` that has coding agents run a dependency diff before committing lockfile changes.
+A ready-made instruction for `CLAUDE.md`, `AGENTS.md`, or `copilot-instructions.md` that makes a coding agent run a dependency diff before it commits lockfile changes.
 → [MCP Server → Example prompts](MCP.md#example-prompts)
 
 ## GitHub code scanning
 
-SARIF 2.1.0 output uploads to the GitHub Security tab (and any other SARIF-aware tool) either via Guard's `upload-sarif` input or directly from the CLI.
-→ [Output Formats → SARIF](OUTPUT_FORMATS.md#sarif--ci-security-tools)
+Bomly writes SARIF 2.1.0, which the GitHub Security tab and other SARIF-aware tools read. Upload it through Guard's `upload-sarif` input or from the CLI.
+→ [Output formats → SARIF](OUTPUT_FORMATS.md#sarif)
 
 ## Package managers and distribution
 
-Official install channels: Homebrew tap (`bomly-dev/tap`), WinGet (`Bomly.BomlyCLI`), Scoop, install scripts (`bomly.dev/install.sh`), Linux packages, `go install`, and prebuilt release archives with checksums and SLSA provenance.
+Official install channels:
+
+- Homebrew tap (`bomly-dev/tap`)
+- WinGet (`Bomly.BomlyCLI`) and Scoop
+- Install scripts (`bomly.dev/install.sh`, `bomly.dev/install.ps1`)
+- Linux packages (`.deb`, `.rpm`, `.apk`, Arch)
+- `go install`
+- Release archives with checksums, a signed checksum file, and build provenance
+
 → [Installation](INSTALLATION.md)
 
 ## Plugins
 
-External detectors, matchers, auditors, and analyzers install as managed plugins (versioned, verified, disabled until enabled). Official plugin repositories:
+External detectors, matchers, auditors, and analyzers install as plugins: versioned, checksum-verified, and disabled until you enable them. Official plugin repositories:
 
 - **ClearlyDefined license matcher (Official)** — license enrichment from clearlydefined.io. → [bomly-plugin-clearlydefined-matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher)
 - **EOL lifecycle matcher (Official)** — end-of-life status from endoflife.date. → [bomly-plugin-eol-matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher)
 - **Bun lockfile detector (Official, example)** — reference implementation for plugin authors. → [bomly-plugin-bun-lock-detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector)
 - **Meme auditor (Official, example)** — a deliberately silly auditor showing the minimal auditor contract. → [bomly-plugin-meme-auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor)
 
-Write your own: [Plugins](PLUGINS.md) and the per-role implementation guides.
-
-### Marketplace
-
-The [Bomly marketplace](https://bomly.dev/marketplace) lists every component that can take part in a scan — detectors, matchers, auditors, and analyzers — filterable by kind and ecosystem. It covers built-in components alongside external plugins, so you can see what already runs before installing anything.
-
-Each entry is labelled by origin, and the label tells you who wrote the code:
-
-- **Core** — Bomly's own components, shipped in the binary.
-- **Bundled** — third-party engines compiled in, such as Syft and Grype.
-- **External plugin** — installed at runtime from its own repository.
-
-External plugins run as separate processes and stay disabled until you enable them. Read [Security and Trust Boundaries](SECURITY.md) for what a plugin can and cannot reach, and [Plugins](PLUGINS.md) for the install, verify, and enable workflow.
-
-To get a plugin listed, open a submission from the marketplace page. Entries are reviewed and added by hand — there is no automatic index.
+→ [Plugins](PLUGINS.md) to install and trust one · [Plugin authoring](plugins/authoring.md) to write one · the [marketplace](https://bomly.dev/marketplace) to browse every built-in and external component
 
 ## Community
 
-No community integrations are listed yet — if you've built one (a CI orb, an IDE extension, a dashboard that reads Bomly JSON), open a pull request adding it here with a one-line description and a link.
+No community integrations are listed yet. If you have built one (a CI orb, an IDE extension, a dashboard that reads Bomly JSON), open a pull request that adds it here with one line and a link.

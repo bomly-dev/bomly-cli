@@ -1,18 +1,33 @@
-# CI Integration
+# CI integration
 
-Drop-in recipes for running Bomly in CI.
+This page gives copy-and-paste recipes for running Bomly in GitHub Actions, GitLab CI, Jenkins, Azure DevOps, CircleCI, and a pre-commit hook. Read it when you run a CI system other than GitHub pull requests, or when you want full control over the flags. For GitHub pull requests, [Bomly Guard](BOMLY_GUARD.md) does this in one step.
 
-The pattern is the same everywhere: install Bomly, run `bomly scan` with `--audit --fail-on <severity>`, upload SBOM and SARIF artifacts, and let exit code 2 fail the build on policy violations. See [Exit codes](EXIT_CODES.md).
+Every recipe follows the same four steps:
 
-## Install strategy
+1. Install a pinned Bomly version.
+2. Run `bomly scan --enrich --audit --fail-on <severity>`.
+3. Upload the SBOM and SARIF files, even when the scan fails.
+4. Let exit code `2` fail the build. See [Exit codes](EXIT_CODES.md).
 
-Prefer package-manager installs where the runner image supports them. Otherwise use the verified install script or a pinned GitHub Release archive. Pin versions in CI rather than relying on `latest`.
+| Platform | SARIF display | SBOM artifact | Cache |
+| --- | --- | --- | --- |
+| GitHub Actions | Security tab, through `upload-sarif` | `upload-artifact` | `actions/cache` on `~/.bomly/cache` |
+| GitLab CI | Not native | `artifacts`, plus `reports:cyclonedx` for the built-in viewer | Project-local directory only |
+| Jenkins | Warnings Next Generation plugin | `archiveArtifacts` | Workspace |
+| Azure DevOps | SARIF SAST Scans Tab extension | `PublishBuildArtifacts` | Pipeline caching |
+| CircleCI | Not native | `store_artifacts` | `save_cache` on `~/.bomly/cache` |
+
+## Install
+
+Prefer a package-manager install where the runner image supports it. Otherwise use the install script with a pinned version. Never rely on `latest` in CI:
 
 ```bash
-curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
+curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.28.3 sh
 ```
 
 ## GitHub Actions
+
+Scan on pushes and pull requests, upload SARIF to the Security tab, and keep the SBOMs as artifacts:
 
 ```yaml
 name: Bomly
@@ -29,11 +44,10 @@ jobs:
       security-events: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Bomly
-        run: |
-          curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
+        run: curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.28.3 sh
 
       - name: Scan
         run: |
@@ -57,9 +71,11 @@ jobs:
           path: sbom.*.json
 ```
 
-`if: success() || failure()` ensures SARIF and SBOM uploads run even when the scan exits 2 on policy violation.
+`if: success() || failure()` runs the uploads even when the scan exits `2`.
 
-### Diff against the base branch on PRs
+### Diff against the base branch on pull requests
+
+To audit only what a pull request changed, fetch the base branch and run `bomly diff`:
 
 ```yaml
       - name: Diff against main
@@ -71,9 +87,11 @@ jobs:
             --json > bomly-diff.json
 ```
 
-The diff audits only the packages the PR touched, so findings on untouched packages never fail the job. Within that scope, introduced and persisted high findings both gate — persisted means a changed package still ships a known issue at its new version.
+Only the packages the PR touched are audited, so findings elsewhere never fail the job. The [diff command](commands/diff.md#audit-the-delta) page explains which findings gate.
 
-### Cache matcher data
+### Cache enrichment data
+
+Caching `~/.bomly/cache` between runs cuts enrichment time from minutes to seconds:
 
 ```yaml
       - name: Cache Bomly matcher data
@@ -84,7 +102,7 @@ The diff audits only the packages the PR touched, so findings on untouched packa
           restore-keys: bomly-${{ runner.os }}-
 ```
 
-Cuts cold-start enrichment time from minutes to seconds. Cache TTLs are listed in [Matchers](MATCHERS.md#cache).
+Cache lifetimes are listed in [Matchers](MATCHERS.md#cache). A scheduled nightly run on `main` keeps the cache warm for pull request jobs.
 
 ### Pull request reviews with Bomly Guard
 
@@ -92,13 +110,15 @@ For GitHub pull requests, the [Bomly Guard action](BOMLY_GUARD.md) wraps `bomly 
 
 ## GitLab CI
 
+Scan, keep the SBOMs as artifacts, and show the CycloneDX SBOM in GitLab's dependency view:
+
 ```yaml
 bomly:
   image: ubuntu:24.04
   stage: test
   before_script:
     - apt-get update && apt-get install -y curl ca-certificates
-    - curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
+    - curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.28.3 sh
   script:
     - |
       bomly scan --enrich --audit --fail-on high \
@@ -122,9 +142,11 @@ bomly:
       - .bomly-cache
 ```
 
-GitLab renders CycloneDX SBOMs through `reports:cyclonedx`. GitLab can only cache paths inside the project directory, and Bomly's default cache is `~/.bomly/cache`. To use the GitLab cache, set each matcher's `cache_dir` to a path under the project (for example `.bomly-cache/grype`) in your config file or with the `BOMLY_*_CACHE_DIR` environment variables listed in the [Config reference](CONFIG_REFERENCE.md).
+GitLab can only cache paths inside the project directory, and Bomly's default cache is `~/.bomly/cache`. To use the GitLab cache, set each matcher's `cache_dir` to a path under the project (for example `.bomly-cache/grype`) in your config file, or with the `BOMLY_*_CACHE_DIR` environment variables listed in the [Config reference](CONFIG_REFERENCE.md).
 
 ## Jenkins
+
+Scan, archive the files, and show findings on the build page through the Warnings Next Generation plugin:
 
 ```groovy
 pipeline {
@@ -133,7 +155,7 @@ pipeline {
     stage('Bomly') {
       steps {
         sh '''
-          curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
+          curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.28.3 sh
           bomly scan --enrich --audit --fail-on high \
             --format sarif \
             -o spdx=sbom.spdx.json \
@@ -152,14 +174,14 @@ pipeline {
 }
 ```
 
-`recordIssues` from the Warnings Next Generation plugin ingests SARIF and surfaces findings on the build page.
-
 ## Azure DevOps
+
+Scan and publish the SARIF file. The free SARIF SAST Scans Tab extension shows the results on the build page:
 
 ```yaml
 steps:
 - script: |
-    curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
+    curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.28.3 sh
     bomly scan --enrich --audit --fail-on high --format sarif > bomly.sarif
   displayName: 'Bomly scan'
 
@@ -170,9 +192,9 @@ steps:
     artifactName: bomly-sarif
 ```
 
-The free SARIF SAST Scans Tab extension renders results on the build page.
-
 ## CircleCI
+
+Scan with the enrichment cache restored between runs:
 
 ```yaml
 version: 2.1
@@ -189,7 +211,7 @@ jobs:
       - run:
           name: Install and scan
           command: |
-            curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
+            curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.28.3 sh
             bomly scan --enrich --audit --fail-on high \
               --format text \
               -o spdx=sbom.spdx.json \
@@ -206,7 +228,7 @@ jobs:
 
 ## Pre-commit hook
 
-For local enforcement:
+Run a scan before every push:
 
 ```yaml
 # .pre-commit-config.yaml
@@ -220,18 +242,17 @@ For local enforcement:
       stages: [pre-push]
 ```
 
-Tune `--fail-on` to taste. `pre-push` keeps commits fast and only runs on push.
+`pre-push` keeps commits fast. Choose the `--fail-on` level that fits your team.
 
 ## Recommendations
 
-- Pin the Bomly version in CI. Use a tagged release URL or package-manager version, not `latest`.
-- Cache `~/.bomly/cache` across runs. Matcher TTLs make this safe.
-- Always upload the SBOM even when the scan fails. The SBOM is a release artifact in its own right.
-- Use `bomly diff` on PRs so pre-existing findings on untouched packages don't penalize the job — only the packages the PR changes are audited.
-- Pre-warm enrichment on `main` with a scheduled nightly run so PR jobs start with a warm cache.
+- Pin the Bomly version. Use a tagged release or a package-manager version, never `latest`.
+- Cache `~/.bomly/cache` across runs. The cache lifetimes make this safe.
+- Upload the SBOM even when the scan fails. It is a release artifact in its own right.
+- Use `bomly diff` on pull requests, so only the packages the PR changes are audited.
 
 ## See also
 
-- [Exit codes](EXIT_CODES.md) - what each CI exit means
-- [Output formats](OUTPUT_FORMATS.md) - SARIF, JSON, SBOM details
-- [Auditors](AUDITORS.md) - `--fail-on`
+- [Exit codes](EXIT_CODES.md) — what each exit code means in CI
+- [Output formats](OUTPUT_FORMATS.md) — SARIF, JSON, and SBOM details
+- [Auditors](AUDITORS.md) — `--fail-on` and the policy flags

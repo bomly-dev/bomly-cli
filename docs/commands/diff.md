@@ -1,6 +1,6 @@
 # bomly diff
 
-Compare dependency state between two points — two Git refs, two SBOM files, or two container image tags — and report what changed. `diff` runs the [scan](scan.md) pipeline against both states, so the same target flags and gates apply to each side.
+`bomly diff` compares the dependencies of two states (two Git refs, two SBOM files, or two container image tags) and reports what changed. It runs the [scan](scan.md) pipeline on both sides, so the same target flags and pipeline steps apply to each.
 
 ## Minimal invocation
 
@@ -25,7 +25,7 @@ Version changed (9)
   ~ serve-static       1.15.0 → 1.16.2
 ```
 
-Beyond additions, removals, and version changes, `diff` also reports changes to a dependency's relationship (direct vs transitive), source, and registry-matching eligibility — the detail shifts that alter your exposure without a version number moving.
+Besides additions, removals, and version changes, `diff` reports changes to a dependency's relationship (direct or transitive), its source, and whether Bomly can look it up in a registry. These can change your exposure even when no version number moves.
 
 ## What to compare
 
@@ -43,16 +43,26 @@ bomly diff --image alpine --base 3.19 --head 3.20
 
 ## Audit the delta
 
-Add `--enrich --audit` to classify findings between the two states into three buckets — **introduced** (present in head, absent in base), **resolved** (present in base, absent in head), and **persisted** (present in both):
+Add `--enrich --audit` to classify findings between the two states:
+
+| Class | Meaning |
+| --- | --- |
+| **introduced** | Present in head, absent in base |
+| **resolved** | Present in base, absent in head |
+| **persisted** | Present in both |
+
+For example:
 
 ```bash
 bomly diff --base main --head HEAD --enrich --audit --fail-on high
 ```
 
-The audit only inspects packages the change touched, so unrelated pre-existing debt never appears. Within that scope, `--fail-on` gates on *introduced* **and** *persisted* findings — a persisted finding means the changed package still carries a known issue at its new version, so the gate holds until the bump reaches a fixed version (or the finding is [baselined](../BASELINES.md)). See [Auditors → Diff and auditing](../AUDITORS.md#diff-and-auditing). This is exactly what [Bomly Guard](../BOMLY_GUARD.md) runs on pull requests, with the result rendered as a PR comment.
+The audit inspects only the packages the change touched. Findings on packages the change did not touch are never reported, so existing problems elsewhere in the repository never block a pull request. Within that scope, `--fail-on` gates on both introduced and persisted findings. A persisted finding means the changed package still has a known issue at its new version, so the gate holds until an upgrade reaches a fixed version or the finding is accepted into a [baseline](../BASELINES.md). See [Auditors](../AUDITORS.md#diff-and-auditing). [Bomly Guard](../BOMLY_GUARD.md) runs exactly this on pull requests and posts the result as a PR comment.
+
+For tooling, ask for JSON:
 
 ```bash
-bomly diff --base main --head HEAD --json   # structured delta for tooling
+bomly diff --base main --head HEAD --enrich --audit --json
 ```
 
 The JSON shape is documented in the [diff schema](../schemas/diff.md).

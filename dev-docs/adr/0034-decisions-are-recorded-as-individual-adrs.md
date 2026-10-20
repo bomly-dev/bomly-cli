@@ -42,7 +42,7 @@ files: their numbers are cited from code and lint configuration.
 
 ## Consequences
 
-- The 2026-10-19 cleanup reduced 48 records to 20 live ones and 28 stubs;
+- The 2026-10-19 cleanup reduced 49 records to 21 live ones and 28 stubs;
   `dev-docs/adr/README.md` indexes both.
 - `AGENTS.md` carries the bar in two sentences; this file carries the
   reasoning.

@@ -115,7 +115,7 @@ Matchers and analyzers can answer in two shapes. The baseline is the **full regi
 
 ## Test a plugin
 
-Unit-test the component logic through `Module().New` with a small `HostContext` stub (the template's `plugin/plugin_test.go` has one), then run the SDK conformance suite:
+Unit-test the component logic by constructing it through the role module's constructor, `Module().Matcher.New(ctx, host)` for a matcher (`Detector`, `Auditor`, or `Analyzer` for the other roles), with a small `HostContext` stub (the template's `plugin/plugin_test.go` has one). Then run the SDK conformance suite:
 
 ```go
 func TestConformance(t *testing.T) {

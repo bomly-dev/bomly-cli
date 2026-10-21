@@ -1,81 +1,49 @@
-# Finding Baselines
+# Finding baselines
 
-Finding baselines let a project keep known package findings visible without
-letting those findings fail an audit. Bomly automatically looks for
-`.bomly/baseline.json` when `scan`, `diff`, or `explain` runs against a project.
-A matching finding is still emitted with the same package, advisory, severity,
-and reasons, but its policy status becomes `suppressed`. Machine-readable
-findings expose the status as `policy_status`.
+A baseline records the findings a project has decided to live with, so an audit keeps reporting them but stops failing on them. Use one when you want to turn on a CI gate today without first fixing every existing finding. This page explains how to create and maintain a baseline, how Bomly finds it, and what it records.
 
-## Create and maintain a baseline
+## Quick start
 
-Baseline creation runs the normal audited project pipeline and therefore
-requires explicit enrichment:
+Record today's findings, then confirm the gate passes:
 
 ```bash
 bomly baseline create --enrich
-bomly baseline inspect
-bomly baseline inspect --path ../another-project
+bomly scan --enrich --audit --fail-on high
+echo $?   # 0
 ```
 
-Creation refuses to overwrite an existing file. `baseline update --enrich`
-accepts current new or changed findings while retaining historical entries.
-`baseline prune --enrich` removes accepted entries absent from a complete
-current audit and never accepts new findings. All writes use a temporary file
-and atomic replacement. Lifecycle commands are limited to writable local
-filesystem projects and refuse to mutate a baseline when the scan reports
-degraded detector, matcher, analyzer, or auditor coverage.
-Use `--analyze` for lifecycle commands when the audited CI workflow also uses
-reachability analysis. The baseline records that policy state as a safety bound.
+The findings are still printed. Their policy status becomes `suppressed` instead of gating (`policy_status` in JSON). Commit `.bomly/baseline.json` so CI and teammates share the same accepted set. New findings still fail the gate.
 
-## Selection
+## Commands
 
-The shared `--baseline` option accepts:
+The baseline commands run the normal audited pipeline, so they need `--enrich`. Add `--analyze` when the CI workflow that consumes the baseline uses reachability too, so the recorded state matches.
 
-- `auto` (default): use `.bomly/baseline.json` when present;
-- `none`: disable baseline consumption;
-- a relative or absolute path: require that baseline file.
+| Command | What it does |
+| --- | --- |
+| `bomly baseline create --enrich` | Writes `.bomly/baseline.json` from the current findings. Refuses to overwrite an existing file |
+| `bomly baseline update --enrich` | Adds new or changed findings and keeps existing entries |
+| `bomly baseline prune --enrich` | Removes entries no longer found by a complete audit. Never adds findings |
+| `bomly baseline inspect [--path <dir>]` | Prints the baseline a project would use |
 
-A relative path is resolved from the project root. During a Git diff it is
-resolved independently in the materialized base and head trees, so each side
-uses the baseline committed with that project state. The merge base selected by
-Bomly Guard is simply the diff's base tree.
+Writes go to a temporary file first and then replace the baseline in one step. The write commands work only on a writable local project. They refuse to change the baseline when the scan reports reduced detector, matcher, analyzer, or auditor coverage, because a partial scan would record a partial truth.
 
-Automatic discovery also applies to `--url` targets, using the baseline
-committed in the checked-out repository. Use `--baseline none` when that
-project policy should not participate in evaluation, or provide an explicit
-path to use a different baseline. At `-v`, Bomly logs every detected baseline
-with its path, entry count, selection mode, and target kind. Audit completion
-logs include the baseline path, entries, findings evaluated, and findings
-accepted, including when those counts are zero.
+## How Bomly finds the baseline
 
-If automatic discovery sees a symbolic-link `.bomly` directory or
-`baseline.json`, Bomly warns and behaves as though no project baseline exists.
-This rejects links discovered during path inspection; it does not protect
-against another process replacing a path between inspection and reading. An
-explicit `--baseline <path>` is different: it is a trusted path selected by the
-user and may refer to a symbolic link or a file outside the project.
+`scan`, `diff`, and `explain` look for `.bomly/baseline.json` at the project root. The `--baseline` option (config key `policy.baseline`) controls this:
 
-Container targets have no reliable project root, so they require an absolute
-baseline path. For a standalone SBOM file, automatic discovery starts beside
-the file; an explicit path is recommended when the baseline lives elsewhere.
+| Value | Effect |
+| --- | --- |
+| `auto` (default) | Use `.bomly/baseline.json` when present |
+| `none` | Ignore any baseline |
+| A path | Require that file. A relative path is resolved from the project root |
 
-```yaml
-policy:
-  baseline: auto
-```
+Each side of a Git diff uses the baseline committed in its own tree, so a `bomly diff` or a Bomly Guard review applies the baseline as it existed at the base and at the head. A `--url` target uses the baseline committed in the cloned repository. A container image has no project root, so it needs an absolute baseline path. For a standalone SBOM file, discovery starts beside the file.
 
-## Identity and portability
+At `-v`, Bomly logs every baseline it found with its path, entry count, and selection mode, and the audit summary reports how many findings the baseline accepted.
 
-Entries identify the full package PURL (including version), finding kind,
-auditor, and either advisory identifiers or a stable policy rule. They do not
-contain dependency node IDs, manifest paths, subproject names, project names,
-or mutable finding prose.
+## What a baseline records
 
-A baseline can therefore be copied to another project and suppresses the same
-finding for the same package version there. It does not automatically suppress
-the finding after a package version changes. Advisory aliases are retained so
-equivalent identifiers can match across enrichment sources.
+Each entry identifies a finding by the full package URL (PURL, including the version), the finding kind, the auditor, and either the advisory identifiers or a stable rule ID. Entries contain no dependency node IDs, manifest paths, subproject names, or finding text. That makes a baseline portable: copied to another project, it suppresses the same finding for the same package version there. It does not carry over after the package version changes.
 
 ```json
 {
@@ -93,27 +61,18 @@ equivalent identifiers can match across enrichment sources.
 }
 ```
 
-Structured findings expose `rule_id`, so a non-vulnerability entry can be
-reviewed or authored without relying on mutable finding titles.
+Structured findings expose `rule_id`, so a non-vulnerability entry can be written by hand without relying on finding titles. Advisory aliases are kept so equivalent identifiers match across enrichment sources.
 
-Severity, failing policy status, and reachability state are recorded as safety
-bounds. An escalation remains unsuppressed until `baseline update` explicitly
-accepts it. A safer reachability result remains accepted: for example, a
-finding recorded as `unknown` stays suppressed if analysis later proves it
-`unreachable`, but becomes gating if analysis reports it `reachable`.
+Severity, policy status, and reachability are recorded as the state you accepted. A finding that got worse is not suppressed until `baseline update` accepts the new state. A finding that got safer stays suppressed: a finding recorded as `unknown` stays suppressed if analysis later proves it `unreachable`, but gates again if analysis reports it `reachable`.
 
-## Output and automation
+## Output
 
-Baselines do not add report sections or collections. Findings remain in their
-normal scan, explain, and diff locations. JSON and MCP expose the
-`policy_status` field; text, Markdown, and the TUI call it the policy status;
-SARIF marks the result as externally suppressed at note level; and
-Bomly Guard continues consuming the ordinary diff output and exit status.
-The CLI output schema identifier remains `1.0`.
+A baseline adds no sections or collections to any report. Findings stay where they always are. JSON and MCP expose `policy_status`; text, Markdown, and the TUI show the policy status; SARIF marks the result as externally suppressed at note level; Bomly Guard keeps reading the ordinary diff output and exit code.
 
-Baseline failures do not hide pipeline diagnostics. A malformed explicitly
-selected file fails before the audit runs. An automatically discovered baseline
-is loaded only for audited commands, so a malformed file cannot break a plain
-inventory scan; audited commands fail closed rather than silently ignoring it.
-Bomly rejects baseline files larger than 16 MiB and baseline documents with
-more than 10,000 entries.
+A malformed baseline you selected explicitly fails the command before the audit runs. An automatically discovered baseline is loaded only for audited commands, so a malformed file cannot break a plain inventory scan, and an audited command stops with an error rather than ignoring it. Bomly rejects baseline files larger than 16 MiB and documents with more than 10,000 entries. If `.bomly` or `baseline.json` is a symbolic link, automatic discovery warns and behaves as if there were no baseline; an explicit `--baseline <path>` may point anywhere. [Security and trust boundaries](SECURITY.md) has the detail.
+
+## See also
+
+- [Auditors](AUDITORS.md) — how policy status is decided
+- [Bomly Guard](BOMLY_GUARD.md) — baselines in pull request reviews
+- [diff command](commands/diff.md) — which findings a diff audits

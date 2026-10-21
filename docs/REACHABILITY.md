@@ -1,382 +1,135 @@
 # Reachability
 
-> ⚠️ **Experimental.** This feature may change without preserving backwards compatibility. Reachability is opt-in (`--analyze`) and under active development: the output shape is stable, but ecosystem coverage is expanding, and today the JavaScript, Python, and JVM analyzers (`jsreach`, `pyreach`, `jvmreach`) work at *package* precision — they confirm your code imports the vulnerable package, not that it calls the vulnerable function (the "Tier-3" level in [How it works](#how-it-works)). That is sufficient for triage, not a fix substitute. Do not use `--fail-on reachable` as the sole gate for security-critical decisions without understanding the limitations below.
+> **Experimental.** Reachability is opt-in (`--analyze`) and still maturing. The output shape is stable, but ecosystem coverage is growing. The JavaScript, Python, and JVM analyzers work at package precision: they confirm that your code imports the vulnerable package, not that it calls the vulnerable function. Read [Unreachable is not safe](#unreachable-is-not-safe) before you gate CI on it.
 
-`--analyze` runs code analysis on top of vulnerability matching to confirm whether a finding is actually reachable from your application code. Reachability annotations are written onto the matching `model.Vulnerability` records inside the PURL-keyed `model.PackageRegistry`. The output layer resolves them at projection time via `(Finding.PackageRef, Finding.VulnerabilityID)`, so reachability surfaces consistently in JSON, SARIF, and the text/TUI views without needing a separate field on `Finding`. See [Architecture → Domain model](ARCHITECTURE.md#domain-model) for the registry data model.
-
-The point: stop chasing high-severity CVEs in transitive packages your code never imports.
+Reachability answers one question per vulnerability: can the scanned project reach the vulnerable code at all? Use it to stop chasing high-severity advisories in transitive packages your code never imports. This page explains what the analyzers check, what the results mean, and where they appear.
 
 ## Quick start
 
-```sh
-# Annotate vulnerabilities with reachability (no audit required).
+`--analyze` requires `--enrich`, because it annotates the vulnerabilities enrichment found:
+
+```bash
+# Annotate vulnerabilities with reachability
 bomly scan --enrich --analyze --json
 
-# Fail only when a finding is BOTH low+ severity AND confirmed reachable.
-bomly scan --enrich --audit --analyze \
-  --fail-on low --fail-on reachable --json
-```
-
-## Analyzer per ecosystem
-
-| Ecosystem | Analyzer | Tier | What "reachable" means |
-| --- | --- | --- | --- |
-| Go | `govulncheck` | `symbol` | App code calls (transitively) the vulnerable function |
-| JavaScript / TypeScript | `jsreach` | `package` | App source imports the npm package (directly or via the npm dep graph) |
-| Python | `pyreach` | `package` | App source imports the PyPI distribution (directly or via the Python dep graph) |
-| Java / Kotlin / Scala / Groovy | `jvmreach` | `package` | App source imports a class in the Maven artifact (directly or via the JVM dep graph) |
-
-Other ecosystems are tracked for follow-up phases. On a project with no applicable analyzer, the pipeline runs cleanly and vulnerabilities keep their default `nil` reachability.
-
-## "Unreachable" is **not** "safe" {#unreachable-is-not-safe}
-
-This caveat applies to every Tier-3 analyzer (`jsreach`, `pyreach`, `jvmreach`) and is the single most important thing to understand before gating CI on `--fail-on reachable`.
-
-Static analysis cannot see:
-
-- Dynamic imports: `require(userInput)`, `importlib.import_module(name)`, `Class.forName(string)`.
-- Runtime plugin loaders, entry-point discovery, Django `INSTALLED_APPS` strings, Spring component scanning, `ServiceLoader`, OSGi, JPMS dynamic layers, annotation-processed code.
-- Build-time code generators or runtime shell-outs.
-
-Tier-3 "unreachable" is a **triage signal**, not a fix substitute. Use it to deprioritize dev-only and transitive-but-unimported dependencies, not to dismiss vulnerabilities.
-
-Tier-1 (`symbol`, Go) is much stronger: `govulncheck` builds the actual call graph. "Unreachable" at Tier-1 means there is no static call path. Even Tier-1 cannot see reflection, but the standard library's reflection use is well-understood and rare in app code.
-
-## How it works
-
-The pipeline gains a new `analyze` stage between `match` and `process`:
-
-```
-detect → consolidate → match → analyze → process → audit
-```
-
-When `--analyze` is set, every applicable `Analyzer` runs against
-the matched graph. Analyzers dispatch on `(Language, Ecosystem,
-PackageManager)` and may produce results at three levels of precision
-(`Tier`):
-
-| Tier      | Meaning                                                                |
-| --------- | ---------------------------------------------------------------------- |
-| `symbol`  | Exact call graph from app code into the vulnerable function or method. |
-| `module`  | App imports the vulnerable submodule, but no symbol-level evidence.    |
-| `package` | App imports (or doesn't import) the package; nothing else is known.    |
-| `none`    | No analysis was performed (`Status=unknown` always uses this tier).    |
-
-Each analyzer reports one of four statuses per vulnerability:
-
-| Status            | Meaning                                                                                             |
-| ----------------- | --------------------------------------------------------------------------------------------------- |
-| `reachable`       | App code reaches the vulnerable symbol(s) at the chosen tier.                                       |
-| `unreachable`     | Analyzer ran successfully but did not find a path. **At `package` tier this does not mean "safe"**. |
-| `unknown`         | Analyzer was applicable but could not determine reachability. `Reason` carries the cause.           |
-| `not_applicable` | Analyzer cannot evaluate this vulnerability (e.g. no language match, no source available).         |
-
-Analyzer failures **never abort the pipeline**. Missing toolchains,
-broken builds, canceled contexts, and other recoverable conditions all
-degrade to `Status: unknown` with a stable, machine-readable `Reason`
-(e.g. `missing-toolchain`, `build-failed`, `cancelled`,
-`no-module-root-discovered`).
-
-## Ecosystem support
-
-| Ecosystem            | Analyzer      | Tier      | Notes                                                                                                                                                                                                                                                            |
-| -------------------- | ------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Go                   | `govulncheck` | `symbol`  | Backed by the vendored `golang.org/x/vuln/scan` library; runs in-process so users never need a `govulncheck` binary on PATH.                                                                                                                                     |
-| JavaScript / TypeScript | `jsreach`     | `package` | Backed by the vendored `github.com/evanw/esbuild/pkg/api` library. Walks app source from `package.json` entry points (`main`, `module`, `browser`, `exports`, `bin`, plus implicit `index.*` / `app.js` / `server.js` / `main.js` fallbacks) and reports each npm package as reachable iff it appears in the import set. |
-| Python               | `pyreach`     | `package` | In-process line-oriented import scanner. Walks every `.py` file under the project root (`pyproject.toml` / `setup.py` / `requirements*.txt` / `Pipfile` / `poetry.lock` / `pdm.lock` / `uv.lock`), records each top-level module from `import` and `from … import` statements, and maps module names to PyPI distribution names through a static override map (e.g. `yaml` → `PyYAML`) plus PEP 503 normalization. |
-| Java / Kotlin / Scala / Groovy | `jvmreach`    | `package` | In-process line-oriented import scanner for JVM ecosystems (Maven, Gradle, SBT). Walks `.java` / `.kt` / `.kts` / `.scala` / `.groovy` source under the project root, scans top-of-file `import` statements (including Java `static`, Kotlin aliases, Scala selectors and wildcards), and maps Java/Kotlin/Scala package prefixes to Maven coordinates (`groupId:artifactId`) through a curated longest-prefix map. |
-
-Other ecosystems (Java, Rust) are tracked for follow-up phases.
-When `--analyze` is set on a project that has no applicable
-analyzer for the languages present, the pipeline still runs cleanly:
-vulnerabilities just keep their default `nil` reachability.
-
-### A note on `jsreach` and Tier 3
-
-`jsreach` reports at the **package tier** today. The analyzer
-classifies a package as "reachable" when there is **any path** from
-app source to that package through the dependency graph the npm
-detector resolved from the lockfile:
-
-- App source `require('express')` → `express` is reachable.
-- `express` depends on `body-parser` per the lockfile → `body-parser`
-  is reachable too, even if no app source file imports it directly.
-- `jest` (a devDependency) is in the lockfile but no source file
-  imports it → `jest` and everything reachable only through `jest`
-  stay unreachable.
-
-Concretely, esbuild walks the application's source tree (with
-`PackagesExternal`, so it stops at every bare specifier without
-opening `node_modules`), giving us the **directly-imported** set.
-The analyzer then expands that set transitively through the npm
-detector's existing dep graph (via `Graph.Dependencies`) before
-deciding each package's status. Packages can appear in the dep
-graph at multiple versions (a top-level `lodash@4` and a nested
-`lodash@3` inside some sub-tree); we key the closure by graph IDs,
-not names, so attribution stays version-correct.
-
-Three important caveats:
-
-1. **"Unreachable" is not "safe".** A server runtime can `require()`
-   a package dynamically based on user input; a plugin loader can
-   pull in a package at runtime; a build script can shell out to it.
-   Static analysis cannot see those paths. Tier-3 unreachable is
-   useful for triage prioritization (deprioritize dev-only and
-   transitive-but-unimported), not as a fix substitute.
-2. **Subpath imports collapse to the package name.** An import of
-   `lodash/get` and `lodash/set` both attribute to `lodash`. If an
-   advisory affects only `lodash/template`, jsreach still reports the
-   whole `lodash` package as reachable when `lodash/get` is imported.
-   Symbol-tier resolution for npm is tracked for a future phase and
-   would need a curated affected-symbols database (OSV / GHSA rarely
-   carry that level of detail for npm).
-3. **The closure is only as accurate as the lockfile.** If the dep
-   graph is incomplete (e.g. a package was installed locally but
-   never recorded in the lockfile, or a package was installed via
-   `npm link`), the closure can't reach it. The npm / pnpm / yarn
-   detectors are the source of truth for what edges exist.
-
-### A note on `pyreach` and Tier 3
-
-`pyreach` reports at the **package tier** today using the same
-"directly-imported set + transitive closure" approach as `jsreach`.
-The analyzer walks every `.py` file under the project root, scans for
-`import x` / `from x import …` statements, maps top-level module names
-to PyPI distribution names, and then expands the resulting set
-transitively through the Python detector's dep graph (via
-`Graph.Dependencies`).
-
-The module-to-distribution mapping is the part Python forces on every
-static analyzer: imports use module names (`import yaml`,
-`from PIL import Image`), but PyPI uses distribution names (`PyYAML`,
-`Pillow`). The analyzer applies a layered mapping:
-
-1. A small static override table for the well-known mismatches
-   (`yaml → pyyaml`, `cv2 → opencv-python`, `sklearn → scikit-learn`,
-   `bs4 → beautifulsoup4`, `PIL → pillow`, `jwt → pyjwt`, …).
-2. PEP 503 identity normalization (lowercase, `_` / `.` → `-`) for
-   everything else, which catches the bulk of PyPI (`requests`,
-   `flask`, `numpy`, `pandas`, …).
-3. Stdlib modules (`os`, `sys`, `json`, …) are dropped from the
-   import set so they never affect the closure.
-
-The same three caveats from `jsreach` apply, with two extra Python
-specifics:
-
-1. **"Unreachable" is not "safe".** `importlib.import_module(…)` on
-   user input, plugin discovery via entry points, Django's
-   `INSTALLED_APPS` strings, and conditional `__import__` calls are
-   all invisible to a static scanner. Tier-3 unreachable is useful
-   for prioritizing dev-only / unused dependencies, not as a fix
-   substitute.
-2. **Submodule imports collapse to the distribution.** `from
-   urllib3.util import retry` attributes the whole `urllib3`
-   distribution as reachable, even if a CVE only affects a
-   different submodule. Symbol-tier resolution for Python is a
-   future phase.
-3. **A missing static-override entry produces a false negative for
-   direct imports.** If a project does `import some_obscure_module`
-   and the override map doesn't know it maps to `some-other-dist`,
-   the analyzer reports the distribution as unreachable when it
-   actually was imported. The BFS through the dep graph usually
-   recovers the case via a transitive edge from a correctly-mapped
-   neighbor. Adding an override is a one-line PR.
-4. **The closure is only as accurate as the lockfile.** Same as
-   `jsreach`: if the dep graph is incomplete, the closure can't
-   reach what isn't there. The pip / poetry / pipenv / uv / pdm
-   detectors are the source of truth for what edges exist.
-
-### A note on `jvmreach` and Tier 3
-
-`jvmreach` is the third Tier-3 analyzer and follows the same
-"directly-imported set + transitive closure" shape as `jsreach`
-and `pyreach`. It walks `.java` / `.kt` / `.kts` / `.scala` /
-`.groovy` files under the project root, parses each top-of-file
-`import` statement, and maps the FQN prefix to a Maven artifact
-coordinate (`groupId:artifactId`) via a curated longest-prefix
-map. The closure is then expanded transitively through
-`Graph.Dependencies`.
-
-The Java/Maven mapping problem is genuinely harder than Python's.
-Python's `module → distribution` relationship is usually identity
-modulo a small override table. The Java `package → Maven artifact`
-relationship has no naming convention at all — `org.apache.commons`
-covers ten different distributions, `com.google.common` is one
-specific distribution, and there is no rule that holds in general.
-Consequences:
-
-1. **"Unreachable" is not "safe".** All the standard caveats apply:
-   reflection, `ServiceLoader`, Spring component scanning, OSGi
-   bundles, JPMS layers, and class-loader gymnastics are invisible
-   to a static scanner. Annotation processors that generate code at
-   build time also escape detection.
-2. **The curated prefix map is small and biased toward popular
-   libraries.** A missing prefix produces a false-negative for
-   direct imports. The dep-graph BFS usually catches the case via
-   a transitive edge from a correctly-mapped neighbor, but unlike
-   Python there is no identity-normalization fallback. If you hit a
-   missing prefix, please open an issue naming the Maven artifact
-   and its Java package prefix — additions are quick to ship.
-3. **Sub-package imports collapse to the artifact.** Importing
-   `com.fasterxml.jackson.databind.ObjectMapper` flips the whole
-   `jackson-databind` artifact reachable, even if the advisory
-   affects only a different class in that artifact.
-4. **The closure is only as accurate as the build manifest.** Same
-   as `jsreach` / `pyreach`: if the Maven / Gradle / SBT detector
-   doesn't see an edge, the closure can't follow it.
-
-## Composing with `--fail-on`
-
-`--fail-on` is repeatable; constraints AND together. Two kinds are
-supported today:
-
-- Severity: `any | low | medium | high | critical`
-- Reachability: `reachable`
-
-```sh
-# All findings (legacy single-string form still works).
-bomly scan --enrich --audit --fail-on any
-
-# Equivalent — Bomly defaults to "any" when no severity is supplied.
-bomly scan --enrich --audit
-
-# Low+ severity only.
-bomly scan --enrich --audit --fail-on low
-
-# Low+ severity AND confirmed reachable. nil reachability (no analyzer
-# ran on this vulnerability) does NOT match — the analyzer must have
-# affirmatively proven reachability.
+# Fail only when a finding is both low-or-higher severity and confirmed reachable
 bomly scan --enrich --audit --analyze --fail-on low --fail-on reachable
 ```
 
-Future constraint kinds (e.g. `kev`, `has-fix`, `epss>0.5`) can be
-added without further flag changes.
+## What each analyzer checks
 
-## Output shape
+Each analyzer handles one language and reports at one level of precision, called a tier.
 
-Reachability data appears in three places:
+| Ecosystem | Analyzer | Tier | "Reachable" means | Prerequisites |
+| --- | --- | --- | --- | --- |
+| Go | `govulncheck` | `symbol` | Application code calls the vulnerable function, directly or through other calls. Built on the Go vulnerability database tooling, run in-process | A Go module that builds (`go` on `PATH`) |
+| JavaScript, TypeScript | `jsreach` | `package` | Application source imports the npm package, directly or through the dependency graph the lockfile describes | A `package.json` with entry points, and a lockfile |
+| Python | `pyreach` | `package` | Application source imports the PyPI distribution, directly or through the dependency graph | `.py` sources under the project root |
+| Java, Kotlin, Scala, Groovy | `jvmreach` | `package` | Application source imports a class from the Maven artifact, directly or through the dependency graph | Sources under the project root, and a Maven, Gradle, or SBT graph |
 
-1. **JSON output** under each `vulnerabilities[].reachability` and (when
-   `--audit` is set) `findings[].reachability`. The reachability object
-   carries `status`, `tier`, `analyzer`, optional `reason`, optional
-   list of confirmed `symbols`, and optional `call_paths` with frame
-   metadata (`function`, `package`, `file`, `line`, `column`). Tier-3
-   analyzers additionally populate:
-   - `hops` — dep-graph distance from a directly-imported package.
-     `0` means directly imported; higher values are transitive.
-   - `confidence` — `high` (directly imported, no dynamic imports),
-     `medium` (1–3 hops, no dynamic imports), or `low` (4+ hops or
-     dynamic imports detected). Lets consumers triage long transitive
-     chains without parsing `hops` themselves.
-   - `dynamic_imports_detected` — `true` when the analyzer's scanner
-     observed dynamic-import constructs in app source (e.g.
-     `require(variable)`, `importlib.import_module(name)`,
-     `Class.forName(string)`). When `true`, an "unreachable" verdict
-     is necessarily incomplete; the confidence label is forced to
-     `low` for reachable results as a triage signal.
+On a project with no applicable analyzer, the scan runs normally and every vulnerability keeps an empty reachability result.
 
-2. **Text scan report** gains a "Reachability" line in the executive
-   summary plus a `REACHABILITY` column in the findings table when
-   `--analyze` is set. Each cell renders as `<status> (<tier>)`
-   or `—` when no analyzer ran on that vulnerability.
+The tiers, from strongest to weakest:
 
-3. **SARIF output** populates `result.codeFlows` from
-   `Reachability.CallPaths` (one threadFlow per path, one location per
-   frame with file/line/column), and a top-level `result.properties`
-   exposes `reachability`, `reachability_tier`, `reachability_reason`,
-   `analyzer`, `reachability_confidence`, `reachability_hops`, and
-   `reachability_dynamic_imports_detected` for SARIF consumers that
-   don't traverse codeFlows.
+| Tier | Meaning |
+| --- | --- |
+| `symbol` | A call graph from application code reaches the vulnerable function or method |
+| `module` | Application code imports the vulnerable submodule, with no symbol-level evidence |
+| `package` | Application code imports, or does not import, the package. Nothing more is known |
+| `none` | No analysis ran. A status of `unknown` always uses this tier |
 
-## Limitations
+Each analyzer reports one of three statuses per vulnerability, or leaves it empty when the vulnerability is outside its scope:
 
-- **Tier-3 "unreachable" is not "safe"**: Package-tier results say "the
-  app does not import this package", which is genuinely useful for
-  prioritizing dev-only or transitive-but-unused dependencies, but it
-  does not mean the vulnerability has been mitigated. See the
-  `jsreach` notes above for the npm-specific shape of this caveat.
-- **`govulncheck` requires a buildable Go module**. When the build
-  fails, the analyzer returns `unknown` with one of the following
-  stable `reason` codes so consumers can branch by failure mode:
-  - `missing-toolchain` — `go` not on `PATH`, govulncheck binary
-    missing, or runner not vendored.
-  - `no-go-packages` — target dir has no `.go` files, build
-    constraints exclude everything, or `go list` returns no matches.
-  - `module-resolution-failed` — `go.mod` not found, missing
-    `go.sum` entry, or `go: download` failed for a required module.
-  - `invalid-go-mod` — `go.mod` syntax error.
-  - `build-failed` — generic compile-stage failure (`syntax error`,
-    `undefined:`, `imported and not used`, non-zero exit).
-  - `cancelled` — context canceled or deadline exceeded.
-  - `runner-error` — fallback when none of the above patterns match.
-- **Multi-module / multi-project repos**: `jsreach` and `jvmreach`
-  automatically derive local workspace/module closures before
-  attributing external dependencies. Other analyzers retain
-  best-effort first-project attribution.
-- **`jsreach` does not follow runtime / dynamic imports.** Calls like
-  `require(somethingFromUserInput)`, plugin loaders, and worker
-  threads are invisible to static analysis. The analyzer is therefore
-  a "lower bound" on what's actually reachable.
-- **`jsreach` workspace traversal is manifest-driven.** It supports
-  npm/Yarn `workspaces` arrays, Yarn-style `workspaces.packages`
-  objects, and `pnpm-workspace.yaml` package patterns. It follows
-  imports between consumed workspace packages by package name without
-  depending on installed symlinks. Dynamically computed workspace
-  membership remains invisible.
-- **`pyreach` does not follow dynamic imports.**
-  `importlib.import_module(name)` on user input, plugin discovery via
-  entry points, Django `INSTALLED_APPS` strings, conditional
-  `__import__` — none of these are visible to a static scanner. The
-  analyzer is a lower bound on what's actually reachable.
-- **`pyreach`'s module-to-distribution map is hand-curated.** Missing
-  an entry produces a false-negative for direct top-level imports.
-  Please open an issue naming the distribution and its import name
-  so the map can be extended.
-- **`jvmreach` does not follow reflection or runtime class loading.**
-  Spring component scanning, `ServiceLoader`, OSGi, JPMS dynamic
-  layers, and annotation-processed code are invisible to a static
-  scanner.
-- **`jvmreach`'s package-prefix map is hand-curated.** The Java
-  `package → Maven artifact` relationship has no naming convention,
-  so missing prefixes do not have an identity fallback. Please open
-  an issue naming the artifact and prefix so the map can be extended.
-- **`jvmreach` multi-module traversal is declarative.** It follows
-  Maven parent `<modules>` recursively and standard Gradle
-  `include(...)` declarations with `projectDir` overrides. Gradle
-  composite builds (`includeBuild`) and dynamically computed settings
-  remain best-effort.
+| Status | Meaning |
+| --- | --- |
+| `reachable` | Application code reaches the vulnerable code at the reported tier |
+| `unreachable` | The analysis completed and found no path. At the `package` tier this does not mean safe |
+| `unknown` | The analyzer applied but could not finish. `reason` says why |
+
+Analyzer failures never stop a scan. A missing toolchain, a broken build, or a cancelled run becomes `unknown` with a machine-readable reason such as `missing-toolchain` or `build-failed`.
+
+## Unreachable is not safe
+
+This is the most important thing to know before you gate CI on `--fail-on reachable`. Static analysis cannot see:
+
+- **Dynamic imports**: `require(userInput)`, `importlib.import_module(name)`, `Class.forName(string)`, conditional `__import__`.
+- **Runtime loaders**: plugin systems, Python entry points, Django `INSTALLED_APPS` strings, Spring component scanning, `ServiceLoader`, OSGi, JPMS layers, reflection.
+- **Generated or external code**: annotation processors, build-time code generators, shell commands.
+
+A package-tier `unreachable` says "the application does not import this package". That is useful for deprioritizing dev-only and unused transitive dependencies. It is not evidence that the vulnerability is mitigated. The Go `symbol` tier is much stronger, because `govulncheck` builds the real call graph, but even it cannot see reflection.
+
+When an analyzer sees dynamic-import constructs in your source, it sets `dynamic_imports_detected` to `true` and lowers the confidence of its results, so you can tell from the output when an `unreachable` verdict is incomplete.
+
+## Package-tier analysis in brief
+
+`jsreach`, `pyreach`, and `jvmreach` all work the same way. They scan application source for import statements to build the set of directly imported packages, then expand that set through the dependency graph the detector resolved. Any package reachable from the imported set is `reachable`; everything else, such as a dev dependency no source file imports, is `unreachable`.
+
+Three consequences follow for all three:
+
+- **Imports of a subpath count for the whole package.** Importing `lodash/get` marks all of `lodash` reachable, even if an advisory affects only `lodash/template`.
+- **The result is only as good as the lockfile or build manifest.** A package installed locally but never recorded, or a dependency the build tool did not report, cannot be reached.
+- **Python and JVM imports must be mapped to package names.** `import yaml` means the `PyYAML` distribution, and `org.apache.commons` covers many Maven artifacts. Both analyzers use curated maps for the well-known cases, so a missing entry can produce a false `unreachable` for a direct import. If you find one, open an issue naming the import and the package; additions are quick to ship.
+
+The per-analyzer details, including the override maps and workspace handling, are in the [reachability internals](https://github.com/bomly-dev/bomly-cli/blob/main/dev-docs/REACHABILITY_INTERNALS.md) for contributors.
+
+## Gating on reachability
+
+`--fail-on` is repeatable, and the vulnerability constraints must all match (they combine with AND). An empty reachability result, meaning no analyzer ran on that vulnerability, never matches `reachable`: the analyzer must have confirmed it.
+
+```bash
+bomly scan --enrich --audit --fail-on low                                   # severity only
+bomly scan --enrich --audit --analyze --fail-on low --fail-on reachable      # severity AND reachable
+```
+
+The full list of `--fail-on` values, including `exploitable`, is on the [Auditors](AUDITORS.md) page.
+
+## Where the results appear
+
+| Output | What you see |
+| --- | --- |
+| JSON | A `reachability` object on each `vulnerabilities[]` entry and, with `--audit`, on each `findings[]` entry: `status`, `tier`, `analyzer`, optional `reason`, `symbols`, and `call_paths` (with `function`, `package`, `file`, `line`, `column`). Package-tier analyzers add `hops` (graph distance from a directly imported package; `0` means directly imported), `confidence` (`high`, `medium`, or `low`), and `dynamic_imports_detected` |
+| Text report | A "Reachability" line in the summary and a `REACHABILITY` column in the findings table, rendered as `<status> (<tier>)`, or `—` when no analyzer ran |
+| SARIF | `result.codeFlows` built from the call paths, plus `result.properties` with `reachability`, `reachability_tier`, `reachability_reason`, `analyzer`, `reachability_confidence`, `reachability_hops`, and `reachability_dynamic_imports_detected` |
+
+`confidence` is `high` for a direct import with no dynamic imports seen, `medium` for one to three hops, and `low` for four or more hops or when dynamic imports were seen.
 
 ## Selecting analyzers
 
-Use the `--analyzers` [selector](COMMANDS.md#selector-grammar) to restrict or extend the default set:
+`--analyzers` uses the same [selector grammar](COMMANDS.md#selector-grammar) as the other component flags:
 
-```sh
-bomly scan --enrich --analyze --analyzers govulncheck
-bomly scan --enrich --analyze --analyzers -govulncheck    # disable
-bomly scan --enrich --analyze --analyzers govulncheck,jsreach
+```bash
+bomly scan --enrich --analyze --analyzers govulncheck            # only govulncheck
+bomly scan --enrich --analyze --analyzers -govulncheck           # everything except govulncheck
+bomly scan --enrich --analyze --analyzers govulncheck,jsreach    # these two
 ```
 
-Selector syntax mirrors `--detectors`, `--matchers`, and `--auditors`:
-bare names are an explicit include set, `+name` appends to defaults,
-`-name` removes from defaults.
+External analyzer plugins join the same selector once installed and enabled. See [Plugins](PLUGINS.md) and [How to implement an analyzer plugin](plugins/how-to-implement-analyzer.md).
 
-External analyzer plugins participate in the same selector once installed and
-enabled — see [Plugins](PLUGINS.md) and
-[How To Implement An Analyzer Plugin](plugins/how-to-implement-analyzer.md).
+## Limitations
 
-## Build layout
+| Limitation | Affects | Detail |
+| --- | --- | --- |
+| `unreachable` is not safe | All package-tier analyzers | See [above](#unreachable-is-not-safe) |
+| Needs a buildable Go module | `govulncheck` | When the build fails, the status is `unknown` with one of the reasons below |
+| Dynamic imports and runtime loaders are invisible | All | The result is a lower bound on what is reachable |
+| Subpath imports count for the whole package | `jsreach`, `pyreach`, `jvmreach` | An advisory on one submodule marks the whole package reachable |
+| Curated name maps | `pyreach`, `jvmreach` | A missing module-to-distribution or package-prefix entry can hide a direct import. Python falls back to name normalization; Java has no naming convention to fall back on |
+| Workspace traversal reads declarations only | `jsreach`, `jvmreach` | `jsreach` follows npm and Yarn `workspaces` and `pnpm-workspace.yaml`; `jvmreach` follows Maven `<modules>` and Gradle `include(...)`. Computed workspace membership and Gradle composite builds are not followed |
 
-Unlike Syft and Grype, analyzers do not have a builtin/external build-tag
-split. Both ship a single in-process implementation backed by a vendored
-library:
+`govulncheck` reason codes when the build fails:
 
-- `govulncheck` runs in-process via `golang.org/x/vuln/scan`.
-- `jsreach` runs in-process via `github.com/evanw/esbuild/pkg/api`.
-- `pyreach` runs in-process via an in-tree line-oriented import
-  scanner (no external dependency).
-- `jvmreach` runs in-process via an in-tree line-oriented import
-  scanner (no external dependency).
+| Reason | Cause |
+| --- | --- |
+| `missing-toolchain` | `go` is not on `PATH` |
+| `no-go-packages` | No `.go` files, or build constraints exclude everything |
+| `module-resolution-failed` | No `go.mod`, a missing `go.sum` entry, or a module download failed |
+| `invalid-go-mod` | `go.mod` syntax error |
+| `build-failed` | A compile error |
+| `cancelled` | The run was cancelled or timed out |
+| `runner-error` | Any other failure |
 
-Both libraries are small enough that vendoring them outweighs the
-maintenance cost of supporting an external/lite variant. Lite builds
-(`make build-lite`) include the analyzers as-is.
+## See also
+
+- [Auditors](AUDITORS.md) — every `--fail-on` value and how they combine
+- [JSON schemas](SCHEMAS.md) — the full `reachability` object
+- [How to implement an analyzer plugin](plugins/how-to-implement-analyzer.md) — add an analyzer for another language

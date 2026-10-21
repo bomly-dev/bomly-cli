@@ -1,26 +1,14 @@
-# How To Implement A Detector Plugin
+# How to implement a detector plugin
 
-A detector plugin turns project evidence into a Bomly dependency graph. Use a detector when Bomly needs a new way to read dependency data, such as a new package manager, a specialized manifest format, or an internal dependency source.
+A detector plugin turns project evidence into a Bomly dependency graph. Write one when Bomly needs a new way to read dependency data: a new package manager, a specialized manifest format, or an internal dependency source.
 
-A detector is one `plugin.Module` with `Kind: plugin.PluginKindDetector`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `runtime.ServeModule` — you write the component once. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to detectors.
+[Plugin authoring](authoring.md) covers the module model, repository layout, configuration, testing, packaging, and protocol rules shared by every role. This guide covers only what is specific to detectors. The SDK reference for the types used below is the [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) and [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) packages.
 
-The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) documents `Module`, `DetectorModule`, the `Detector` interface, `DetectionRequest`, `DetectionResult`, and the package-manager support types; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) documents the graph and its node constructors used below; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) documents `ServeModule`.
+## Start from the template
 
-## Start From The Template
+Start from the [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin-template) repository. It ships a working matcher. To turn it into a detector, change the module kind, the descriptor, and the role method; the layout, manifest, tests, and release workflow stay the same, with `"kind": "detector"` in `bomly-plugin.json`.
 
-Start from the [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin-template) repository ("Use this template" on GitHub). It ships a working matcher; turning it into a detector means changing the module kind, the descriptor, and the role method — the layout, manifest, tests, and release workflow stay the same:
-
-```text
-plugin/                  importable package: descriptor, Config, Detector, Module()
-cmd/<binary-name>/
-  main.go                one line: runtime.ServeModule(plugin.Module())
-bomly-plugin.json        package manifest ("kind": "detector")
-testdata/                fixtures for unit tests
-.github/workflows/       CI and the release workflow
-go.mod                   pins a released github.com/bomly-dev/bomly-sdk version
-```
-
-## The Module
+## The module
 
 The component lives in an importable `plugin/` package that exports `Module()`:
 
@@ -134,7 +122,7 @@ import (
 func main() { runtime.ServeModule(plugin.Module()) }
 ```
 
-## What Each Part Does
+## What each part does
 
 - `Descriptor` is the detector's static registration: name (must equal the manifest `id`), display name, aliases, tags, supported ecosystems and managers, discovery metadata, and config schema.
 - `Support` (or the `PackageManagerSupport` method) tells Bomly which package managers and evidence files can plan this detector — declared on the module so Bomly can plan without constructing the component.
@@ -145,7 +133,7 @@ func main() { runtime.ServeModule(plugin.Module()) }
 
 Honor the context in every method: probing, parsing, and subprocess work should stop promptly when the scan is cancelled.
 
-## Detector Chains And Hand-Off
+## Detector chains and hand-off
 
 Bomly plans detector chains per package manager and runs them first-success: when the planned primary detector reports not ready or not applicable, or fails, the next detector in the chain gets the request. Syft is typically the last fallback for ecosystems it covers.
 
@@ -155,9 +143,9 @@ Hand off gracefully instead of failing hard:
 - Report "this project is not for me" through `Applicable`, not through an empty graph.
 - Reserve `ResolveGraph` errors for real failures on projects the detector should have handled.
 
-## Discovery Metadata
+## Discovery metadata
 
-Detector plugins participate in subproject discovery and scan planning through descriptor fields, aggregated across every registered detector exactly like the built-ins:
+Detector plugins take part in project discovery and scan planning through descriptor fields. Bomly aggregates them across every registered detector, built-in or external:
 
 - `PackageManagerSupport.EvidencePatterns` — file names (such as `bun.lock`) whose presence plans this detector for a directory.
 - `DetectorDescriptor.IgnoredDirectories` — directory basename globs recursive discovery (`--recursive`) must not descend into (a Node detector declares `node_modules`, a Maven detector declares `target`).
@@ -166,7 +154,7 @@ Detector plugins participate in subproject discovery and scan planning through d
 
 All of these are optional; older plugins that omit them keep working.
 
-## Build The Graph
+## Build the graph
 
 Use SDK graph helpers instead of constructing graph internals by hand:
 
@@ -195,7 +183,7 @@ if err := graph.AddEdge(parent.NodeID(), child.NodeID()); err != nil {
 
 Prefer canonical PURLs and fill `Coordinates` where possible — matchers enrich packages by PURL, and findings reference them the same way. Return `req.Subproject` and `req.ExecutionTarget` in the result so Bomly keeps it tied to the planned scan target. Use `DetectionResult.Warnings` for non-fatal problems worth surfacing (the graph is usable, but something about the project will degrade an install elsewhere).
 
-## Optional Capabilities
+## Optional capabilities
 
 **Install-first.** A detector that must prepare dependencies before reading them (for example, running a resolving install) implements `plugin.InstallFirstDetector` (`Install(ctx, req) error`) and sets `SupportsInstallFirst` in its descriptor. Do not install package managers themselves; Bomly assumes required package managers already exist.
 
@@ -222,7 +210,7 @@ Return hints only for dependency IDs and manifest paths this detector produced. 
 
 ## Configuration
 
-Declare a typed `Config` struct with `json`, `doc:`, and `default:` tags, advertise it with `ConfigSchema: plugin.MustConfigSchemaFor(Config{})`, and decode it in `New` with `host.DecodeConfig(&cfg)`. Users set the block under `plugins.detectors.<name>`:
+Declare a typed `Config` struct, advertise it with `ConfigSchema`, and decode it in `New` as described in [Plugin authoring](authoring.md#configuration). Users set the block under `plugins.detectors.<name>`:
 
 ```yaml
 plugins:
@@ -231,47 +219,19 @@ plugins:
       includeDev: true
 ```
 
-The same block reaches the component in both execution modes. See [Configuration in the plugin guide](../PLUGINS.md#configuration-and-proxy-support) for details and the deprecated flat form.
+## Test it
 
-## Test It
-
-Unit-test parsing and graph construction against `testdata/` fixtures, and run the SDK conformance suite:
-
-```go
-func TestConformance(t *testing.T) {
-    conformance.Test(t, conformance.Config{
-        Module:       Module(),
-        ManifestPath: filepath.Join("..", "bomly-plugin.json"),
-    })
-}
-```
-
-Local development loop:
+Unit-test parsing and graph construction against `testdata/` fixtures, then run the conformance suite and the local loop described in [Plugin authoring](authoring.md#test-a-plugin). Select the detector with `--detectors <name>` to run only it, or `--detectors +<name>` to add it to the default chain:
 
 ```bash
-go build -o ./bin/bomly-plugin-bun-lock ./cmd/bomly-plugin-bun-lock
-bomly plugins install ./bin/bomly-plugin-bun-lock --dev
-bomly plugins enable com.example.bun-lock-detector
 bomly scan --path ./my-project --detectors com.example.bun-lock-detector --json
-bomly plugins verify com.example.bun-lock-detector
-bomly plugins test com.example.bun-lock-detector
-bomly plugins doctor com.example.bun-lock-detector
 ```
 
-Use `--detectors +<name>` to add the detector to the default set instead of replacing it. See [Testing a plugin](../PLUGINS.md#test-a-plugin) for the shared workflow, including `conformance.ProbeBinary` for probing the built binary over the real managed transport.
+## Checklist
 
-## Package And Release
-
-Follow the template's release workflow: one archive per platform named `<name>_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) containing the binary, `bomly-plugin.json`, `README.md`, and `LICENSE`, plus a `SHA256SUMS` file. The manifest's `entrypoint` map names the binary per platform, and `descriptor.Name` must equal the manifest `id`. See [Package and release](../PLUGINS.md#package-and-release-a-plugin).
-
-## Implementation Checklist
+In addition to the [checklist for every plugin](authoring.md#checklist-for-every-plugin):
 
 - Declare accurate package-manager support, evidence patterns, and discovery metadata.
-- Report missing toolchains through `Ready` with a clear reason; hand off to the chain instead of failing.
-- Honor context cancellation in probing, parsing, and subprocesses.
-- Prefer canonical PURLs and filled `Coordinates`.
+- Report a missing toolchain through `Ready` with a clear reason, so the chain can hand off.
+- Build nodes with the SDK constructors and prefer canonical PURLs with filled `Coordinates`.
 - Keep remediation hints read-only and within the advertised capabilities.
-- Wrap errors with useful context; avoid panics.
-- Do not log secrets, tokens, or credentials.
-- Keep network calls explicit and document them in the plugin README.
-- Add unit tests for parsing and graph construction, plus `conformance.Test`.

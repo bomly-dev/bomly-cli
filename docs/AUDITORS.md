@@ -1,16 +1,12 @@
 # Auditors
 
-Auditors evaluate a dependency graph against policy and produce findings. They are how a scan becomes a pass/fail signal in CI.
+Auditors evaluate a dependency graph against policy and produce findings. They are how a scan becomes a pass or fail signal in CI.
 
-Auditors run **after** detectors and matchers. They never make network calls of their own — they only look at the data that detectors put on the graph and matchers attached to it. To audit fresh vulnerability data, combine `--enrich` with `--audit`:
+Auditors run **after** detectors and matchers, and they never make network calls of their own. They only read what detectors put on the graph and what matchers attached to it. The `--audit` flag requires `--enrich` on the command line. The vulnerability auditor needs the vulnerability records that enrichment attaches. The license and package auditors work on data detectors already provide, so for them enrichment only adds coverage.
 
 ```bash
 bomly scan --enrich --audit --fail-on high
 ```
-
-The CLI requires `--enrich` with `--audit`. Auditors themselves do not make
-network calls; the selected matchers decide whether enrichment uses the
-network.
 
 ## Built-in auditors
 
@@ -20,7 +16,7 @@ network.
 | [`license`](auditors/license.md) | Package licenses vs. allow/deny SPDX policy | `--allow-license`, `--deny-license`, `--license-exempt-package` |
 | [`package`](auditors/package.md) | Denied packages, typosquatted names, and source changes | `--deny-package`, `--deny-group`, `--protected-package`, `--typosquat-threshold`, `--typosquat-mode`, `--fail-on source-change` |
 
-Select a subset with the `--auditors` [selector](COMMANDS.md#selector-grammar) (e.g. `--auditors license`). See the [per-auditor reference](auditors/) for options, examples, and limitations. Auditors are also a plugin extension point — for a worked example of an external auditor, see the [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor).
+Select a subset with the `--auditors` [selector](COMMANDS.md#selector-grammar), for example `--auditors license`. See the [per-auditor reference](auditors/) for options, examples, and limitations. Auditors are also a plugin extension point. The [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor) is a worked example of an external auditor.
 
 ## When auditors run
 
@@ -34,21 +30,21 @@ A finding is Bomly's normalized record of a policy match. Every finding has:
 
 | Field | Meaning |
 | --- | --- |
-| ID | Identifier of the underlying signal (e.g. `CVE-2024-12345`, `GHSA-xxxx-yyyy-zzzz`) |
+| ID | Identifier of the underlying signal (for example `CVE-2024-12345` or `GHSA-xxxx-yyyy-zzzz`) |
 | Kind | What kind of finding (vulnerability, license, lifecycle) |
 | Severity | `critical` / `high` / `medium` / `low` / `unknown` |
 | Package | The package name, version, and PURL it applies to |
 | Title | Human-readable summary |
-| Reasons | Why the finding matched policy (e.g. severity threshold, reachable symbol) |
+| Reasons | Why the finding matched policy (for example a severity threshold or a reachable symbol) |
 | Source | Which matcher produced the underlying data |
 
-Text output (`--format text`, default) groups findings by package and severity. JSON (`--json` or `--format json`) exposes the full shape for automation. SARIF 2.1.0 (`--format sarif`) emits a static-analysis report any tool that consumes SARIF can ingest.
+Text output (`--format text`, the default) groups findings by package and severity. JSON (`--json` or `--format json`) exposes the full shape for automation. SARIF 2.1.0 (`--format sarif`) emits a static-analysis report that any SARIF consumer can read.
 
 `--format sarif` **requires** `--audit`. A SARIF document only makes sense when there are findings.
 
 ## Severity grammar
 
-Severity levels in precedence order, lowest to highest:
+Severity levels in order, lowest to highest:
 
 ```text
 unknown  <  low  <  medium  <  high  <  critical
@@ -58,10 +54,7 @@ The `any` token matches every severity, including `unknown`.
 
 ## `--fail-on`
 
-`--fail-on` controls vulnerability findings by severity, reachability,
-or known exploitation. It also provides the diff-only `source-change`
-gate for package findings. Other policy flags, such as `--deny-package`,
-can create failing findings directly.
+`--fail-on` gates vulnerability findings by severity, reachability, or known exploitation. It also provides the diff-only `source-change` gate for package findings. Other policy flags, such as `--deny-package`, create failing findings directly.
 
 It accepts these tokens:
 
@@ -72,18 +65,13 @@ It accepts these tokens:
 | `medium` | findings with severity ≥ medium |
 | `high` | findings with severity ≥ high |
 | `critical` | findings with severity = critical |
-| `reachable` | findings where reachability status is `reachable` (experimental — see [REACHABILITY.md](REACHABILITY.md)) |
+| `reachable` | findings where reachability status is `reachable` (experimental, see [REACHABILITY.md](REACHABILITY.md)) |
 | `exploitable` | vulnerability findings marked as known exploited by enrichment data |
 | `source-change` | diffs where a dependency changes from a known source to Git or an arbitrary URL |
 
-Repeat vulnerability constraints to AND them together. `source-change`
-is an independent package gate, so combining it with vulnerability constraints
-fails when either the source gate or the complete vulnerability constraint set
-matches:
+Repeat vulnerability constraints to combine them with AND. `source-change` is an independent package gate. Combined with vulnerability constraints, the run fails when either the source gate matches or the complete vulnerability constraint set matches. Used by itself, `source-change` leaves vulnerability findings unchanged. It only matches dependency transitions from `bomly diff` and has no effect on `scan` or `explain`.
 
-Used by itself, `source-change` leaves vulnerability findings unchanged.
-It can only match dependency transitions from `bomly diff`; it has no
-effect on `scan` or `explain`.
+The examples below show each combination:
 
 ```bash
 # Fail on any high or critical finding
@@ -102,8 +90,11 @@ bomly diff --base main --head HEAD --enrich --audit \
   --fail-on high --fail-on source-change
 ```
 
-Tokens are case-insensitive. An invalid token produces an exit-code 4 (invalid input) with the message:
-`unsupported --fail-on value "<x>" (accepted: any, low, medium, high, critical, reachable, exploitable, source-change)`.
+Tokens are case-insensitive. An invalid token exits with code 4 (invalid input) and this message:
+
+```text
+unsupported --fail-on value "<x>" (accepted: any, low, medium, high, critical, reachable, exploitable, source-change)
+```
 
 ## Minimal CI policy
 
@@ -113,31 +104,27 @@ Start with one explicit severity gate:
 bomly scan --enrich --audit --fail-on high
 ```
 
-This fails on high and critical findings while keeping lower-severity findings
-visible in the report. Add license, denied-package, protected-package,
-reachability, or exploitability controls only when your team has defined the
-corresponding review and exception process. A larger policy is not inherently a
-safer policy if nobody owns its exceptions.
+This fails on high and critical findings while keeping lower-severity findings visible in the report. Add license, denied-package, protected-package, reachability, or exploitability controls only when your team has defined the matching review and exception process. A larger policy is not a safer policy if nobody owns its exceptions.
 
 ## Exit codes from auditors
 
 | Code | Trigger |
 | --- | --- |
 | 0 | Scan succeeded; no policy match for `--fail-on` |
-| 2 | Policy violation — at least one finding matched `--fail-on` |
+| 2 | Policy violation: at least one finding matched `--fail-on` |
 | 4 | Invalid `--fail-on` value |
 
 See [EXIT_CODES.md](EXIT_CODES.md) for the full table.
 
 ## Diff and auditing
 
-`bomly diff --audit` classifies findings between two graphs into three buckets:
+`bomly diff --audit` sorts findings between two graphs into three buckets:
 
-- **Introduced** — present in head, absent in base
-- **Resolved** — present in base, absent in head
-- **Persisted** — present in both
+- **Introduced**: present in head, absent in base.
+- **Resolved**: present in base, absent in head.
+- **Persisted**: present in both.
 
-The diff audit only inspects packages the change touched, so findings on unchanged packages never appear — that is how pre-existing debt stays out of PR reviews. Both remaining buckets gate: `--fail-on` fails on introduced findings and on persisted ones, because a persisted finding means the changed package still ships a known issue at its new version:
+The diff audit only inspects packages the change touched, so findings on unchanged packages never appear. That is how pre-existing debt stays out of pull request reviews. `--fail-on` fails on introduced findings and on persisted ones. A persisted finding means the changed package still ships a known issue at its new version:
 
 ```bash
 bomly diff --base main --head HEAD --enrich --audit --fail-on high
@@ -165,32 +152,21 @@ policy:
 
 Bomly merges configuration from these sources, in increasing precedence:
 
-1. User-level `~/.bomly/config.yaml` — your defaults across every project.
-2. `--config <path>` or `BOMLY_CONFIG` — an explicitly trusted file.
+1. User-level `~/.bomly/config.yaml`: your defaults across every project.
+2. `--config <path>` or `BOMLY_CONFIG`: an explicitly trusted file.
 3. `BOMLY_*` environment variables.
 4. CLI flags.
 
-Repository config files are never loaded automatically. A team may commit
-`.bomly/config.yaml`, but each invocation must select it explicitly with
-`--config .bomly/config.yaml` or `BOMLY_CONFIG`. When both are set,
-`--config` wins. Every key is listed in
-[CONFIG_REFERENCE.md](CONFIG_REFERENCE.md).
+Repository config files are never loaded automatically. A team may commit `.bomly/config.yaml`, but each invocation must select it explicitly with `--config .bomly/config.yaml` or `BOMLY_CONFIG`. When both are set, `--config` wins. Every key is listed in [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md).
 
 ## Finding baselines
 
-A project may commit `.bomly/baseline.json` to suppress accepted package
-findings without removing them from reports. Policy-status resolution is part of
-auditing: auditors first emit ordinary findings, then the audit stage marks
-compatible entries `suppressed`. It never removes a finding or suppresses
-pipeline diagnostics. If automatic discovery finds a symbolic link at the
-conventional baseline path, Bomly warns and behaves as though no baseline
-exists. An explicit `--baseline <path>` remains a trusted user-selected
-path. See [Finding Baselines](BASELINES.md).
+A project may commit `.bomly/baseline.json` to suppress accepted package findings without removing them from reports. Policy-status resolution is part of auditing. Auditors first emit ordinary findings, then the audit stage marks matching entries `suppressed`. It never removes a finding or suppresses pipeline diagnostics. If automatic discovery finds a symbolic link at the conventional baseline path, Bomly warns and behaves as though no baseline exists. An explicit `--baseline <path>` is a trusted path you chose. See [Finding baselines](BASELINES.md).
 
 ## See also
 
-- [Per-auditor reference](auditors/) — options, examples, and limitations for each built-in auditor
-- [Exit codes](EXIT_CODES.md) — full table of process exit values
-- [Reachability](REACHABILITY.md) — narrowing findings to symbols actually called
-- [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF rendering details
-- [Matchers](MATCHERS.md) — where finding data comes from
+- [Per-auditor reference](auditors/): options, examples, and limitations for each built-in auditor
+- [Exit codes](EXIT_CODES.md): full table of process exit values
+- [Reachability](REACHABILITY.md): narrowing findings to symbols actually called
+- [Output formats](OUTPUT_FORMATS.md): text, JSON, SARIF rendering details
+- [Matchers](MATCHERS.md): where finding data comes from

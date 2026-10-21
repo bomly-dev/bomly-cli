@@ -1,132 +1,63 @@
-# Security and Trust Boundaries
+# Security and trust boundaries
 
-Bomly reads repository files, can start package-manager commands, and can make
-network requests when you ask it to. This page explains where those permissions
-come from and which parts of a run you must trust.
+Bomly reads repository files, can start package-manager commands, and can make network requests when you ask it to. This page explains where each of those permissions comes from, which limits Bomly enforces on untrusted input, and which risks remain. Read it when you assess Bomly for your organization. [Network and privacy](NETWORK.md) has the complete list of network triggers.
 
-## Safe Defaults
+## Safe defaults
 
-- Bomly automatically loads only the user configuration at
-  `~/.bomly/config.yaml`. A repository configuration loads only when you
-  select it with `--config` or `BOMLY_CONFIG`.
-- Network-backed matchers run only with `--enrich`. `--audit` and `--analyze`
-  do not turn on enrichment.
+- Bomly loads only the user configuration at `~/.bomly/config.yaml` on its own. A configuration file inside a repository loads only when you select it with `--config` or `BOMLY_CONFIG`, because a complete configuration can enable network access, package-manager commands, plugins, and file output.
+- Enrichment runs only with `--enrich`. `--audit` and `--analyze` do not turn it on.
 - `--url` is an explicit request to clone a remote Git repository.
 - Package installation runs only with `--install-first`.
-- External plugins are disabled after installation until you enable them.
-- MCP requests do not turn on enrichment or analysis unless their matching
-  request fields do so explicitly.
+- External plugins stay disabled after installation until you enable them.
+- MCP requests turn on enrichment or analysis only when their request fields ask for it.
 
-These defaults limit authority. They do not make every scan offline. A selected
-build-tool detector may run tools such as Go, Maven, Gradle, or npm, and those
-tools may contact their configured registries while resolving dependencies.
+These defaults limit what Bomly may do. They do not make every scan offline: a build-tool detector may run Go, Maven, Gradle, or npm, and those tools may contact their registries while they resolve dependencies.
 
-## Network Trust
+## Network trust
 
-Bomly's built-in HTTP clients honor the configured proxy, no-proxy rules, and
-additional CA certificates. Redirects use Go's standard redirect rules,
-including its redirect limit and removal of credentials on a cross-host
-redirect. Errors and logs do not include configured endpoint or proxy
-credentials.
+Bomly's built-in HTTP clients honor the configured proxy, no-proxy rules, and extra CA certificates. Redirects follow Go's standard rules, including its redirect limit and the removal of credentials on a cross-host redirect. Errors and logs never include endpoint or proxy credentials.
 
-Trusted configuration may select a custom endpoint on a public or private
-network, including plain HTTP. Standard redirects may also move an HTTPS
-request to HTTP. Bomly does not block private addresses, pin DNS answers,
-prevent DNS rebinding, or block that downgrade. Selecting the endpoint grants
-Bomly permission to follow those standard redirect rules.
+A trusted configuration may point a matcher at a custom endpoint on a public or private network, including plain HTTP, and a standard redirect may move an HTTPS request to HTTP. Bomly does not block private addresses, pin DNS answers, prevent DNS rebinding, or block that downgrade. In practice this means that whoever controls your configuration, or a server it names, controls where enrichment requests go. Keep configuration files under the same review as code.
 
-Host package managers, Git, container tools, and registries keep ownership of
-their own credentials and network behavior. At debug verbosity, Bomly logs the
-executable, working directory, and arguments after removing recognized
-credential-shaped values and URL user information. This is a deliberately
-bounded redactor, not a promise that arbitrary argument text is secret-free.
-At debug verbosity (`-vv`), Bomly also prints raw subprocess stderr so users
-can diagnose package-manager, analyzer, matcher, Git, Java, and managed plugin
-failures. It is hidden at lower verbosity and is not added to structured
-results. Bomly cannot reliably remove secrets from arbitrary tool output, so
-treat debug logs as sensitive data.
+Package managers, Git, container tools, and registries keep their own credentials and network behavior. At debug verbosity (`-vv`) Bomly logs each command it runs with its working directory and arguments, after removing values that look like credentials and the user part of URLs. This catches common secrets, not every possible one. Debug logs also include the raw stderr of invoked tools, which Bomly cannot scrub, so treat debug logs as sensitive. Lower verbosity levels do not include either.
 
-## Files and Resource Limits
+## Files and resource limits
 
-Bomly treats repository files, SBOMs, baselines, plugin packages, and remote
-responses as untrusted input.
+Bomly treats repository files, SBOMs, baselines, plugin packages, and remote responses as untrusted input, and refuses oversized input instead of using part of it.
+
+| Input | Limit |
+| --- | --- |
+| A manifest, lockfile, workspace file, or source file parsed in process | 64 MiB per file |
+| A local JSON cache entry | 64 MiB; an oversized or corrupt entry is a cache miss |
+| A remote Git operation | 10 minutes |
+| A completed Git checkout | 1,000,000 paths, 10 GiB of regular files, 256 path levels; a symlink may not point outside the checkout |
+| A baseline file | 16 MiB and 10,000 entries |
+| An SBOM's open member names during duplicate detection | 100,000 names or 16 MB; see the [SBOM field reference](SBOM_REFERENCE.md#strict-ingest-limits) |
+| Plugin downloads, archive entries, expanded files, and metadata | See [Plugins](PLUGINS.md#install-sources) |
+| Configuration files and deps.dev responses | Fixed limits; oversized input fails with an error |
+
+Other rules for untrusted files:
 
 - Recursive discovery does not follow directory symlinks.
-- Automatically discovered baseline symlinks are ignored with a warning. A
-  user-selected baseline may be a symlink because selecting its path is an
-  explicit trust decision.
-- Archive extraction rejects paths, links, and special files that could escape
-  the plugin directory. Plugin downloads, archive entries, expanded files, and
-  plugin metadata have fixed size limits.
-- Configuration, baselines, SBOM input, and deps.dev responses have fixed
-  limits. Oversized input fails with an error instead of being partially used.
-- An imported SBOM must have a single unambiguous reading. A document that
-  repeats an object member name, or that carries bytes which are not valid
-  UTF-8, is refused rather than read one of the ways it could be read — two
-  tools decoding such a file can otherwise disagree about which package it
-  names. The error points at the member or the byte offset. This applies to
-  documents Bomly imports; the plugin protocol keeps its existing decoding,
-  because an enabled plugin is a native process you chose to run.
-- What an ingested SBOM asserted — component supplier, description, homepage,
-  checksums, CPEs, references, and the document's own identity, creators and
-  tools — is re-published under Bomly's name, so every one of those values is
-  re-checked on the way out as well as on the way in. A value carrying a
-  credential, a local path, a control character, or a malformed identifier is
-  dropped rather than written into the output document, and an email address
-  is never retained on a contact.
-- Manifests, lockfiles, workspace files, and source files parsed in process
-  have a 64 MiB per-file limit. Local JSON cache entries have the same limit;
-  an oversized or corrupt cache entry becomes a cache miss.
-- A remote Git operation may run for at most 10 minutes. After checkout,
-  Bomly accepts at most 1,000,000 paths, 10 GiB of regular files, and 256 path
-  levels. A repository symlink may point elsewhere in that checkout, but it
-  may not point outside the checkout. Submodules and Git LFS objects are not
-  downloaded automatically.
-- Output is written only to the path selected by the user. Cache keys are
-  hashed before they become paths.
+- An automatically discovered baseline that is a symlink is ignored with a warning. A baseline you select explicitly may be a symlink, because selecting its path is a trust decision.
+- Plugin archive extraction rejects paths, links, and special files that could escape the plugin directory.
+- An imported SBOM must have one unambiguous reading, and every value it asserts is re-checked before Bomly republishes it. [SBOM formats](SBOM.md#what-bomly-refuses-to-read) explains what is refused and why. The plugin protocol keeps its own decoding, because an enabled plugin is a process you chose to run.
+- Output is written only to the path you selected. Cache keys are hashed before they become file names.
 
-Some resources intentionally have no general hard size limit:
+Some resources have no hard limit on purpose:
 
-- `--url` uses the installed Git client. Git may download objects and use disk
-  space before Bomly can check the completed checkout, and the `.git`
-  directory is not included in the 10 GiB checkout limit. Use
-  operating-system limits when that earlier resource use must be capped.
-- Output from a selected package manager or host tool is not truncated. A
-  truncated command result could look like a complete dependency graph when it
-  is not.
-- A local target can contain many files even though each parsed file is
-  limited. The user-selected local filesystem remains responsible for that
-  total project size.
+- `--url` uses the installed Git client. Git may download objects and use disk space before Bomly can check the finished checkout, and the `.git` directory is not counted in the 10 GiB limit. Use operating-system limits when that earlier use must be capped.
+- Output from a package manager or other host tool is not truncated, because a truncated result could look like a complete dependency graph.
+- A local target may contain any number of files, each limited individually. Bomly does not limit the total size of a local project.
 
-## Plugin Trust
+## Plugin trust
 
-Installing a plugin verifies its package and records it, but does not enable
-it. Enabling a native plugin is the trust decision.
-
-An enabled plugin is a native process with the same user privileges as Bomly.
-It can read and write files, use the network, inspect its environment, and
-start other programs. The plugin protocol validates data returned to Bomly; it
-is not an operating-system sandbox.
-
-Bomly passes managed plugins a small, explicit environment rather than copying
-the complete host environment. Repository files cannot install or enable a
-plugin automatically.
+Installing a plugin verifies its package and records it, but does not enable it. Enabling a plugin is the trust decision. An enabled plugin is a process with the same privileges as Bomly: it can read and write files, use the network, read its environment, and start other programs. The plugin protocol validates the data a plugin returns; it is not a sandbox. Bomly passes plugins a small, explicit environment rather than the complete host environment, and repository files cannot install or enable a plugin. [Plugins](PLUGINS.md#trust-and-security) lists what Bomly checks before it runs one.
 
 ## MCP
 
-MCP tools use the same command options and pipeline gates as the CLI. Policy
-fields do not implicitly enable enrichment or analysis. Compact MCP responses
-have size caps and truncation counts. Tool failures return stable error
-categories. Local MCP error logs contain the category and unwrapped Go cause
-type, not the raw cause text. Components may also emit their own safe stage
-logs independently.
+The MCP tools use the same options and rules as the CLI, and policy fields never turn on enrichment or analysis by themselves. Responses have size caps with truncation counters. Tool failures return a short, stable category rather than the raw error, so local paths, command output, and credentials stay out of the protocol and the logs. The MCP server is a local process; your MCP client decides who can start it, which directories it can reach, and whether to sandbox it further.
 
-The MCP server is a local process. Your MCP host controls who can start it,
-which directories it can reach, and whether additional operating-system
-sandboxing is applied.
+## Reporting a vulnerability
 
-## Reporting a Vulnerability
-
-Please follow the private reporting instructions in the repository's
-[Security policy](https://github.com/bomly-dev/bomly-cli/security/policy).
-Do not include credentials or private project data in a public issue.
+Follow the private reporting instructions in the repository's [security policy](https://github.com/bomly-dev/bomly-cli/security/policy). Do not include credentials or private project data in a public issue.

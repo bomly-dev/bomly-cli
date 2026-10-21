@@ -1,23 +1,23 @@
-# Tutorial: From First Scan to a CI Gate
+# Tutorial: from first scan to a CI gate
 
-A start-to-finish walkthrough on a real project: scan it, understand a finding, cut the list down to what matters, accept the existing debt, and wire the gate into CI. Every command below was run against the pinned repository shown, and the output you see is what it printed.
+This walkthrough takes a real project from a first scan to a pull request gate in CI: scan it, understand a finding, cut the list down to what matters, accept the existing findings, and wire the gate into CI. Every command was run against the pinned repository shown, and the output is what it printed.
 
-Where [Getting Started](GETTING_STARTED.md) introduces each feature on its own, this page chains them into the workflow you'd actually deploy.
+[Getting started](GETTING_STARTED.md) shows each feature on its own. This page combines them into the workflow you would deploy.
 
 ## Prerequisites
 
-- `bomly` on your `PATH` ([Installation](INSTALLATION.md)) — verify with `bomly version`
+- `bomly` on your `PATH` ([Installation](INSTALLATION.md)); check with `bomly version`
 - `git`
-- Network access for the enrichment steps (`--enrich` is the explicit opt-in — see [Network and Privacy](NETWORK.md))
+- Network access for the enrichment steps ([Network and privacy](NETWORK.md) lists what `--enrich` contacts)
 
-We'll use a deliberately vulnerable demo project maintained by the Bomly org, pinned to a tag so the *dependency graph* you scan matches this page. The outputs below were captured with Bomly 0.20.2 on 2026-07-30; graph numbers are stable, but advisory counts and IDs come from live enrichment data and may drift as services add or withdraw records:
+The project is a deliberately vulnerable demo maintained by the Bomly organization, pinned to a tag so the dependency graph you scan matches this page. The outputs were captured with Bomly 0.20.2 on 2026-07-30. The package counts are stable, but advisory counts and IDs may differ on your run because vulnerability databases change:
 
 ```bash
 git clone --depth 1 --branch v1.0.0 https://github.com/bomly-dev/example-javascript-npm
 cd example-javascript-npm
 ```
 
-## Step 1 — Inventory the project
+## Step 1: inventory the project
 
 ```bash
 bomly scan
@@ -44,9 +44,9 @@ Top-level dependencies
   url                0.11.0    -         runtime       -
 ```
 
-Fourteen direct dependencies fan out into 136 packages — the other 122 are transitive, and they're where most surprises live. No network call happened yet: the license and vulnerability columns stay empty until you enrich.
+Fourteen direct dependencies pull in 136 packages. The other 122 are transitive, and most problems come from those. No network call happened yet: the license and vulnerability columns stay empty until you enrich.
 
-## Step 2 — Ask why a package is there
+## Step 2: ask why a package is there
 
 Pick a package you never installed on purpose. `minimist` is a classic:
 
@@ -67,9 +67,9 @@ introduced by:
         └─ minimist@0.0.10 [analyzed] (transitive)
 ```
 
-The chain reads bottom-up: removing `minimist@0.0.10` means dealing with `optimist`, which means dealing with the direct dependency `to`. That's the fact you need before filing any upgrade PR. ([explain reference](commands/explain.md))
+Read the chain from the bottom: to remove `minimist@0.0.10` you have to deal with `optimist`, and for that with the direct dependency `to`. That is the fact you need before you file an upgrade PR. ([explain reference](commands/explain.md))
 
-## Step 3 — Enrich with vulnerability and license data
+## Step 3: add vulnerability and license data
 
 ```bash
 bomly scan --enrich
@@ -90,9 +90,9 @@ Top-level dependencies
   ...
 ```
 
-Twenty-three vulnerable packages, and a fix exists for all but one. Enrichment sends package coordinates — never your code — to the services listed in [Matchers](MATCHERS.md).
+Twenty-three vulnerable packages, and a fix exists for all but one. Enrichment sends package names and versions, never your code, to the services listed in [Matchers](MATCHERS.md).
 
-## Step 4 — Turn data into a gate
+## Step 4: turn data into a gate
 
 ```bash
 bomly scan --enrich --audit --fail-on high
@@ -118,9 +118,9 @@ Findings
 
 </details>
 
-The exit code is `2`: at least one finding matched `--fail-on high`. The report lists 31 findings, of two kinds: 25 gating vulnerability findings, plus 6 license *warnings* (the `[WARNING] UNKNOWN-…` rows — packages whose license couldn't be determined) that inform but never gate. Twenty-five gating findings is too many to fix in one sitting, which is exactly the situation the next two steps are for. ([Auditors](AUDITORS.md), [Exit Codes](EXIT_CODES.md))
+The exit code is `2`: at least one finding matched `--fail-on high`. The report lists 31 findings of two kinds. Twenty-five are vulnerability findings that gate. Six are license warnings (`[WARNING] UNKNOWN-…` rows further down, for packages whose license could not be determined) that inform but never gate. Twenty-five gating findings is too many to fix at once, which is what the next two steps are for. ([Auditors](AUDITORS.md), [Exit codes](EXIT_CODES.md))
 
-## Step 5 — Triage by reachability (experimental)
+## Step 5: triage by reachability (experimental)
 
 Which of those 25 gating findings live in code this app actually imports?
 
@@ -128,13 +128,13 @@ Which of those 25 gating findings live in code this app actually imports?
 bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable
 ```
 
-The two `--fail-on` constraints AND together: a vulnerability finding now gates only when it is high-or-above **and** reachable. On this project that cuts the gating vulnerability findings from 25 to 10 (the report shows 16 rows — the 6 license warnings are unaffected by reachability). For example, `minimist@1.2.5` (pulled in by the dev-only `mocha` toolchain) drops out, while `minimist@0.0.10` on the runtime path stays.
+Both conditions must hold: a vulnerability finding now gates only when it is high or above **and** reachable. On this project that cuts the gating findings from 25 to 10 (the report shows 16 rows, because the 6 license warnings are unaffected). For example, `minimist@1.2.5`, pulled in by the dev-only `mocha` toolchain, drops out, while `minimist@0.0.10` on the runtime path stays.
 
-Reachability is experimental, and at package precision "unreachable" means "no import path found", not "safe" — read [Reachability](REACHABILITY.md) before making this your only gate.
+Reachability is experimental. For these analyzers "unreachable" means "no import path found", not "safe". Read [Reachability](REACHABILITY.md) before you make this your only gate.
 
-## Step 6 — Accept the existing debt
+## Step 6: accept the existing findings
 
-A gate you can't turn on because of old findings protects nothing. Baselines record today's findings so the gate fails only on *new* ones:
+A gate you cannot turn on because of old findings protects nothing. A baseline records today's findings so the gate fails only on new ones:
 
 ```bash
 bomly baseline create --enrich
@@ -142,9 +142,9 @@ bomly scan --enrich --audit --fail-on high
 echo $?   # 0
 ```
 
-The findings are still reported — their policy status becomes `suppressed` instead of gating. Commit `.bomly/baseline.json` so CI and teammates share the same accepted set, and use `bomly baseline update` / `prune` as debt gets paid down. ([Finding Baselines](BASELINES.md))
+The findings are still reported, but their policy status becomes `suppressed` instead of gating. Commit `.bomly/baseline.json` so CI and teammates share the same accepted set. Use `bomly baseline update` and `prune` as you fix findings. This tutorial does not commit the file yet, which matters in the next step. ([Finding baselines](BASELINES.md))
 
-## Step 7 — Review changes, not snapshots
+## Step 7: review changes, not snapshots
 
 For pull requests, compare two states and audit only what changed. The demo repo has two tags to compare:
 
@@ -167,19 +167,19 @@ Version changed (1)
   Run again with --format json to see remediation details.
 ```
 
-(The `--fail-on high` threshold filters the rendered findings too — drop it to also see this bump's three medium-severity persisted advisories.)
+(`--fail-on high` also filters the findings shown. Drop it to see this bump's three medium-severity persisted advisories as well.)
 
-Read this carefully, because it shows both halves of how diff gating works:
+This output shows the two halves of diff gating:
 
-- The other 22 vulnerable packages from Step 3 are absent. Diff audits **only the packages the change touched** — untouched debt elsewhere in the repo never blocks a PR.
-- The exit code is still `2`. The lodash bump *persisted* three high-severity findings: 4.17.15 still ships them, so the gate correctly refuses to call this upgrade done. The way out is the bump the fix suggestion points at — or an accepted baseline.
-- The baseline from Step 6 didn't apply here because diff materializes each side from git: every side uses the baseline **committed at that ref**. Commit `.bomly/baseline.json` and PRs that leave accepted findings untouched pass.
+- The other 22 vulnerable packages from Step 3 are absent. Diff audits only the packages the change touched, so existing findings elsewhere in the repository never block a PR.
+- The exit code is still `2`. The lodash bump kept three high-severity findings alive: 4.17.15 still ships them, so the gate refuses to call this upgrade done. The way out is the version the fix suggestion names, or an accepted baseline.
+- The baseline from Step 6 did not apply, because you never committed it. Diff reads each side from Git, so each side uses the baseline committed at that ref. Commit `.bomly/baseline.json`, and PRs that leave accepted findings untouched pass.
 
 ([diff reference](commands/diff.md))
 
-## Step 8 — Put it in CI
+## Step 8: put it in CI
 
-The turnkey form for GitHub pull requests is the Guard action — it runs the diff from Step 7 against the PR's merge base and posts the result as a check and an updatable comment:
+For GitHub pull requests, the Guard action runs the diff from Step 7 against the PR's merge base and posts the result as a check and a PR comment:
 
 ```yaml
 # .github/workflows/bomly.yml
@@ -196,7 +196,7 @@ jobs:
           fail-on: high
 ```
 
-Prefer the CLI directly (any CI system), with SARIF for the security tab:
+On any CI system you can call the CLI directly, here with SARIF for the security tab:
 
 ```yaml
 - name: Bomly gate
@@ -208,12 +208,17 @@ Prefer the CLI directly (any CI system), with SARIF for the security tab:
     sarif_file: bomly.sarif
 ```
 
-Recipes for GitLab, Jenkins, Azure DevOps, and CircleCI live in [CI Integration](CI_INTEGRATION.md); Guard's full input reference in [Bomly Guard](BOMLY_GUARD.md).
+[CI integration](CI_INTEGRATION.md) has recipes for GitLab, Jenkins, Azure DevOps, and CircleCI. [Bomly Guard](BOMLY_GUARD.md) has the action's inputs.
 
 ## What you built
 
-An inventory you can query (`scan`, `explain`), an enrichment-backed policy gate with a reachability-aware triage path, a committed baseline that separates old debt from new risk, and a PR-level diff gate in CI. From here:
+- An inventory you can query with `scan` and `explain`.
+- A policy gate on enriched data, with reachability to triage it.
+- A baseline that separates old findings from new risk.
+- A PR-level diff gate in CI.
 
-- [Use Cases](USE_CASES.md) — more goal-shaped recipes (licenses, typosquats, containers, SBOMs)
-- [Output Formats](OUTPUT_FORMATS.md) — JSON, SARIF, and SBOM artifacts from the same runs
+From here:
+
+- [Use cases](USE_CASES.md) — recipes for licenses, typosquats, containers, and SBOMs
+- [Output formats](OUTPUT_FORMATS.md) — JSON, SARIF, and SBOM output from the same runs
 - [Interactive TUI](TUI.md) — explore the same graph with `bomly scan --interactive`

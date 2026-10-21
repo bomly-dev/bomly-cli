@@ -26,7 +26,7 @@
               "id": "how-is-bomly-different",
               "question": "How is Bomly different from general-purpose security scanners?",
               "toc": "How is Bomly different?",
-              "answer": "Different focus. General-purpose scanners cover many target and finding types — container images, IaC misconfigurations, secrets — with vulnerability detection per target. Bomly is built around one thing: the dependency graph. It keeps the full graph so it can answer why a package is present (`bomly explain`), what changed between two refs or SBOMs (`bomly diff`), and whether a vulnerability is actually reachable from your code (`--analyze`), alongside SBOM generation and policy auditing. For container images, Bomly embeds Syft and Grype — proven scanning technology used widely across the ecosystem. The tools compose: many teams run an image scanner for images and Bomly for dependency intelligence and PR review.",
+              "answer": "The focus is different. General-purpose scanners cover many target and finding types: container images, infrastructure-as-code misconfigurations, secrets, and more. Bomly is built around one thing, the dependency graph. It keeps the full graph, so it can tell you why a package is present (`bomly explain`), what changed between two refs or SBOMs (`bomly diff`), and whether a vulnerability is reachable from your code (`--analyze`). It also writes SBOMs and audits policy. For container images, Bomly embeds Syft and Grype, which are widely used scanning tools. Many teams run both: an image scanner for images, and Bomly for dependency questions and pull request review.",
               "links": [
                 {
                   "label": "Architecture",
@@ -107,7 +107,7 @@
               "id": "where-are-the-release-notes",
               "question": "Where are the release notes?",
               "toc": "Release notes",
-              "answer": "On GitHub Releases. Draft releases are created automatically after merges to main, and the documentation site is updated per release.",
+              "answer": "On GitHub Releases. The documentation site is updated with each release.",
               "links": [
                 {
                   "label": "GitHub Releases",
@@ -196,12 +196,12 @@
               "answer": "Run `bomly explain <package>`, for example `bomly explain lodash`. Bomly prints the dependency paths that bring the package in, so you can see which direct dependency is responsible, and it includes advisory and fix context when enrichment data is present. This works for transitive packages that never appear in your own manifests.",
               "links": [
                 {
-                  "label": "Use cases",
-                  "href": "/docs/use-cases"
+                  "label": "explain command",
+                  "href": "/docs/commands/explain"
                 },
                 {
-                  "label": "Getting started",
-                  "href": "/docs/getting-started"
+                  "label": "Use cases",
+                  "href": "/docs/use-cases"
                 }
               ]
             },
@@ -212,8 +212,8 @@
               "answer": "Use `bomly diff`. `bomly diff --base main --head HEAD` compares two Git refs, `bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json` compares two SBOM files, and `--image` compares two container tags or digests. Findings are grouped into introduced, resolved, and persisted, so you can see exactly what a change adds or fixes.",
               "links": [
                 {
-                  "label": "Scan targets",
-                  "href": "/docs/scan-targets"
+                  "label": "diff command",
+                  "href": "/docs/commands/diff"
                 },
                 {
                   "label": "CI integration",
@@ -282,7 +282,7 @@
               "id": "typosquat-detection",
               "question": "Can Bomly warn me about typosquatted package names?",
               "toc": "Typosquat detection",
-              "answer": "Yes. The package auditor compares new package names against a protected set: pass `--protected-package` for the names you care about, and tune `--typosquat-threshold` (default 0.90) and `--typosquat-mode` (`warn` or `fail`). The check is name-based and needs no network enrichment. Under `bomly diff`, the packages already in your base branch seed the protected set, so only newly introduced names are checked.",
+              "answer": "Yes. The package auditor compares new package names against a protected set: pass `--protected-package` for the names you care about, and tune `--typosquat-threshold` (default 0.90) and `--typosquat-mode` (`warn` or `fail`). The check itself only compares names, but `--audit` requires `--enrich`, so the run still contacts the enrichment services. Under `bomly diff`, the packages already in your base branch seed the protected set, so only newly introduced names are checked.",
               "links": [
                 {
                   "label": "Auditors",
@@ -294,7 +294,7 @@
               "id": "output-formats",
               "question": "What output formats does Bomly produce?",
               "toc": "Output formats",
-              "answer": "The default output is a human-readable text report. With `--format` you can switch to `json`, `markdown`, SARIF 2.1.0 (requires `--audit`), SPDX 2.3, or CycloneDX 1.7, and `-o format=path` writes several formats in one run while still printing the normal report.",
+              "answer": "The default output is a human-readable text report. With `--format` you can switch to `json`, `markdown`, SARIF 2.1.0 (requires `--audit`), SPDX 2.3, or CycloneDX 1.7, and `-o format=path` writes several formats in one run. When every `-o` names a file and you set no `--format`, Bomly writes the files and prints nothing; add `--format text` to keep the terminal report.",
               "links": [
                 {
                   "label": "Output formats",
@@ -322,7 +322,7 @@
               "id": "is-unreachable-safe-to-ignore",
               "question": "Does \"unreachable\" mean a vulnerability is safe to ignore?",
               "toc": "Is \"unreachable\" safe?",
-              "answer": "No. Reachability is a triage signal: \"unreachable\" at package precision means static analysis found no import path, and static analysis cannot see dynamic imports, plugin loaders, or runtime code generation. Use it to prioritize, not to dismiss — and read the reachability guide before gating CI on `--fail-on reachable`.",
+              "answer": "No. Reachability is a triage signal. \"Unreachable\" means static analysis found no import path from your code to the vulnerable package. Static analysis cannot see dynamic imports, plugin loaders, or code generated at runtime. Use it to prioritize, not to dismiss, and read the reachability guide before gating CI on `--fail-on reachable`.",
               "links": [
                 {
                   "label": "Reachability",
@@ -334,7 +334,7 @@
               "id": "why-did-my-scan-exit-non-zero",
               "question": "Why did my scan exit non-zero?",
               "toc": "Non-zero exit codes",
-              "answer": "Bomly uses a small, stable set of exit codes: 0 is clean, 2 means a finding matched your `--fail-on` policy, and 1, 3, 4, and 5 distinguish execution errors, resolution failures, invalid input, and \"nothing to evaluate\". The exit-codes reference has the full table and CI recipes for branching on them.",
+              "answer": "Bomly uses a small, fixed set of exit codes. 0 means success. 2 means a finding matched your `--fail-on` policy. 1 is an execution error, 3 a resolution failure (a required detector could not build the graph), 4 invalid input, and 5 nothing to evaluate (no supported project was found). The exit-codes reference has the full table and CI recipes.",
               "links": [
                 {
                   "label": "Exit codes",

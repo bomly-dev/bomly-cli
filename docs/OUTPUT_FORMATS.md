@@ -1,40 +1,48 @@
-# Output Formats
+# Output formats
 
-Bomly writes one primary stdout output and any number of additional outputs in the same run.
+This page explains the formats Bomly can write and how to produce more than one in a single run. Read it when you need output for a script, a CI security panel, or an SBOM pipeline. The field-by-field JSON documentation is on [JSON schemas](SCHEMAS.md).
 
-## Primary output: `--format`
+## Choose a format
 
-Use `--json` as a shortcut for `--format json` when you want structured output quickly.
+Every command writes one primary output to stdout, chosen with `--format`. `--json` is a shortcut for `--format json`.
 
-| Format | Default for | When to use |
-| --- | --- | --- |
-| `text` | Local runs, `--interactive` | Reading on a terminal |
-| `json` | Automation | Pipelines, custom dashboards, anything consumed by code |
-| `markdown` | Reviews | Job summaries, PR comments, and other Markdown surfaces |
-| `sarif` | Audit-only | CI security panes, GitHub Security tab, IDE problem markers |
-| `spdx` | Scan only | SPDX 2.3 JSON SBOMs |
-| `cyclonedx` | Scan only | CycloneDX 1.7 JSON SBOMs |
-
-Flag:
+| Format | What it is | Use it for | Available on |
+| --- | --- | --- | --- |
+| `text` | The human-readable report (default) | Reading on a terminal | `scan`, `explain`, `diff` |
+| `json` | The structured document | Scripts, dashboards, anything read by code | `scan`, `explain`, `diff` |
+| `markdown` | A GitHub-flavored Markdown report | Job summaries and PR comments | `scan`, `explain`, `diff` |
+| `sarif` | SARIF 2.1.0, findings only | GitHub code scanning, Azure DevOps, IDE problem markers. Requires `--audit` | `scan`, `diff` |
+| `spdx` | An SPDX 2.3 JSON SBOM | Compliance and supply-chain exchange | `scan` |
+| `cyclonedx` | A CycloneDX 1.7 JSON SBOM | Vulnerability-management tools | `scan` |
 
 ```bash
-bomly scan --format text     # default
 bomly scan --json
 bomly explain lodash --format markdown
 bomly diff --base main --head HEAD --format markdown
-bomly scan --audit --format sarif
+bomly scan --enrich --audit --format sarif
 bomly scan --format spdx
 ```
 
-Constraints:
+Two combinations are rejected with exit 4: `--format sarif` without `--audit` (SARIF carries findings, and without an auditor there are none), and `--interactive` with any format other than `text`.
 
-- `--format sarif` requires `--audit`. SARIF is a findings format; without an auditor there are no findings.
-- `--format spdx` and `--format cyclonedx` are supported by `scan` only.
-- `--interactive` forces `--format text`. Combining it with `--json` or another non-text reporting format is rejected with exit 4.
+## Write more than one output: `-o`
 
-## `text` — human-readable
+`-o <format>=<path>` writes an additional output to a file. `-o <format>` without a path writes it to stdout, so at most one `-o` may omit the path. `-o` is repeatable, and every output comes from the same scan, so detectors and matchers run once.
 
-The default. Groups packages by ecosystem and edge depth, summarizes finding counts by severity, and links to the explain path for any flagged package. With `--enrich`, it adds a short remediation summary directly below the enrichment line and points to JSON for the details. The summary counts only concrete fix suggestions; manual review, unknown fix evidence, and packages with no available fix do not inflate the count. Color and box-drawing are auto-disabled when stdout is not a TTY.
+```bash
+bomly scan --enrich --audit --fail-on high \
+  --format text \
+  -o json=bomly.json \
+  -o sarif=bomly.sarif \
+  -o spdx=sbom.spdx.json \
+  -o cyclonedx=sbom.cdx.json
+```
+
+When every `-o` names a file and you set no `--format`, a successful run writes the files and prints nothing. Add `--format text` (or any other format) when you also want stdout output. Paths are relative to the current directory. `sarif` still requires `--audit`, and the SBOM formats are still `scan` only.
+
+## `text`
+
+The default report groups packages by ecosystem, lists direct dependencies first, counts findings by severity, and names the fix for each flagged package. With `--enrich` it adds a one-line fix summary that counts only concrete fix suggestions; packages that need manual review or have no fix do not count. Color and box-drawing characters are turned off when stdout is not a terminal.
 
 ```bash
 bomly scan --enrich --audit
@@ -59,53 +67,30 @@ Findings
   [HIGH]      GHSA-rhx6-c78j-4q9w  path-to-regexp@0.1.7
 ```
 
-Markdown reports include the same remediation summary and the complete
-suggestion table.
+The Markdown report has the same content plus the complete fix-suggestion table.
 
-## `json` — structured
+## `json`
 
-The shape every Bomly subcommand emits. Each command has its own schema:
+Each command has its own document and schema: [scan](schemas/scan.md), [explain](schemas/explain.md), and [diff](schemas/diff.md). [JSON schemas](SCHEMAS.md) explains the shared shape: the dependency graph per manifest, one deduplicated `packages` list with the enrichment data, and `findings` that point back to packages by package URL (PURL). JSON also carries data the SBOM formats cannot hold, such as reachability status and confidence, audit reasons, and the source of each finding.
 
-| Command | Schema |
-| --- | --- |
-| `bomly scan` | [scan.md](schemas/scan.md) |
-| `bomly explain` | [explain.md](schemas/explain.md) |
-| `bomly diff` | [diff.md](schemas/diff.md) |
-
-`bomly scan` emits the scan record (schema `bomly.scan.v1`) and surfaces the
-three-collection model (see [Architecture → Domain model](ARCHITECTURE.md#domain-model)):
-`manifests[].dependencies` are lean detection-stage nodes (identity, `scopes`,
-`depends_on`, `package_ref`); `packages` is the deduplicated matching-stage
-registry (licenses, vulnerabilities, scorecard, EOL, CPEs, digests) keyed by
-PURL; and `findings` is the reference-style audit output. Resolve a finding or a
-dependency to its enrichment by matching its `package_ref` into
-`packages[].purl`. Above the collections, `subject` says what was scanned
-(repository, ref, resolved commit), `run` says when and by which version, and
-`verdict` says what policy concluded.
-
-For remediation suggestions, `affected_dependency_refs` names occurrences of
-the vulnerable package. `suggested_action_dependency_ref` names the dependency or
-manifest anchor that the suggested action targets. These can differ for a
-transitive package.
-
-Pipe into `jq` for common queries:
+Common `jq` queries:
 
 ```bash
-# Every package with a high-or-critical vulnerability
+# Every package with a high or critical vulnerability
 bomly scan --enrich --json | jq '
   .packages[]
   | select(.vulnerabilities[]? | .parsed_severity == "high" or .parsed_severity == "critical")
   | {name, version, ecosystem}
 '
 
-# All transitive paths to a specific dependency
+# Every path to one dependency
 bomly explain lodash --json | jq '.paths[] | .nodes | map(.name) | join(" -> ")'
 
 # New findings introduced by a PR
 bomly diff --base main --head HEAD --enrich --audit --json | jq '.findings.introduced[]'
 ```
 
-The first query against a project pinning `express@4.19.2` (first two of several matches shown):
+The first query on a project that pins `express@4.19.2` starts like this:
 
 ```json
 {
@@ -120,53 +105,18 @@ The first query against a project pinning `express@4.19.2` (first two of several
 }
 ```
 
-JSON output includes Bomly-specific metadata that standard SBOM formats don't carry: reachability tier/status/confidence, audit reasons, and per-finding source.
+`bomly explain` returns every path from a root to the target, not only the shortest, in a stable order, and marks cyclic paths. `bomly diff` classifies each finding as introduced, resolved, or persisted by its advisory and package identity, so a version bump that keeps a finding shows it as persisted. See the [diff command](commands/diff.md#what-counts-as-a-change) for how dependency changes are classified.
 
-`bomly explain` returns every deterministic root-to-target path, not only a
-shortest or representative path. Paths are ordered by their stable package-ID
-sequence, and cyclic paths are explicitly marked. This preserves alternate
-workspace and duplicate-version routes that can require different investigation.
+## `sarif`
 
-`bomly diff` classifies an audit finding by its stable advisory/package identity,
-independent of a package version bump. A finding present on both sides is
-`persisted`; it is not reported as one resolved finding plus one introduced
-finding merely because the affected package version changed.
-
-Dependency changes are split into separate kinds. A version change says that
-the package release changed. A detail change says that the same package
-occurrence changed in one of these ways:
-
-- its relationship changed between direct, transitive, and unknown;
-- its source changed, such as registry to Git or workspace;
-- its eligibility for registry matching changed.
-
-A dependency can have both a version change and a detail change in the same
-diff. Structured output calls each detail-change record a `transition`. JSON
-keeps the before and after evidence under
-`results.dependencies.transitions` and under the matching manifest. Text,
-Markdown, the interactive view, and MCP show the same classification.
-
-Human-readable output asks for extra review when a known source changes to Git
-or a URL, or when vulnerability checks covered the dependency before the
-change but no longer do. Other detail changes remain informational. These
-labels help reviewers find important changes; by themselves, they do not
-change the command's exit status.
-
-## `sarif` — CI security tools
-
-SARIF 2.1.0. Findings only. One result per (rule × package) pair. Includes:
-
-- Finding ID as the rule ID (CVE / GHSA / OSV identifier).
-- Severity mapped to SARIF `level` (`error` for critical/high, `warning` for medium, `note` for low/unknown).
-- Locations populated with manifest file paths when known.
-- Bomly-specific reachability and policy metadata in the `properties` bag.
+SARIF 2.1.0 holds findings only, one result per rule and package pair. The rule ID is the advisory identifier (CVE, GHSA, or OSV). Severity maps to the SARIF `level`: `error` for critical and high, `warning` for medium, `note` for low and unknown. Each result points at the lockfile line that pins the vulnerable version, so code-scanning annotations land somewhere you can act on. Reachability and policy data go in the `properties` bag.
 
 ```bash
 bomly scan --enrich --audit --fail-on high --format sarif > bomly.sarif
 ```
 
 <details>
-<summary>Sample result object (one finding, properties trimmed)</summary>
+<summary>Sample result (one finding, properties trimmed)</summary>
 
 ```json
 {
@@ -191,66 +141,16 @@ bomly scan --enrich --audit --fail-on high --format sarif > bomly.sarif
 }
 ```
 
-Locations point at the lockfile line that pins the vulnerable version, so code-scanning annotations land somewhere actionable.
-
 </details>
 
-GitHub Code Scanning, Azure DevOps, and most IDE extensions ingest SARIF directly. See [CI integration](CI_INTEGRATION.md) for upload recipes.
+[CI integration](CI_INTEGRATION.md) shows how to upload SARIF to GitHub code scanning and other tools.
 
-## Additional output: `-o`
+## `spdx` and `cyclonedx`
 
-`-o` uses the same format names as `--format`, plus an optional file path. Use `<format>=<path>` to write to a file, or just `<format>` to write that additional output to stdout. When every `-o` names a file and `--format` is not set, a successful run writes the files silently — pass `--format text` (or any primary format) if you also want stdout output.
-
-```bash
-bomly scan --json \
-  -o text=summary.txt \
-  -o markdown=summary.md \
-  -o sarif=bomly.sarif \
-  -o spdx=sbom.spdx.json \
-  -o cyclonedx=sbom.cdx.json
-```
-
-Supported targets:
-
-| `-o` value | Format |
-| --- | --- |
-| `text` | Human-readable terminal report |
-| `json` | Structured Bomly JSON report |
-| `markdown` | GitHub-flavored Markdown report |
-| `sarif` | SARIF 2.1.0 report; requires `--audit` |
-| `spdx` | SPDX 2.3 JSON |
-| `cyclonedx` | CycloneDX 1.7 JSON |
-
-`spdx` and `cyclonedx` are supported by `scan`. Report formats (`text`, `json`, `markdown`, `sarif`) are supported by report-producing commands. See [SBOM formats](SBOM.md) for the SBOM comparison and writing rules.
-
-## Combining outputs
-
-A single scan can produce:
-
-- A human report on stdout.
-- A JSON document written to a file.
-- A SARIF document for a CI panel.
-- One or more SBOM artifacts.
-
-Example:
-
-```bash
-bomly scan --enrich --audit --fail-on high \
-  --format text \
-  -o json=bomly.json \
-  -o sarif=bomly.sarif \
-  -o spdx=sbom.spdx.json \
-  -o cyclonedx=sbom.cdx.json
-```
-
-`--format text` keeps the terminal report on stdout. Without it (and with every `-o` naming a file), a successful run writes the files and prints nothing.
-
-Detector and matcher work runs once. All outputs derive from the same in-memory graph.
+Both SBOM formats are written from the same graph. [SBOM formats](SBOM.md) explains which to pick, why license data needs `--enrich`, and how to read and convert SBOMs.
 
 ## See also
 
-- [Scan schema](schemas/scan.md) — full JSON shape
-- [Explain schema](schemas/explain.md)
-- [Diff schema](schemas/diff.md)
-- [SBOM formats](SBOM.md) — SPDX vs. CycloneDX
-- [Exit codes](EXIT_CODES.md) — how the formats interact with the process exit code
+- [JSON schemas](SCHEMAS.md) — the shared document shape and every field
+- [SBOM formats](SBOM.md) — SPDX and CycloneDX
+- [Exit codes](EXIT_CODES.md) — the process exit code is independent of the format

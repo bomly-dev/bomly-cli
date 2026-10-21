@@ -1,301 +1,108 @@
-# Managed Plugins
+# Plugins
 
-Bomly plugins let you extend scans without changing the Bomly binary. Today, managed external plugins can add:
+Plugins add detectors, matchers, auditors, and analyzers to Bomly without changing the Bomly binary. This page is for people who install and run plugins: how to install one, decide to trust it, select it in a scan, and configure it. If you want to write a plugin, start with [Plugin authoring](plugins/authoring.md).
 
-- **detectors** that turn project files into dependency graphs
-- **matchers** that enrich packages with vulnerabilities, licenses, lifecycle data, or other package metadata
-- **auditors** that turn graph and registry data into findings or risk scores
-- **analyzers** that annotate vulnerabilities with reachability data during `--analyze`
+A plugin can add one of four component kinds:
 
-Every plugin packages its component as one `plugin.Module` and serves it from `main` with `runtime.ServeModule`. The same module can also be compiled into a host build, so a component is written once and runs in both execution modes. (The low-level per-role entrypoints `runtime.ServeDetector`, `runtime.ServeMatcher`, `runtime.ServeAuditor`, and `runtime.ServeAnalyzer` remain available for advanced cases.)
+| Kind | What it does | Runs during |
+| --- | --- | --- |
+| Detector | Turns project files into a dependency graph | Every scan |
+| Matcher | Adds vulnerability, license, lifecycle, or other data to packages | `--enrich` |
+| Auditor | Turns graph and package data into findings | `--audit` |
+| Analyzer | Marks vulnerabilities as reachable or not from your code | `--analyze` |
 
-## Start Here
+Official plugin repositories:
 
-Use this page when you want to install, trust, configure, package, or troubleshoot a managed plugin — and for the [authoring basics](#write-a-plugin) every plugin role shares.
+- [ClearlyDefined license matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher): license data from clearlydefined.io
+- [EOL lifecycle matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher): end-of-life status from endoflife.date
+- [Bun lockfile detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector): a reference detector for plugin authors
+- [Meme auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor): a deliberately small auditor that shows the minimal contract
 
-**Writing a plugin? Start from the [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin-template) repository** ("Use this template" on GitHub). It is a complete, working plugin with typed configuration, tests, the SDK conformance suite, CI, and a release workflow Bomly can install from.
+The [Bomly marketplace](https://bomly.dev/marketplace) lists every component that can take part in a scan, built in or external, filterable by kind and ecosystem. Each entry says who wrote the code: **Core** components ship in the binary, **Bundled** components are third-party tools compiled in (Syft, Grype), and **External plugins** are installed at runtime from their own repositories. To list a plugin there, open a submission from the marketplace page; entries are reviewed and added by hand.
 
-Then use the implementation guide for your role:
+## Quick start
 
-- [How To Implement A Detector Plugin](plugins/how-to-implement-detector.md)
-- [How To Implement A Matcher Plugin](plugins/how-to-implement-matcher.md)
-- [How To Implement An Auditor Plugin](plugins/how-to-implement-auditor.md)
-- [How To Implement An Analyzer Plugin](plugins/how-to-implement-analyzer.md)
-
-The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) for the component interfaces, descriptors, and request/response payloads; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) for the graph, package registry, and finding contract; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) for the plugin entrypoints; and [`httpkit`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/httpkit) for outbound HTTP, which a component reaches through `plugin.HostContext`.
-
-Real plugin repositories live outside this repo so each plugin type can show a realistic package, release, and README:
-
-- [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector) — detector for a package manager Bomly does not model directly (`PackageManagerOther`)
-- [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher) — matcher for license enrichment
-- [EOL Lifecycle Matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher) — matcher for lifecycle metadata
-- [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor) — auditor that emits warning findings
-
-## How Plugins Run
-
-Managed plugins are Go binaries that use Bomly's public `sdk` package. Bomly starts each enabled external plugin as a separate native OS subprocess through HashiCorp `go-plugin` in gRPC mode.
-
-Plugin identity is split into three clear places:
-
-- **Manifest = package.** `bomly-plugin.json` records install and package fields: ID, name, version, description, homepage, license, source, Bomly version constraint, runtime, plugin API version, and entrypoint.
-- **Descriptor = component.** The plugin binary returns one role descriptor: detector, matcher, auditor, or analyzer. The descriptor owns the component name, display name, aliases, tags, supported ecosystems, supported package managers, and role-specific behavior.
-- **Installed DB = trust and state.** Bomly records checksum, enabled/disabled state, install path, and an internal descriptor snapshot when a plugin is installed. Plugin authors do not write that snapshot.
-
-There is no `Metadata()` hook. For packaged plugins, Bomly reads `id`, `kind`, and `pluginApiVersion` from `bomly-plugin.json`, launches the binary, fetches the matching descriptor, and requires `descriptor.name == manifest.id`. For dev-binary installs without a manifest, Bomly probes detector, matcher, auditor, and analyzer descriptors and accepts the binary only when exactly one role responds.
-
-### Subprocess lifecycle
-
-During a scan (or any other command that runs components), Bomly keeps **one pooled subprocess per enabled plugin**. The subprocess starts lazily on the plugin's first call, and every subsequent call in the same command — readiness, applicability, and the component RPC itself — reuses that warm process instead of paying a handshake per call. If the subprocess dies mid-command, Bomly restarts it **at most once**; a second death disables the plugin for the rest of the command with a warning. All pooled subprocesses are terminated when the command finishes — plugin processes never outlive the Bomly invocation.
-
-### Registry deltas
-
-Matchers and analyzers can respond in two shapes. The protocol baseline is the **full registry**: the plugin returns every package, modified or not. Plugins that advertise the `package-updates-v1` capability may instead return **package-update deltas** — only the packages they touched — when the request's `AcceptPackageUpdates` field says the host understands them. The host merges deltas into its registry by PURL. Plugins must fall back to the full-registry shape when the host does not opt in, which keeps old hosts and new plugins compatible in both directions.
-
-Bomly owns:
-
-- installing plugin packages
-- validating `bomly-plugin.json`
-- checking recorded checksums
-- storing plugins under `~/.bomly/plugins`
-- enabling and disabling plugins
-- loading enabled plugins during scan runtime preparation
-
-Plugins do not get install hooks, post-install scripts, or automatic execution from repository checkouts.
-
-## Write A Plugin
-
-A plugin is written once as a **module** — the execution-neutral packaging of one component:
-
-```go
-plugin.Module{
-    Kind: plugin.PluginKindMatcher, // or Detector / Auditor / Analyzer
-    Matcher: &plugin.MatcherModule{
-        Descriptor: descriptor(), // static registration data
-        New: func(ctx context.Context, host plugin.HostContext) (plugin.Matcher, error) {
-            // construct the component; decode config from host
-        },
-    },
-}
-```
-
-The same module value can be compiled into a host build (embedded) or served as a managed plugin subprocess — the component code does not change between the two. `plugin.HostContext` is the only channel through which the component reaches host services, and both execution modes satisfy the same contract:
-
-- `Logger()` — a zap logger wired to the host's verbosity. Never log secrets.
-- `HTTPClient()` — an HTTP client provider that honors Bomly's proxy, no-proxy, and CA certificate settings.
-- `Runtime()` — the host core version and whether execution is embedded or managed.
-- `DecodeConfig(v)` — unmarshals the component's own `plugins.<kind>.<name>` configuration block (see [Configuration](#configuration-and-proxy-support)).
-
-Every role embeds a default-lifecycle helper (`plugin.BaseDetector`, `plugin.BaseMatcher`, `plugin.BaseAuditor`, `plugin.BaseAnalyzer`) that supplies always-ready, always-applicable implementations of `Ready(ctx, req) error` and `Applicable(ctx, req) (bool, error)`. Override `Ready` to report a missing prerequisite with a clear reason; override `Applicable` to skip requests the component should not handle. Honor the context everywhere.
-
-### Repository contract
-
-Follow the [template repository's](https://github.com/bomly-dev/bomly-plugin-template) shape:
-
-```text
-plugin/                  importable package exporting Module()
-cmd/<binary-name>/
-  main.go                one line: runtime.ServeModule(plugin.Module())
-bomly-plugin.json        package manifest; "id" must equal the descriptor name
-testdata/                fixtures for unit tests
-.github/workflows/       CI plus a release workflow producing platform archives
-go.mod                   pins a released github.com/bomly-dev/bomly-sdk version
-```
-
-Keeping the component in an importable `plugin/` package (not `package main`) is what makes the module reusable: the binary serves it, tests construct it directly, and a host build can embed it.
-
-`runtime.ServeModule` is the managed entrypoint. It validates the module, builds a managed `HostContext` (stderr logger, HTTP client provider from Bomly's environment, config decoding from the file the host passes), constructs the component lazily on first use, and speaks the plugin wire protocol. Only plugins that need the low-level wire surface directly should reach for the per-role `Serve<Kind>` entrypoints and `Served<Kind>` interfaces.
-
-## Test A Plugin
-
-Unit-test the component logic through `Module().New` with a small test `HostContext` stub (the template's `plugin/plugin_test.go` shows one), then run the SDK conformance suite:
-
-```go
-func TestConformance(t *testing.T) {
-    conformance.Test(t, conformance.Config{
-        Module:       plugin.Module(),
-        ManifestPath: "../bomly-plugin.json",
-        SampleConfig: json.RawMessage(`{"greeting":"hi"}`),
-    })
-}
-```
-
-The suite checks module and descriptor validity, JSON round-trip stability, construction through a `HostContext`, the Ready/Applicable lifecycle contract (including prompt return on a cancelled context), role capabilities such as the package-updates delta protocol, and — when `ManifestPath` is set — the manifest identity cross-check. To probe a built binary over the real managed transport, add `conformance.ProbeBinary(t, "bin/<name>", conformance.WithModule(plugin.Module()))`.
-
-The local development loop against Bomly:
+Install a plugin from a GitHub release, check it, enable it, and use it:
 
 ```bash
-go build -o ./bin/<binary-name> ./cmd/<binary-name>
-bomly plugins install ./bin/<binary-name> --dev
-bomly plugins enable <plugin-id>
-bomly scan ...                     # with the role's selector flag
-bomly plugins verify <plugin-id>   # manifest, checksum, binary, descriptor
-bomly plugins test <plugin-id>     # runtime readiness
-bomly plugins doctor <plugin-id>   # verify + test
-```
-
-## Trust And Enablement
-
-Installed external plugins are disabled by default. They do not participate in scans until you enable them:
-
-```bash
-bomly plugins enable <plugin-id>
-```
-
-Treat `bomly plugins enable` as the trust decision. When enabled, a plugin runs with the same user-level privileges as the Bomly process. It can read and write files, make network connections, spawn child processes, and access environment variables available to that user.
-
-Bomly does not place enabled plugins in an operating-system sandbox. The
-plugin protocol limits what Bomly accepts as a detector, matcher, auditor, or
-analyzer result, but it cannot restrict what the native plugin process does on
-the host.
-
-Repository-declared plugins are never executed automatically. The host must explicitly install and enable the plugin before it can run.
-
-## Try The Example Plugins
-
-Each example repo has a `bomly-plugin.json`, a Go implementation, tests, and packaging notes. Check its README for the exact build command; the general workflow is:
-
-```bash
-git clone git@github.com:bomly-dev/bomly-plugin-bun-lock-detector.git
-cd bomly-plugin-bun-lock-detector
-go test ./...
-go build -o ./bin/bomly-plugin-bun-lock-detector ./cmd/bomly-plugin-bun-lock-detector
-bomly plugins install ./bin/bomly-plugin-bun-lock-detector --dev
-bomly plugins enable bomly.examples.detector.bun-lock
-bomly scan --path ./my-bun-project --detectors bomly.examples.detector.bun-lock
-```
-
-The matcher and auditor examples use the same workflow:
-
-```bash
+bomly plugins install github:bomly-dev/bomly-plugin-clearlydefined-matcher@v0.3.0
+bomly plugins verify clearlydefined-license-matcher
 bomly plugins enable clearlydefined-license-matcher
 bomly scan --enrich --matchers +clearlydefined-license-matcher
-
-bomly plugins enable bomly.examples.auditor.meme-deps
-bomly scan --audit --auditors +bomly.examples.auditor.meme-deps
 ```
 
-Check that Bomly can see any installed plugin:
+Installed plugins are disabled until you enable them. Enabling a plugin is the trust decision: see [Trust and security](#trust-and-security) before you do it.
+
+## How plugins run
+
+A plugin is a Go binary built on Bomly's public SDK. Bomly starts each enabled plugin as a separate process and talks to it over a versioned protocol. During one command, Bomly keeps one process per enabled plugin, starts it on first use, and stops it when the command ends. If the process dies, Bomly restarts it once; a second death disables the plugin for the rest of the command with a warning. Plugin processes never outlive the Bomly command.
+
+Bomly owns installing plugin packages, validating their manifest, checking recorded checksums, storing plugins under `~/.bomly/plugins`, enabling and disabling them, and loading enabled plugins at the start of a command. Plugins have no install hooks or post-install scripts, and Bomly never runs a plugin it finds in a repository checkout.
+
+## Install sources
+
+| Source | Command | Integrity check |
+| --- | --- | --- |
+| GitHub release | `bomly plugins install github:<owner>/<repo>@<tag>` | Verified against the release's `SHA256SUMS` when present. Preferred |
+| Local archive | `bomly plugins install ./dist/plugin.tar.gz --checksum sha256:...` | The checksum ties the installed binary to the archive |
+| Direct URL | `bomly plugins install https://example.com/plugin.tar.gz --checksum sha256:...` | The checksum ties the download to the declared identity. Always pass `--checksum` |
+| Direct URL, unchecked | `... --insecure-skip-checksum` | None. The binary may differ from the declared source |
+| Local binary | `bomly plugins install ./bin/plugin --dev` | None. Only for binaries you built yourself |
+
+For a GitHub release, Bomly reads the release metadata, picks the asset for your operating system and architecture, and verifies it against `SHA256SUMS` when the release publishes one. For a private release, set a token first:
 
 ```bash
-bomly plugins list --external
-bomly plugins info <plugin-id>
-bomly plugins verify <plugin-id>
-bomly plugins test <plugin-id>
-bomly plugins doctor <plugin-id>
-```
-
-Disable or uninstall it later:
-
-```bash
-bomly plugins disable <plugin-id>
-bomly plugins uninstall <plugin-id>
-```
-
-## Common Commands
-
-List plugins:
-
-```bash
-bomly plugins list
-bomly plugins list --external
-bomly plugins list --detectors
-bomly plugins list --matchers --json
-bomly plugins list --auditors
-```
-
-Show one plugin:
-
-```bash
-bomly plugins info <plugin-id>
-bomly plugins info <plugin-id> --json
-```
-
-Install a plugin:
-
-```bash
-bomly plugins install ./dist/bomly-plugin-example.tar.gz
-bomly plugins install ./bin/bomly-plugin-example --dev
-bomly plugins install https://example.com/bomly-plugin-example.tar.gz --checksum sha256:...
-bomly plugins install https://example.com/bomly-plugin-example.tar.gz --insecure-skip-checksum
+export BOMLY_GITHUB_TOKEN=<token-with-release-access>   # also accepted: GITHUB_TOKEN, GH_TOKEN, GITHUB_AUTH_TOKEN
 bomly plugins install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
 ```
 
-Check a plugin:
+Bomly attaches the token only to `github:` metadata, checksum, and asset downloads. Direct URL installs never receive it.
+
+Plugin archives have fixed size limits so a bad download cannot fill local storage:
+
+| Limit | Value |
+| --- | --- |
+| Remote download | 256 MiB |
+| GitHub release metadata | 4 MiB |
+| Archive entries | 4,096 |
+| One expanded file | 256 MiB |
+| All expanded files | 512 MiB |
+| Plugin manifest | 1 MiB |
+| Descriptor snapshot | 1 MiB |
+| Installed plugin database | 16 MiB |
+
+Local archives skip the download limit but keep the extraction limits. Zip archives are checked before any file is extracted; tar archives are checked entry by entry. The JSON limits apply at install time and every time Bomly loads an installed plugin.
+
+Installed plugins live under `~/.bomly/plugins/`, with `installed.json` and one `store/<plugin-id>/<version>/` directory per installed version.
+
+## Manage plugins
+
+| Task | Command |
+| --- | --- |
+| List built-in and external components | `bomly plugins list` (filter with `--external`, `--detectors`, `--matchers`, `--auditors`, `--analyzers`, `--json`) |
+| Show one plugin, including its config keys | `bomly plugins info <plugin-id>` |
+| Check manifest, checksum, binary, and descriptor | `bomly plugins verify <plugin-id>` |
+| Check that it starts and reports ready | `bomly plugins test <plugin-id>` |
+| Both checks | `bomly plugins doctor <plugin-id>` |
+| Turn on or off | `bomly plugins enable <plugin-id>`, `bomly plugins disable <plugin-id>` |
+| Remove | `bomly plugins uninstall <plugin-id>` |
+
+## Select plugins in a scan
+
+Plugin components use the same selectors as built-in ones (see [Selector grammar](COMMANDS.md#selector-grammar)): a bare name replaces the default set, `+name` adds to it, `-name` removes from it.
 
 ```bash
-bomly plugins verify <plugin-id> # manifest, checksum, binary, runtime descriptor
-bomly plugins test <plugin-id>   # runtime readiness
-bomly plugins doctor <plugin-id> # verify + test
+bomly scan --detectors bomly.examples.detector.bun-lock          # only this detector
+bomly scan --enrich --matchers +clearlydefined-license-matcher   # add a matcher
+bomly scan --audit --auditors bomly.examples.auditor.meme-deps   # only this auditor
+bomly scan --enrich --analyze --analyzers +my-reach-analyzer     # add an analyzer
 ```
 
-Enable, disable, or remove a plugin:
+A detector plugin takes part in project discovery like a built-in detector. It declares which package managers and files it handles, which directories to skip, and whether it expands workspace modules itself; see [Monorepos](MONOREPOS.md).
 
-```bash
-bomly plugins enable <plugin-id>
-bomly plugins disable <plugin-id>
-bomly plugins uninstall <plugin-id>
-```
+## Configure a plugin
 
-## Select Plugins During A Scan
-
-Plugin selectors use the same `+/-` grammar as built-in components:
-
-```bash
-# Use only this detector.
-bomly scan --detectors bomly.examples.detector.bun-lock
-
-# Add an external matcher to the default matcher set.
-bomly scan --enrich --matchers +clearlydefined-license-matcher
-
-# Use one auditor explicitly.
-bomly scan --audit --auditors bomly.examples.auditor.meme-deps
-
-# Add an external analyzer to the reachability stage.
-bomly scan --enrich --analyze --analyzers +my-reach-analyzer
-```
-
-Detector plugins can participate in subproject discovery. Their runtime descriptor and `PackageManagerSupport` response record package-manager support and evidence patterns such as `go.mod`. Bomly stores that verified descriptor snapshot during install so external detectors can join the same scan-planning flow as built-ins.
-
-Detector plugins can also shape recursive discovery (`--recursive`) through three optional descriptor fields, all aggregated across every registered detector exactly like the built-ins' declarations:
-
-- `DetectorDescriptor.IgnoredDirectories` — directory basename globs the recursive walk must not descend into (a Node detector declares `node_modules`, a Maven detector declares `target`).
-- `DetectorDescriptor.IgnoredDirectoryMarkers` — file names whose presence marks a directory as ignored regardless of its name (the Python detectors declare `pyvenv.cfg` to skip virtualenvs).
-- `PackageManagerSupport.MultiModule` (set via `plugin.Support(...).WithMultiModule()`) — declares that the detector natively expands nested workspace/reactor modules from a root manifest, so recursive discovery prunes nested subprojects for the same package manager below a detected root instead of scanning the modules twice.
-
-All three are optional and older plugins that omit them keep working unchanged.
-
-### Optional remediation hints
-
-A detector plugin may also explain which package-manager remediation strategies
-it understands. Add `RemediationCapabilities` to the detector descriptor and
-implement the optional hints provider — `plugin.DetectorRemediationProvider` on a
-module's detector, or `runtime.ServedDetectorRemediationProvider` in the low-level
-served style.
-
-The provider runs after vulnerability enrichment. It receives the detector's
-own result and the enriched package registry. It may return occurrence-scoped
-strategy hints and plain-language package-manager advice. For example, an npm
-detector may advertise `direct-bump` and `transitive-override`.
-
-The provider must be read-only. It must not:
-
-- choose the recommended fix version;
-- decide the final remediation action;
-- edit files or run package-manager commands;
-- make additional network requests.
-
-Bomly validates every hint against the detector's graph, manifest paths, and
-advertised capabilities. The central remediation component chooses the final
-suggestion. Invalid hints become warnings and fall back to `manual-review`.
-Protocol-v1 plugins that do not advertise this capability are not called and
-continue to work unchanged.
-
-## Configuration And Proxy Support
-
-Bomly passes the active plugin API version, the explicit `BOMLY_CONFIG` path when one was provided, proxy settings, and the enabled plugin's own config to managed plugin subprocesses.
-
-Per-plugin configuration is scoped by component kind under
-`plugins.{detectors,matchers,auditors,analyzers}.<name>`:
+Plugin configuration is grouped by component kind under `plugins.<kind>.<name>`:
 
 ```yaml
 plugins:
@@ -307,199 +114,44 @@ plugins:
       max_depth: 10
 ```
 
-The older flat form `plugins.<plugin-id>: {...}` is still accepted for
-compatibility — it applies to whichever component name matches, regardless of
-kind — but it is deprecated and reported with a warning. Kind-scoped blocks
-win when both are present. New configuration should always use the
-kind-scoped form.
+`bomly plugins info <plugin-id>` prints the keys, descriptions, and defaults a plugin declares. The older flat form `plugins.<plugin-id>:` still works but is deprecated and prints a warning; the kind-scoped block wins when both exist.
 
-Plugins that declare a `ConfigSchema` in their descriptor (build it from the
-config struct with `plugin.MustConfigSchemaFor`) get their configuration keys,
-descriptions, and defaults rendered by `bomly plugins info <plugin-id>`.
+Bomly passes its proxy settings to every plugin, so a plugin that makes HTTP calls follows the same `network.proxy` and `network.ca_cert_file` configuration as Bomly itself. See [Network and privacy](NETWORK.md#proxies-custom-endpoints-and-cas) and the [Config reference](CONFIG_REFERENCE.md).
 
-A component reads only its own block, through the `HostContext` its module
-constructor receives:
+## Trust and security
 
-```go
-type Config struct {
-    APIBase string `json:"apiBase" doc:"Service endpoint override" default:"https://api.example.com"`
-}
+An enabled plugin runs as a normal process with your user's privileges. It can read and write files, open network connections, start child processes, and read environment variables. Bomly does not sandbox it. The plugin protocol limits what Bomly accepts as a result, but it cannot limit what the process does on the host.
 
-New: func(_ context.Context, host plugin.HostContext) (plugin.Matcher, error) {
-    matcher := &Matcher{}
-    if err := host.DecodeConfig(&matcher.config); err != nil {
-        return nil, fmt.Errorf("decode config: %w", err)
-    }
-    return matcher, nil
-},
-```
+Before it runs a plugin, Bomly checks:
 
-`DecodeConfig` has identical JSON semantics in both execution modes: embedded
-execution sources the block from the host config, managed execution from the
-config file the host passes to the subprocess. (Plugins written against the
-low-level served style read the same payload with
-`runtime.DecodePluginConfigFromEnv`.)
+- the manifest has the required fields (ID, version, kind, runtime, API version);
+- the plugin's API version is compatible with the running Bomly;
+- the entrypoint binary exists at the recorded path;
+- the SHA-256 checksum matches the installed record, when one was recorded;
+- the descriptor the binary returns matches the manifest identity, kind, API version, and the snapshot taken at install time.
 
-Proxy settings can be configured with a direct proxy URL:
+Bomly cannot restrict a plugin's file or network access, stop it reading credentials from the environment, stop it starting child processes, or guarantee that an unchecked binary matches its declared source.
 
-```yaml
-network:
-  proxy:
-    url: http://proxy.example:8080
-    no_proxy: localhost,127.0.0.1,.corp.example
-```
+Recommended practice:
 
-Bomly also accepts decomposed proxy settings:
-
-```yaml
-network:
-  proxy:
-    type: http # http, https, or socks5
-    host: proxy.example
-    port: 8080
-    username: my-user
-    password: my-password
-    no_proxy: localhost,127.0.0.1,.corp.example
-  ca_cert_file: /path/to/proxy-ca-chain.pem
-```
-
-Equivalent environment variables are `BOMLY_HTTP_PROXY`, `BOMLY_HTTP_NO_PROXY`, `BOMLY_HTTP_PROXY_TYPE`, `BOMLY_HTTP_PROXY_HOST`, `BOMLY_HTTP_PROXY_PORT`, `BOMLY_HTTP_PROXY_USERNAME`, `BOMLY_HTTP_PROXY_PASSWORD`, and `BOMLY_HTTP_CA_CERT_FILE`.
-
-When Bomly proxy fields are not set, Bomly's SDK HTTP client still honors standard `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` environment variables. For compatibility with non-SDK plugin code, Bomly also forwards the effective proxy values using the standard proxy environment variable names.
-
-Plugins that make outbound HTTP calls should create one process-local provider with `httpkit.NewClientProviderFromEnv()` and reuse it for timeout-specific clients:
-
-```go
-provider, err := httpkit.NewClientProviderFromEnv()
-if err != nil {
-    return err
-}
-client := provider.Client(20 * time.Second)
-```
-
-## Package And Release A Plugin
-
-An external plugin package includes a `bomly-plugin.json` manifest and one or more platform entrypoint binaries:
-
-```text
-bomly-plugin.json
-bin/
-  bomly-plugin-example
-README.md
-```
-
-The manifest's `entrypoint` field maps each `os/arch` platform to its binary name (Windows entries end in `.exe`). Keep the manifest `version` and the release tag in lockstep.
-
-For distribution, follow the template repository's release workflow: build each platform, package one archive per platform named `<name>_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) containing the binary, `bomly-plugin.json`, `README.md`, and `LICENSE`, generate a `SHA256SUMS` file over the archives, and publish everything as a GitHub release. Users then install with `bomly plugins install github:<owner>/<repo>@v<version>`, and Bomly verifies the archive against `SHA256SUMS` automatically.
-
-Installed plugins are stored under:
-
-```text
-~/.bomly/plugins/
-  installed.json
-  store/
-    <plugin-id>/
-      <version>/
-```
-
-The manifest identity must match the runtime descriptor returned by the plugin binary. A detector plugin must also return package-manager support so Bomly can plan when the detector should run.
-
-## Supported Install Sources
-
-Current supported sources are:
-
-- local archive
-- local binary with `--dev`
-- direct URL with checksum
-- GitHub Release via `github:owner/repo@tag`
-
-For GitHub Release installs, Bomly resolves release metadata, selects the asset matching the current OS and architecture, and uses a `SHA256SUMS` asset when present to verify the archive automatically.
-
-Plugin archives have fixed safety limits:
-
-- Remote downloads: 256 MiB
-- GitHub release metadata: 4 MiB, rejected before decoding
-- Archive entries: 4,096
-- One expanded file: 256 MiB
-- All expanded files together: 512 MiB
-- Plugin manifest: 1 MiB
-- Runtime descriptor snapshot: 1 MiB
-- Installed plugin database: 16 MiB
-
-These limits leave room for statically linked plugin binaries while stopping
-unusually large downloads and compressed archives before they fill local
-storage. Local archives skip the download limit because they are already on
-disk, but the extraction limits still apply. Zip archives are checked before
-any file is extracted. Tar archives are checked one entry at a time as they
-are read.
-
-The JSON limits apply both during installation and when Bomly loads an
-installed plugin. Normal metadata files are only a few kilobytes. An
-over-limit file is rejected before JSON decoding.
-
-For private GitHub Releases, set one of these environment variables before installing:
-
-```bash
-export BOMLY_GITHUB_TOKEN=<token-with-release-access>
-# Also accepted: GITHUB_TOKEN, GH_TOKEN, GITHUB_AUTH_TOKEN
-bomly plugins install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
-```
-
-Bomly attaches the token only to `github:owner/repo@tag` metadata, checksum, and asset downloads. Direct URL installs do not receive GitHub auth headers.
-
-## Security Model
-
-External plugins are native OS subprocesses. They are not sandboxed, not containerized, and not restricted by Bomly beyond the operating system's standard user-level privilege boundary.
-
-**What Bomly validates before executing a plugin:**
-
-- Manifest schema and required fields: ID, version, kind, runtime, API version
-- Plugin API version compatibility with the running core version
-- Entrypoint binary exists at the recorded path
-- SHA256 checksum matches the installed record, when a checksum was recorded
-- Runtime descriptor matches the manifest identity, kind, API version, and installed descriptor snapshot
-
-**What Bomly cannot enforce:**
-
-- Restricting the plugin's filesystem or network access
-- Preventing the plugin from reading environment variables or credentials on the host
-- Preventing the plugin from spawning additional child processes
-- Guaranteeing that the installed binary matches the declared source if no checksum was recorded
-
-**Installation mode risk:**
-
-| Source | Integrity guarantee |
-| --- | --- |
-| Local archive with `--checksum sha256:...` | Strongest: checksum ties the installed binary to the declared archive |
-| GitHub Release with `SHA256SUMS` | Release asset is verified automatically when checksums are present |
-| Direct URL with `--checksum` | Checksum ties the download to the declared identity |
-| Direct URL with `--insecure-skip-checksum` | None: the downloaded binary may differ from the declared source |
-| Local binary with `--dev` | None: appropriate only for binaries you built locally |
-
-**Recommended practices:**
-
-- Always supply `--checksum` for direct URL installs.
-- Run `bomly plugins verify <id>` before enabling any plugin installed from an external source.
-- Treat `bomly plugins enable` as the explicit trust decision for granting execution privileges.
-- Prefer `github:owner/repo@tag` installs when releases publish `SHA256SUMS`.
+- Prefer `github:owner/repo@tag` installs from releases that publish `SHA256SUMS`.
+- Always pass `--checksum` for direct URL installs.
+- Run `bomly plugins verify <id>` before you enable a plugin from an external source.
 - Do not enable plugins you did not build or obtain from a source you control.
 
-## Compatibility And Protocol Evolution
+[Security and trust boundaries](SECURITY.md) describes the wider trust model.
 
-Plugin compatibility has two independent axes:
+## Compatibility
 
-- **The in-process Go API** — the SDK types and functions your plugin compiles against. This follows the SDK module's semantic version: a new SDK release may add types or fields, and upgrading the pin may require code changes at compile time. This axis only matters when you rebuild the plugin.
-- **The wire protocol** — what a built plugin binary and a Bomly binary say to each other at runtime. This is versioned independently (`bomly.plugin.v1`) and is what keeps an already-shipped plugin binary working as users upgrade Bomly.
+Plugin compatibility has two independent parts:
 
-A plugin binary built against an older SDK release keeps working with newer Bomly binaries as long as both speak the same wire protocol major version.
+- **The Go API** a plugin compiles against follows the SDK module's semantic version. Upgrading the SDK pin may need code changes when you rebuild the plugin.
+- **The wire protocol** between a built plugin and a Bomly binary is versioned separately (`bomly.plugin.v1`). A plugin built against an older SDK keeps working with newer Bomly binaries as long as both speak the same protocol major version.
 
-### Wire-evolution rules (protocol v1)
+Within protocol v1 every change is additive: new fields and calls are optional, nothing is removed or renamed, and features that need both sides are negotiated through advertised capabilities. A change that cannot be made additively would ship as a new protocol version negotiated alongside v1, and existing v1 plugins would keep running. Details for authors are in [Plugin authoring](plugins/authoring.md#protocol-evolution).
 
-Within protocol v1, changes are **additive only**:
+## See also
 
-- New request/response fields are added as optional (`omitempty`) JSON fields. Receivers ignore unknown JSON fields, so old plugins and old hosts are unaffected.
-- New RPCs are added as optional. A peer that does not implement one answers `Unimplemented`, and the caller falls back to the previous behavior.
-- Existing fields and RPCs are never removed, renamed, or repurposed.
-- Optional features that need active participation from both sides are negotiated through **capabilities**: the plugin advertises the feature in its descriptor (for example `package-updates-v1`), and the host signals acceptance per request. Neither side may assume the other supports a capability that was not advertised.
-
-A change that cannot be expressed additively is a breaking change. It would ship as a new protocol major version (`v2`) negotiated alongside v1 — existing v1 plugins would keep running against the v1 surface, not silently break.
+- [Plugin authoring](plugins/authoring.md) — write, test, package, and release a plugin
+- Implementation guides: [detector](plugins/how-to-implement-detector.md), [matcher](plugins/how-to-implement-matcher.md), [auditor](plugins/how-to-implement-auditor.md), [analyzer](plugins/how-to-implement-analyzer.md)
+- [Security and trust boundaries](SECURITY.md) — what a plugin can and cannot reach

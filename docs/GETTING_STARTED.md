@@ -1,6 +1,6 @@
-# Getting Started
+# Getting started
 
-This page walks you from installation to your first useful scan in five minutes.
+This page takes you from installation to a useful first scan in about five minutes. It is for developers and security engineers who have never run Bomly. Each section ends with a link to the page that goes deeper.
 
 ## Install
 
@@ -16,35 +16,23 @@ On Windows:
 winget install Bomly.BomlyCLI
 ```
 
-If you have Go on `PATH`:
-
-```bash
-go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
-```
-
-Or download a prebuilt archive from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases) and put `bomly` on your `PATH`. See [Installation](INSTALLATION.md) for Linux packages, Scoop, checksums, and pinned versions. Verify:
+Check that it worked:
 
 ```bash
 bomly version
 ```
 
-For the full install matrix — `bomly` vs `bomly-lite`, checksum verification, PowerShell instructions, uninstall — see [Installation](INSTALLATION.md).
+[Installation](INSTALLATION.md) covers Homebrew, Scoop, Linux packages, `go install`, the smaller `bomly-lite` binary, checksums, and uninstalling.
 
 ## Scan a project
 
-From inside any source tree:
+Run this from inside any source tree:
 
 ```bash
 bomly scan
 ```
 
-This runs the default pipeline:
-
-1. Discover subprojects (every recognized lockfile or manifest).
-2. Run the best detector chain for each subproject.
-3. Render a human-readable report.
-
-On a small npm project it looks like this:
+Bomly finds every lockfile or manifest in the directory, reads each one with the best available detector, and prints a report. On a small npm project it looks like this:
 
 ```text
 ✓ 68 packages in 1 manifest   (1 direct, 67 transitive · runtime 68, dev 0)
@@ -54,39 +42,22 @@ Top-level dependencies
   express   4.19.2    MIT       runtime   -
 ```
 
-The VULNS column stays empty until you enrich — that's the next section.
+The VULNS column stays empty until you enrich. That is the next section.
 
-**Matchers are offline by default** — no `--enrich` means zero outbound enrichment calls. **Detectors** may still invoke their build tool (Go, Maven, Gradle, sbt) which can download packages from package registries. Lockfile-parser detectors (npm, pnpm, yarn, Composer, Bundler, NuGet, GitHub Actions) and SBOM ingest are fully offline. See [Detectors → Network behavior](DETECTORS.md#network-behavior) for the full breakdown.
-
-Pass `--path` to scan a directory other than the current one:
+Other targets use the same command:
 
 ```bash
-bomly scan --path ./services/api
+bomly scan --path ./services/api                                  # another directory
+bomly scan --url https://github.com/example/repo --ref v1.2.0     # a Git repository, no manual clone
+bomly scan --image ghcr.io/example/app:latest                     # a container image
+bomly scan --json                                                 # structured output (same as --format json)
 ```
 
-Need structured output for automation? `--json` is the shortcut for `--format json`:
-
-```bash
-bomly scan --json
-```
-
-Pass `--image` to scan a container image:
-
-```bash
-bomly scan --image ghcr.io/example/app:latest
-```
-
-Pass `--url` (with optional `--ref`) to scan a Git repository without cloning by hand:
-
-```bash
-bomly scan --url https://github.com/example/repo --ref v1.2.0
-```
-
-See [Scan targets](SCAN_TARGETS.md) for the full target list.
+[Scan targets](SCAN_TARGETS.md) lists every input, and [Monorepos](MONOREPOS.md) explains `--recursive`.
 
 ## Add vulnerability and license data
 
-`bomly scan` is offline by default. Pass `--enrich` when you want vulnerability, license, and lifecycle data from public sources:
+A plain scan does not contact any vulnerability or license service. Add `--enrich` to look packages up:
 
 ```bash
 bomly scan --enrich
@@ -107,29 +78,27 @@ Top-level dependencies
   express   4.19.2    MIT       runtime   1L
 ```
 
-This runs the default matchers: Grype for vulnerabilities and deps.dev for licenses. OSV (with the CISA KEV signal) and OpenSSF Scorecard run when you select them with `--matchers +osv` or `--matchers +scorecard`. Responses are cached under `~/.bomly/cache/`. See [Matchers](MATCHERS.md) for the per-source list and cache TTLs. ClearlyDefined license and endoflife.date lifecycle enrichment are available as external matcher plugins.
+By default enrichment uses Grype for vulnerabilities and deps.dev for licenses. [Matchers](MATCHERS.md) lists the optional sources (OSV with the CISA KEV catalog, OpenSSF Scorecard, and plugin matchers) and the cache rules. [Network and privacy](NETWORK.md) lists everything that can reach the network, including the build tools some detectors run.
 
 ## Generate an SBOM
 
-Use `-o` to write SPDX 2.3 or CycloneDX 1.7:
+Use `-o` to write an SPDX 2.3 or CycloneDX 1.7 Software Bill of Materials (SBOM):
 
 ```bash
-bomly scan \
-  -o spdx=sbom.spdx.json \
-  -o cyclonedx=sbom.cdx.json
+bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
 ```
 
-`-o` can be passed multiple times. At most one may omit `=<path>` (that one goes to stdout). When every `-o` has a file path and no `--format` is set, a successful run writes the files and prints nothing — add `--format text` if you also want the terminal report. See [SBOM formats](SBOM.md) for the format comparison.
+When every `-o` names a file, the run writes the files and prints nothing. Add `--format text` to keep the terminal report. See [SBOM formats](SBOM.md).
 
 ## Gate CI on a policy
 
-Add `--audit --fail-on <severity>` to turn findings into a non-zero exit code:
+Add `--audit --fail-on <severity>` to turn findings into an exit code:
 
 ```bash
 bomly scan --enrich --audit --fail-on high
 ```
 
-On a project with vulnerable packages, the report gains a Findings section and the process exits `2`:
+On a project with vulnerable packages the report gains a Findings section and the process exits with code 2:
 
 ```text
 Findings
@@ -139,27 +108,23 @@ Findings
   [HIGH]      GHSA-rhx6-c78j-4q9w  path-to-regexp@0.1.7
 ```
 
-Exit `0` means clean. Exit `2` means at least one finding matched the threshold. Exit `4` means an invalid flag value. See [Exit codes](EXIT_CODES.md).
+Exit 0 means no finding matched. Exit 2 means at least one did. [Exit codes](EXIT_CODES.md) lists the rest.
 
-Common combinations:
+To fail only when a high-or-higher finding is also reachable from your code, add the experimental reachability analysis:
 
 ```bash
-# Fail on high or critical findings
-bomly scan --enrich --audit --fail-on high
-
-# Fail only when a high-or-above finding is actually reachable
 bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable
 ```
 
-See [Auditors](AUDITORS.md) for the full grammar and [Reachability](REACHABILITY.md) for what "reachable" means per ecosystem. Reachability is an **experimental** feature; review its limitations before gating CI on it.
+[Auditors](AUDITORS.md) lists every `--fail-on` value. Read [Reachability](REACHABILITY.md) before you gate CI on it.
 
 ## Explain why a package is in the graph
+
+Ask for every path that pulls a package in:
 
 ```bash
 bomly explain send
 ```
-
-Bomly prints every dependency path that introduces the package — not just the shortest one — so you can see each route you'd have to break to remove it:
 
 ```text
 ecosystem  npm
@@ -177,44 +142,25 @@ introduced by:
         └─ send@0.18.0 [analyzed] (transitive)
 ```
 
-## Diff two versions
+Bomly prints every path, not only the shortest, so you can see each route you would have to break to remove the package. See the [explain command](commands/explain.md).
 
-Compare two Git refs:
+## Compare two versions
+
+Compare two Git refs, or two SBOM files:
 
 ```bash
 bomly diff --base main --head HEAD
-```
-
-Or two SBOM files:
-
-```bash
 bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json --json
 ```
 
-Add `--enrich --audit --fail-on high` to gate PRs (auditing requires enrichment). The diff audits only the packages the change touched — untouched debt elsewhere never blocks a PR — and within that scope it fails when the change introduces a matching finding or keeps one alive at the changed package's new version (see [diff](commands/diff.md)).
-
-## Use Bomly with an AI agent
-
-Bomly can run as a local MCP server so an agent can call `scan`, `explain`, `diff`, vulnerability fix context, and plugin-list tools directly:
-
-```bash
-bomly mcp serve
-```
-
-See [MCP Server](MCP.md) for Claude Code, Cursor, VS Code, and tool-reference details.
-
-## Inspect the interactive view
-
-```bash
-bomly scan --interactive
-```
-
-Opens a terminal UI with tabs for packages, vulnerabilities, licenses, findings, and source. See [TUI](TUI.md) for keybindings.
+Add `--enrich --audit --fail-on high` to gate a pull request. The diff audits only the packages the change touched, so existing findings elsewhere never block a PR. See the [diff command](commands/diff.md).
 
 ## What to read next
 
+- [Tutorial](TUTORIAL.md) — the same features chained into a CI gate on a real project
+- [Use cases](USE_CASES.md) — recipes for PR gates, SBOMs, triage, licenses, and offline scans
 - [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
-- [Configuration](CONFIG_REFERENCE.md) — every config key, env var, and flag
-- [MCP server](MCP.md) — connect Bomly to AI agents
+- [MCP server](MCP.md) — let an AI coding agent call `scan`, `explain`, and `diff`
+- [Interactive TUI](TUI.md) — browse a scan with `bomly scan --interactive`
+- [CI integration](CI_INTEGRATION.md) — GitHub Actions, GitLab, Jenkins, Azure DevOps, CircleCI
 - [Troubleshooting](TROUBLESHOOTING.md) — common errors and fixes
-- [CI integration](CI_INTEGRATION.md) — GitHub Actions, GitLab, Jenkins recipes

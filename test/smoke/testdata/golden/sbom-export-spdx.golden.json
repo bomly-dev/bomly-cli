@@ -15,6 +15,7 @@
     {
       "SPDXID": "SPDXRef-DocumentRoot-example-javascript-npm-workspaces",
       "comment": "bomly:type=application",
+      "description": "Source tree of the scanned project, described from its manifests and lockfiles. A source tree is not a distributed artifact, so no content hash applies to it and no files were analyzed.",
       "downloadLocation": "NOASSERTION",
       "externalRefs": [
         {

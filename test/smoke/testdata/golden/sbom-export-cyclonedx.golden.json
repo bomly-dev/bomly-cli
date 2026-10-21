@@ -210,6 +210,7 @@
   "metadata": {
     "component": {
       "bom-ref": "DocumentRoot-example-javascript-npm-workspaces",
+      "description": "Source tree of the scanned project, described from its manifests and lockfiles. A source tree is not a distributed artifact, so no content hash applies to it and no files were analyzed.",
       "name": "example-javascript-npm-workspaces",
       "purl": "pkg:generic/example-javascript-npm-workspaces@v1.0.0",
       "type": "application",

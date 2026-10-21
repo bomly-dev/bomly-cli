@@ -10135,7 +10135,7 @@
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=glibc",
             "pkg:deb/debian/libcrypt1@1:4.4.33-2?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=libxcrypt"
           ],
-          "id": "pkg:deb/debian/perl-base@5.36.0-7%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=perl",
+          "id": "pkg:deb/debian/perl-base@5.36.0-7%2Bdeb12u4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=perl",
           "licenses": [
             {
               "type": "declared",
@@ -10282,9 +10282,9 @@
             }
           ],
           "name": "debian:perl-base",
-          "package_ref": "pkg:deb/debian/perl-base@5.36.0-7%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=perl",
-          "purl": "pkg:deb/debian/perl-base@5.36.0-7%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=perl",
-          "version": "5.36.0-7+deb12u3"
+          "package_ref": "pkg:deb/debian/perl-base@5.36.0-7%2Bdeb12u4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=perl",
+          "purl": "pkg:deb/debian/perl-base@5.36.0-7%2Bdeb12u4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=perl",
+          "version": "5.36.0-7+deb12u4"
         },
         {
           "depends_on": [
@@ -16350,15 +16350,15 @@
     },
     {
       "cpes": [
-        "cpe:2.3:a:perl-base:perl-base:5.36.0-7\\+deb12u3:*:*:*:*:*:*:*",
-        "cpe:2.3:a:perl-base:perl_base:5.36.0-7\\+deb12u3:*:*:*:*:*:*:*",
-        "cpe:2.3:a:perl:perl-base:5.36.0-7\\+deb12u3:*:*:*:*:*:*:*",
-        "cpe:2.3:a:perl:perl_base:5.36.0-7\\+deb12u3:*:*:*:*:*:*:*",
-        "cpe:2.3:a:perl_base:perl-base:5.36.0-7\\+deb12u3:*:*:*:*:*:*:*",
-        "cpe:2.3:a:perl_base:perl_base:5.36.0-7\\+deb12u3:*:*:*:*:*:*:*"
+        "cpe:2.3:a:perl-base:perl-base:5.36.0-7\\+deb12u4:*:*:*:*:*:*:*",
+        "cpe:2.3:a:perl-base:perl_base:5.36.0-7\\+deb12u4:*:*:*:*:*:*:*",
+        "cpe:2.3:a:perl:perl-base:5.36.0-7\\+deb12u4:*:*:*:*:*:*:*",
+        "cpe:2.3:a:perl:perl_base:5.36.0-7\\+deb12u4:*:*:*:*:*:*:*",
+        "cpe:2.3:a:perl_base:perl-base:5.36.0-7\\+deb12u4:*:*:*:*:*:*:*",
+        "cpe:2.3:a:perl_base:perl_base:5.36.0-7\\+deb12u4:*:*:*:*:*:*:*"
       ],
       "ecosystem": "dpkg",
-      "id": "pkg:deb/debian/perl-base@5.36.0-7%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=perl",
+      "id": "pkg:deb/debian/perl-base@5.36.0-7%2Bdeb12u4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=perl",
       "licenses": [
         {
           "type": "declared",
@@ -16473,9 +16473,9 @@
       "name": "perl-base",
       "org": "debian",
       "package_manager": "dpkg",
-      "purl": "pkg:deb/debian/perl-base@5.36.0-7%2Bdeb12u3?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=perl",
+      "purl": "pkg:deb/debian/perl-base@5.36.0-7%2Bdeb12u4?arch=\u003carch\u003e\u0026distro=debian-12.15\u0026upstream=perl",
       "type": "deb",
-      "version": "5.36.0-7+deb12u3",
+      "version": "5.36.0-7+deb12u4",
       "vulnerabilities": []
     },
     {

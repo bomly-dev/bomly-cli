@@ -3,12 +3,11 @@
 - **Date:** 2026-08-26
 - **Owners:** bomly-sdk and bomly-cli maintainers
 - **Decisions:** [ADR-0041](adr/0041-identity-is-the-canonical-purl-on-typed-nodes.md)
-  (PURL identity on typed nodes, superseding
-  [ADR-0036](adr/0036-dependency-identity-is-content-addressable.md)),
-  [ADR-0037](adr/0037-sbom-assertions-are-typed-sdk-model-fields.md)
-  (typed SBOM model), [ADR-0038](adr/0038-purl-and-spdx-behavior-have-one-home-in-the-sdk.md)
-  (PURL/SPDX single home), [ADR-0039](adr/0039-both-modules-build-on-go-1-27.md)
-  (Go 1.27, strict untrusted parsing)
+  (PURL identity on typed nodes), [ADR-0037](adr/0037-sbom-assertions-are-typed-sdk-model-fields.md)
+  (typed SBOM model), [ADR-0040](adr/0040-the-sdk-is-the-default-home-for-behavior.md)
+  (the SDK owns shared meaning, including PURL/SPDX behavior), [ADR-0026](adr/0026-untrusted-documents-have-input-limits.md)
+  (strict untrusted parsing). ADR-0036, ADR-0038 and ADR-0039, cited in the
+  body below, are retired stubs that point at these.
 
 This document is the execution plan for those four decisions: what ships in
 which repository, in what order, and how we know the program is done. The

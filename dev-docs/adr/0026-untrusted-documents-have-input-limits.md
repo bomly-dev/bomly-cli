@@ -1,39 +1,53 @@
-# ADR-0026: Untrusted documents have input limits
+# ADR-0026: Untrusted input is bounded before decoding and parsed strictly
 
 - **Date:** 2026-07-27
+- **Revised:** 2026-10-19 (folds the strict-parsing half of ADR-0039)
 - **Status:** Accepted
 
-Bomly bounds large documents before decoding them. YAML configuration files are
-limited to 4 MiB. Finding baselines are limited to 16 MiB and 10,000 entries.
-Explicit SBOM inputs are limited to 256 MiB. Successful deps.dev batch responses
-are limited to 16 MiB. OSV vulnerability and batch responses are limited to
-4 MiB and 64 MiB. CISA KEV responses are limited to 32 MiB, and Scorecard
-project responses are limited to 4 MiB. Failed matcher responses expose only
-the HTTP status rather than including an upstream response body in errors or
-logs.
+## Context
 
-The shared file reader checks both the size reported when the file is opened and
-the bytes actually read. This keeps the limit in place if a file grows during
-the read. Baseline duplicate checks use an index keyed by package finding
-identity so validation remains linear as the document approaches its entry
-limit.
+Bomly decodes documents it did not write: repository manifests and
+lockfiles, SBOMs, baselines, configuration, matcher API responses, cache
+entries, remote checkouts. Each is a place where an oversized document can
+exhaust memory, or an ambiguous one can make two readers disagree about what
+it says.
 
-Repository-controlled manifests, lockfiles, workspace metadata, and analyzer
-source files use a shared 64 MiB per-file limit. Both whole-file and streaming
-readers check the opened size and the bytes consumed, so a growing file cannot
-bypass the limit. Parsers never receive a partial over-limit document.
-Matcher and analyzer JSON cache entries have a separate 64 MiB read policy;
-corrupt or oversized entries degrade to a cache miss.
+## Decision
 
-Remote Git work uses a different boundary. Each remote materialization flow has
-a 10-minute deadline. Bomly does not fetch submodules or Git LFS objects, and it
-validates the completed checkout before discovery: at most 1,000,000 paths,
-10 GiB of regular files, 256 path levels, and no symlink whose lexical target
-escapes the checkout. Internal links remain intact. Git transfer bytes and
-`.git` object storage cannot be reliably capped by portable Git options before
-checkout, so those remain delegated to an operating-system quota when a hard
-cap is needed.
+- Every untrusted document has a byte limit checked both on the size
+  reported at open and on the bytes actually read, so a file that grows
+  during the read cannot bypass it. A parser never receives a partial
+  over-limit document. Entry-count limits accompany byte limits where a
+  document is a list. The limits and their values are listed in
+  `dev-docs/SECURITY_ASSURANCE.md`.
+- A failed matcher response exposes only the HTTP status; upstream bodies
+  never reach errors or logs. Corrupt or oversized cache entries degrade to
+  a miss.
+- A remote Git materialization has a deadline, fetches no submodules or LFS
+  objects, and the completed checkout is validated before discovery: bounded
+  path count, regular-file bytes and depth, and no symlink whose lexical
+  target escapes the checkout. Transfer bytes cannot be capped portably and
+  are left to an operating-system quota.
+- SBOM ingest parses strictly. A repeated member name, invalid UTF-8, or an
+  escaped lone UTF-16 surrogate is rejected with an error naming the class;
+  these are exactly the documents RFC 8259 says readers will not agree on.
+  The codec lives in `bomly-sdk/sbom`, and nothing in this repository parses
+  strictly on its own.
+- The plugin wire (`bomly.plugin.v1`) keeps lenient decoding: enabled
+  plugins are trusted native processes, and its compatibility contract is
+  frozen fixtures. Tightening it is a protocol decision.
 
-The hidden maintainer benchmark uses its own shallow Git clone runner. It is
-outside the customer CLI's remote-target materialization boundary and does not
-inherit these checkout validation controls.
+## Rejected
+
+Trusting the size reported at open alone; repairing a malformed document
+into a best-effort reading.
+
+## Consequences
+
+- Strict ingest rejects some documents older versions accepted; each
+  rejection names the offending key or byte sequence.
+- The hidden benchmark's clone runner is outside the customer boundary and
+  does not inherit checkout validation.
+
+Enforced by: the `depguard` rule scoping `encoding/json/v2` to the SDK codec
+in `.golangci.yml`; the SDK's ingest fuzz targets.

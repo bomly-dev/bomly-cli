@@ -1,69 +1,56 @@
-# ADR-0040: The SDK is the default home for behavior
+# ADR-0040: The SDK owns shared meaning; integrations live in their own modules; the CLI keeps orchestration
 
 - **Date:** 2026-08-26
+- **Revised:** 2026-10-19 (folds ADR-0029, ADR-0030, ADR-0038, ADR-0045 and the ownership half of ADR-0046)
 - **Status:** Accepted
 
 ## Context
 
-The SDK maturity program (ADR-0036 through ADR-0039,
-[`SDK_MATURITY_PLAN.md`](../SDK_MATURITY_PLAN.md)) exists because a month of
-real fixes — PR #406, PR #407, PR #409, issues #410 and #396 — followed one
-pattern: behavior that belonged to the shared model was implemented where the
-symptom appeared, in the CLI or in a single detector, and then drifted from
-its siblings. The program pays down that debt once. Nothing in it, by itself,
-prevents the next feature or bug fix from starting the drift again.
-
-The repository already has two partial answers. "Fix at the right depth"
-(`CLAUDE.md`/`AGENTS.md`) says to centralize a rule once two call sites need
-it, but is silent about *which repository* the center is. ADR-0029 says
-shared helper code lives in `bomly-sdk` subpackages, but is scoped to helpers
-that already exist in duplicate. Neither states the placement default for new
-work, so each change re-litigates it.
+A month of fixes followed one pattern: behavior about a shared domain object
+was implemented where the symptom appeared, in the CLI or one detector, and
+drifted from its siblings. The SBOM codec existed four times, the purl-type
+table twice with different answers for `pkg:hex`, and the SPDX panic guard
+only in the CLI, so plugins wrote unvalidated license strings. "Fix at the
+right depth" said to centralize, but not in which repository.
 
 ## Decision
 
-When a bug fix or feature touches the meaning of shared domain objects —
-identity, coordinates, PURLs, licenses, SBOM assertions, graph semantics,
-merge rules, validation gates — the change lands in `bomly-sdk` first, and
-the CLI and plugins consume it. The SDK is the source of truth for what a
-class of objects means and how it behaves; consumers hold only what is
-genuinely theirs:
+- **The SDK (`bomly-sdk`) owns what shared objects mean**: identity,
+  coordinates, package URLs, licenses, SBOM assertions, graph and merge
+  semantics, validation gates, and the shared helper kits. A change touching
+  meaning lands there first; the CLI and plugins consume the release.
+  Behavior stays out of the SDK only when it is specific to one consumer by
+  nature, not merely unused by others today.
+- The SDK holds today: the helper subpackages (`system`, `filecache`,
+  `logkit`, `detectorkit`, `matcherkit`, `testkit`); `purlkit` and `spdxkit`
+  as the one home for package-URL and SPDX behavior, including the one
+  purl-type to ecosystem table; the SBOM codec (`sbom`) and `graphview`; and
+  the scan record (`scan`). No package under `internal/` imports the raw purl
+  or SPDX libraries, and this repository keeps no shim copies.
+- **External-integration components live in their own `bomly-plugin-*`
+  repositories**, consumed as ordinary pinned Go modules: the reachability
+  analyzers, the OSV, deps.dev, Scorecard and Grype matchers, and the Syft
+  detector. Auditors and native detectors stay here.
+- **The CLI keeps** presentation, command surface, pipeline orchestration and
+  policy wiring: how Bomly uses the model, never what it means. **A plugin
+  keeps** one external tool's integration specifics.
+- Release order is SDK tag, then plugin releases, then the CLI pin, because
+  minimum version selection compiles plugin modules against the CLI's SDK
+  pin. When the schedule cannot absorb that, the local fix ships with the SDK
+  issue filed and linked from the code.
 
-- **CLI-level** is presentation, command surface, pipeline orchestration, and
-  policy wiring — how Bomly *uses* the model, never what the model *means*.
-- **Plugin-level** is integration specifics of one external tool — how one
-  component *produces or enriches* model data, never how that data is
-  keyed, normalized, validated, or merged.
+## Rejected
 
-The test is ownership, not convenience: "only the CLI needs this today" is
-not a reason to put model behavior in the CLI, because today's single
-consumer is how every drifted copy started. The bar to stay out of the SDK is
-that the behavior is specific to one consumer *by nature* — it would be
-meaningless to a second consumer, not merely unused by one.
-
-The cost asymmetry is accepted knowingly: an SDK change is slower to ship
-(tag first, plugins adopt, CLI bumps the pin) than an internal patch. That
-ordering is the price of one source of truth, and the release cadence
-(multiple SDK tags in a single week is normal) keeps it small. When the
-schedule genuinely cannot absorb it, the CLI-side fix ships with the SDK
-issue already filed and linked from the code — a deliberate loan, not a
-decision — and "Say so when you decline" from the fix-at-the-right-depth
-convention applies.
+Nested modules here through a committed `go.work` or `replace` directives:
+extra CI machinery, and the `replace` variant broke `go install ...@latest`.
+A minimal codec core in the SDK with a richer CLI layer: that produced four
+copies.
 
 ## Consequences
 
-- "Where does this go?" has a default answer with the burden of proof on
-  staying local, recorded here so reviews can cite it instead of re-arguing
-  it.
-- The fix-at-the-right-depth convention in `CLAUDE.md`/`AGENTS.md` gains the
-  cross-repo depth: the deepest home for a rule about shared objects is the
-  SDK, and the guard tests that protect kit boundaries (ADR-0038) are the
-  enforcement.
-- ADR-0029 is subsumed but not superseded: it covers moving existing
-  duplicated helpers; this ADR sets the default for new behavior before a
-  duplicate ever exists.
-- The SDK's surface grows more deliberately than the CLI's internals would —
-  every addition is contract surface with doc comments, validation, and wire
-  posture. That friction is a feature: it forces the "what does this mean?"
-  conversation to happen once, at the definition, instead of at each
-  consumer.
+- An SDK change is slower to ship than an internal patch; that is the price
+  of one source of truth.
+
+Enforced by: the `depguard` rule `internal-kits` and the `[purl-type]`
+`forbidigo` patterns in `.golangci.yml`; the `purlstring` analyzer in
+`internal/tools/guardcheck`; the no-`replace` CI check.

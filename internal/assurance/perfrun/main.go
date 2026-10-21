@@ -265,7 +265,7 @@ func executeSample(outputDir, mode string, index int, cacheDir, executable strin
 //
 // A scan record answers that itself: it carries a digest per section
 // (`digests.manifests`, `digests.packages`, `digests.findings`) taken over the
-// ordered content, and ADR-0046 tells a consumer to compare those rather than
+// ordered content, and ADR-0011 tells a consumer to compare those rather than
 // the document, which has its own run id and times on every run. So when the
 // output is a record, the digests are the normalized form — the SDK decides
 // what identifies a scan, and no list of volatile field names is kept here to

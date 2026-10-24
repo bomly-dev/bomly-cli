@@ -9,7 +9,7 @@ require (
 	github.com/bomly-dev/bomly-plugin-govulncheck-analyzer v0.4.0
 	github.com/bomly-dev/bomly-plugin-grype-matcher v0.7.0
 	github.com/bomly-dev/bomly-plugin-jsreach-analyzer v0.4.0
-	github.com/bomly-dev/bomly-plugin-jvmreach-analyzer v0.4.0
+	github.com/bomly-dev/bomly-plugin-jvmreach-analyzer v0.4.1
 	github.com/bomly-dev/bomly-plugin-osv-matcher v0.3.0
 	github.com/bomly-dev/bomly-plugin-pyreach-analyzer v0.4.0
 	github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.3.0

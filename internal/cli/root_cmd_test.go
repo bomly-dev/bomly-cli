@@ -16,6 +16,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	syftdetector "github.com/bomly-dev/bomly-plugin-syft-detector/plugin"
+	"github.com/bomly-dev/bomly-sdk/model"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"github.com/spf13/cobra"
 )
@@ -999,16 +1000,27 @@ func TestRoot_DiffCommand_AuditUsesResolvedGitRefs(t *testing.T) {
 		"-o", "sarif=" + sarifPath,
 	})
 
-	if err := root.Execute(); err != nil {
-		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
+	// The matchers are live, so whether these real packages carry a failing
+	// advisory changes as advisories are published: zod 3.23.0 gained
+	// GHSA-mrhx-c7xc-m3w5 after this test was written. This test is about the
+	// refs the audit resolves, not the advisory set, so a policy-violation exit
+	// is accepted -- but only when the audit holds a failing finding to justify
+	// it. Any other error still fails.
+	execErr := root.Execute()
+	if execErr != nil && exit.Code(execErr) != exitCodePolicyViolation {
+		t.Fatalf("root.Execute() error = %v; stderr=%s", execErr, stderr.String())
 	}
 
 	var payload map[string]any
 	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
 		t.Fatalf("unmarshal output: %v\n%s", err, stdout.String())
 	}
-	if payload["audit"] == nil {
+	audit, ok := payload["audit"].(map[string]any)
+	if !ok {
 		t.Fatalf("expected audit payload, got %#v", payload)
+	}
+	if failing := diffAuditFailingCount(audit); (execErr != nil) != (failing > 0) {
+		t.Fatalf("exit error = %v with %d failing audit findings; a policy-violation exit must match a failing finding", execErr, failing)
 	}
 	summary, ok := payload["summary"].(map[string]any)
 	if !ok {
@@ -1024,6 +1036,27 @@ func TestRoot_DiffCommand_AuditUsesResolvedGitRefs(t *testing.T) {
 	if !strings.Contains(string(sarifBytes), `"version": "2.1.0"`) {
 		t.Fatalf("expected SARIF output, got:\n%s", sarifBytes)
 	}
+}
+
+// exitCodePolicyViolation is the exit code a run returns when a finding meets
+// the configured --fail-on threshold.
+const exitCodePolicyViolation = 2
+
+// diffAuditFailingCount counts the introduced and persisted findings of a
+// diff's audit payload whose policy status fails the run -- the same findings
+// diffPolicyExit counts.
+func diffAuditFailingCount(audit map[string]any) int {
+	failing := 0
+	for _, key := range []string{"introduced", "persisted"} {
+		findings, _ := audit[key].([]any)
+		for _, raw := range findings {
+			finding, _ := raw.(map[string]any)
+			if status, _ := finding["policy_status"].(string); status == "" || status == string(model.FindingPolicyStatusFail) {
+				failing++
+			}
+		}
+	}
+	return failing
 }
 
 func TestRoot_ScanCommand_QuietSuppressesVerboseLogs(t *testing.T) {

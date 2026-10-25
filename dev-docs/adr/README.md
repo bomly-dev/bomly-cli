@@ -27,6 +27,11 @@ documentation, and it goes next to the code.
 Before adding a record, check whether a live one already owns the topic and
 revise that one instead.
 
+An issue, plan or acceptance checklist that asks for an ADR is asking for the
+decision to be recorded, not for a new file, and these three tests still
+decide. When the decision fails them, the reasoning goes in a code comment or
+in [`../ARCHITECTURE.md`](../ARCHITECTURE.md), and the pull request says so.
+
 ## How to write one
 
 Copy [`TEMPLATE.md`](TEMPLATE.md) to `NNNN-<kebab-case-title>.md` with the

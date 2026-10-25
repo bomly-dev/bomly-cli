@@ -73,7 +73,7 @@ func newBaselineWriteCmd(action string) *cobra.Command {
 			request := commandCtx.PipelineRequest(model.ScopeUnknown, cmd.ErrOrStderr())
 			result, err := scanengine.Run(cmd.Context(), pipeline, request)
 			if err != nil {
-				return exit.ResolutionFailureError(err)
+				return pipelineFailure(err)
 			}
 			if warningCount := baselineMutationWarningCount(result); warningCount > 0 {
 				return exit.ResolutionFailureError(fmt.Errorf("baseline %s refused because the audit completed with %d degraded-coverage warning(s)", action, warningCount))

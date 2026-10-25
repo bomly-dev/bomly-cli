@@ -157,15 +157,15 @@ func (e *Engine) Analyze(ctx context.Context, req plugin.AnalyzeRequest) (plugin
 
 // Match runs registered matchers against the graph and returns the enriched graph.
 //
-// Each call is a transaction over a snapshot (ADR-0050): every Ready,
-// Applicable and Match call receives its own MatchRequest.Clone, so a matcher
-// never holds the host's graph, registry or target. Only a successful Match
-// is committed -- its Registry if it returned one, otherwise its
-// PackageUpdates merged into the canonical registry -- and a failed or
-// cancelled one leaves the canonical state exactly as the previous matcher
-// left it. Changes a matcher makes to the graph or target are never
-// committed, as they never were for a managed plugin, whose request crosses
-// the wire as a copy.
+// Each call is a transaction over a snapshot (dev-docs/ARCHITECTURE.md, Scan
+// Pipeline): every Ready, Applicable and Match call receives its own
+// MatchRequest.Clone, so a matcher never holds the host's graph, registry
+// or target. Only a successful Match is committed -- its Registry if it
+// returned one, otherwise its PackageUpdates merged into the canonical
+// registry -- and a failed or cancelled one leaves the canonical state
+// exactly as the previous matcher left it. Changes a matcher makes to the
+// graph or target are never committed, as they never were for a managed
+// plugin, whose request crosses the wire as a copy.
 func (e *Engine) Match(ctx context.Context, req plugin.MatchRequest) (MatchResult, error) {
 	originalGraphSize := 0
 	if req.Graph != nil {

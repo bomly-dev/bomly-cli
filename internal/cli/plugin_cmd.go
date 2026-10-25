@@ -245,6 +245,11 @@ func newPluginInstallCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			// Installed plugins start disabled: show what the publisher
+			// declares before the user decides to enable it.
+			if err := renderAccessDisclosure(streams.reportWriter(), result.Manifest.Access); err != nil {
+				return err
+			}
 			if devBinary {
 				_, _ = fmt.Fprintf(cmd.ErrOrStderr(),
 					"Warning: installed in development mode — no checksum was recorded. Only enable plugins you built or fully trust.\n")
@@ -293,12 +298,22 @@ func newPluginEnableCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			pluginRecord, err := managedplugin.Enable("", strings.TrimSpace(args[0]))
+			id := strings.TrimSpace(args[0])
+			// The disclosure is read and shown before the plugin is
+			// enabled, because enabling it is the trust decision.
+			manifest, err := managedplugin.InstalledManifest("", id)
 			if err != nil {
 				return err
 			}
 			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
+			if err := renderAccessDisclosure(streams.reportWriter(), manifest.Access); err != nil {
+				return err
+			}
+			pluginRecord, err := managedplugin.Enable("", id)
+			if err != nil {
+				return err
+			}
 			if _, err := fmt.Fprintf(streams.reportWriter(), "enabled %s@%s\n", pluginRecord.ID, pluginRecord.Version); err != nil {
 				return err
 			}
@@ -374,7 +389,9 @@ func newPluginVerifyCmd() *cobra.Command {
 					return err
 				}
 			}
-			return nil
+			// Verification covers integrity and identity, not behavior:
+			// the declared access is shown beside it, never as a check.
+			return renderAccessDisclosure(streams.reportWriter(), result.Access)
 		},
 	}
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Render verification results as JSON")
@@ -467,6 +484,9 @@ func newPluginDoctorCmd() *cobra.Command {
 					label = "[ok]"
 				}
 				if _, err := fmt.Fprintf(streams.reportWriter(), "%s %s: %s\n", label, nonEmptyString(result.Probe, "runtime readiness"), status); err != nil {
+					return err
+				}
+				if err := renderInstalledAccess(streams.reportWriter(), result.Info); err != nil {
 					return err
 				}
 			}
@@ -772,13 +792,7 @@ func cloneMatcherDescriptor(descriptor *plugin.MatcherDescriptor) *plugin.Matche
 	if descriptor == nil {
 		return nil
 	}
-	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]model.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]model.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
-	copyValue.Tags = append([]string(nil), descriptor.Tags...)
-	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
-	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
+	copyValue := descriptor.Clone()
 	return &copyValue
 }
 
@@ -786,10 +800,7 @@ func cloneAuditorDescriptor(descriptor *plugin.AuditorDescriptor) *plugin.Audito
 	if descriptor == nil {
 		return nil
 	}
-	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]model.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]model.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
+	copyValue := descriptor.Clone()
 	return &copyValue
 }
 
@@ -797,13 +808,7 @@ func cloneAnalyzerDescriptor(descriptor *plugin.AnalyzerDescriptor) *plugin.Anal
 	if descriptor == nil {
 		return nil
 	}
-	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]model.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]model.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.SupportedLanguages = append([]model.Language(nil), descriptor.SupportedLanguages...)
-	copyValue.SupportedTiers = append([]model.ReachabilityTier(nil), descriptor.SupportedTiers...)
-	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
-	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
+	copyValue := descriptor.Clone()
 	return &copyValue
 }
 
@@ -847,6 +852,9 @@ func renderPluginInfo(w io.Writer, info managedplugin.Info) error {
 	if tags := pluginInfoTags(info); len(tags) > 0 {
 		lines = append(lines, [2]string{"Tags", strings.Join(tags, ", ")})
 	}
+	if requirements := pluginInfoRequirements(info); len(requirements) > 0 {
+		lines = append(lines, [2]string{"Requires", joinRequirements(requirements)})
+	}
 	if info.Description != "" {
 		lines = append(lines, [2]string{"Description", info.Description})
 	}
@@ -869,6 +877,9 @@ func renderPluginInfo(w io.Writer, info managedplugin.Info) error {
 		if _, err := fmt.Fprintf(w, "%-*s : %s\n", labelWidth, line[0], line[1]); err != nil {
 			return err
 		}
+	}
+	if err := renderInstalledAccess(w, info); err != nil {
+		return err
 	}
 	return renderPluginConfigSchema(w, pluginInfoConfigSchema(info))
 }

@@ -144,7 +144,7 @@ func newDiffCmd() *cobra.Command {
 				},
 			})
 			if err != nil {
-				return exit.ResolutionFailureError(err)
+				return pipelineFailure(err)
 			}
 
 			allResults := append(append([]plugin.DetectionResult{}, diffResult.Base.ResolveResults...), diffResult.Head.ResolveResults...)

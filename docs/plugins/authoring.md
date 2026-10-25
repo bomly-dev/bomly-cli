@@ -53,9 +53,38 @@ A plugin's identity lives in three places:
 
 | Place | Holds | Written by |
 | --- | --- | --- |
-| `bomly-plugin.json` (the manifest) | Package facts: ID, name, version, description, homepage, license, source, Bomly version constraint, runtime, plugin API version, entrypoint | You |
-| The descriptor the binary returns | Component facts: name, display name, aliases, tags, supported ecosystems and package managers, role-specific behavior | You, in code |
+| `bomly-plugin.json` (the manifest) | Package facts: ID, name, version, description, homepage, license, source, Bomly version constraint, runtime, plugin API version, entrypoint, and an optional `access` block | You |
+| The descriptor the binary returns | Component facts: name, display name, aliases, tags, supported ecosystems and package managers, optional `requires` list, role-specific behavior | You, in code |
 | Bomly's installed-plugin database | Checksum, enabled state, install path, and a snapshot of the descriptor | Bomly, at install time |
+
+The descriptor's `requires` list names the inputs the component needs, such as `source-tree-v1`. Bomly checks it before the component runs. When every requirement is met, `Ready` and `Applicable` run as usual. When one is not, Bomly skips the component or stops the command, as [Component prerequisites](../PLUGINS.md#component-prerequisites) describes.
+
+A Go descriptor declares the list with the SDK's constants:
+
+```go
+plugin.AnalyzerDescriptor{Name: "my-reach-analyzer", Requires: plugin.Requirements{plugin.RequirementSourceTree}}
+```
+
+The manifest's `access` block discloses the files, network destinations, environment variables, and commands the plugin uses. Bomly shows it to users before they enable the plugin and does not enforce it. Leave a list empty only when the plugin needs none of that access. An omitted list means the same as an empty one, and users see it as `none declared`. Without the block, users see the plugin's access as unknown. [Declared access](../PLUGINS.md#declared-access) describes how users see it.
+
+The `access` block has five optional lists. Bomly sorts each list and removes duplicates when it reads the manifest:
+
+| Key | Entries |
+| --- | --- |
+| `filesystemRead`, `filesystemWrite` | Areas, not paths: `project` (the scan target), `temp`, `cache`, `home`, or `any` |
+| `network` | Host names (`api.osv.dev`), a host and its subdomains (`*.github.com`), or `*` |
+| `environment` | Variable names (`GITHUB_TOKEN`), a prefix (`BOMLY_HTTP_*`), or `*` |
+| `subprocesses` | Command names without a path (`go`, `npm`), or `*` |
+
+This manifest fragment declares a matcher that reads the project and its cache, writes the cache, and calls one API:
+
+```json
+"access": {
+  "filesystemRead": ["project", "cache"],
+  "filesystemWrite": ["cache"],
+  "network": ["api.osv.dev"]
+}
+```
 
 The descriptor `name` must equal the manifest `id`. For a packaged plugin, Bomly reads `id`, `kind`, and `pluginApiVersion` from the manifest, starts the binary, fetches the matching descriptor, and checks the names agree. For a `--dev` install without a manifest, Bomly asks for every role's descriptor and accepts the binary only when exactly one role answers.
 

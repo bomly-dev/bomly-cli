@@ -250,7 +250,7 @@ func TestEngineAudit_SkipsNotReadyOrNotApplicableAuditors(t *testing.T) {
 	}
 }
 
-// --- Transactional component calls (ADR-0050) -------------------------------
+// --- Transactional component calls ------------------------------------------
 
 // wireCopy round-trips v through JSON into out, which is what the managed
 // transport does to every request and result.

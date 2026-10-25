@@ -714,6 +714,9 @@ func renderPackageManagerMarkdown(ecosystem model.Ecosystem, entry registry.Pack
 	_, _ = fmt.Fprintf(&b, "| Install-first support | %s |\n", yesNo(chainSupportsInstallFirst(entry.Detectors)))
 	_, _ = fmt.Fprintf(&b, "| Remediation hints | %s |\n", remediationActionsForChain(entry.Detectors, entry.Manager, true))
 	_, _ = fmt.Fprintf(&b, "| Commands the chain may run | %s |\n", commandHintsForChain(entry.Detectors))
+	if requires := chainRequirements(entry.Detectors); requires != "" {
+		_, _ = fmt.Fprintf(&b, "| Detector requirements | %s |\n", requires)
+	}
 	b.WriteString(remediationActionFootnotes(entry.Detectors, entry.Manager))
 	if prose := loadProse("detectors", name); prose != "" {
 		b.WriteString("\n")
@@ -845,6 +848,9 @@ func renderMatcherMarkdown(descriptor plugin.MatcherDescriptor) string {
 	if len(descriptor.SupportedEcosystems) > 0 {
 		_, _ = fmt.Fprintf(&b, "| Ecosystems | %s |\n", ecosystemCodeList(descriptor.SupportedEcosystems))
 	}
+	if len(descriptor.Requires) > 0 {
+		_, _ = fmt.Fprintf(&b, "| Requires | %s |\n", requirementCodeList(descriptor.Requires))
+	}
 	if prose := loadProse("matchers", descriptor.Name); prose != "" {
 		b.WriteString("\n")
 		b.WriteString(prose)
@@ -897,6 +903,9 @@ func renderAuditorMarkdown(descriptor plugin.AuditorDescriptor) string {
 	_, _ = fmt.Fprintf(&b, "| Finding reasons | %s |\n", strings.Join(behavior.Reasons, ", "))
 	if len(descriptor.Tags) > 0 {
 		_, _ = fmt.Fprintf(&b, "| Tags | %s |\n", codeList(descriptor.Tags))
+	}
+	if len(descriptor.Requires) > 0 {
+		_, _ = fmt.Fprintf(&b, "| Requires | %s |\n", requirementCodeList(descriptor.Requires))
 	}
 	if prose := loadProse("auditors", descriptor.Name); prose != "" {
 		b.WriteString("\n")
@@ -1264,4 +1273,30 @@ func writeMarkdown(path, content string) error {
 		return fmt.Errorf("write %s: %w", path, err)
 	}
 	return nil
+}
+
+// requirementCodeList renders a descriptor's declared requirements. A
+// component that declares none gets no row: its requirements are
+// unspecified, which the absence of the row already says.
+func requirementCodeList(requires plugin.Requirements) string {
+	values := make([]string, 0, len(requires))
+	for _, requirement := range requires.Normalized() {
+		values = append(values, string(requirement))
+	}
+	return codeList(values)
+}
+
+// chainRequirements renders the requirements each detector in a chain
+// declares, as "detector: tokens" entries; empty when none declares any.
+func chainRequirements(detectorNames []string) string {
+	byName := builtinDetectorsByName()
+	var entries []string
+	for _, name := range detectorNames {
+		detector, ok := byName[name]
+		if !ok || len(detector.Descriptor().Requires) == 0 {
+			continue
+		}
+		entries = append(entries, fmt.Sprintf("`%s`: %s", name, requirementCodeList(detector.Descriptor().Requires)))
+	}
+	return strings.Join(entries, "; ")
 }

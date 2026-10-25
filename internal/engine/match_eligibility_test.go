@@ -120,7 +120,7 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 		t.Fatalf("expected eligible internal edge to survive, children=%#v err=%v", children, err)
 	}
 	// Matchers see the complete registry, not one filtered like the graph --
-	// as a snapshot (ADR-0050), never the host's own pointer.
+	// as a snapshot, never the host's own pointer.
 	if matcher.registry == registry {
 		t.Fatal("the matcher received the host's registry instead of a snapshot")
 	}

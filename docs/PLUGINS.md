@@ -118,11 +118,11 @@ What Bomly does with an unmet requirement depends on why the component is in the
 
 | Situation | Result |
 | --- | --- |
-| You selected the component by name, and the target can never meet the requirement | The command stops with exit code 4 before any stage runs |
+| You selected the component by name, and the run can never meet the requirement: the target is the wrong kind, or this version of Bomly does not know the requirement | The command stops with exit code 4 before any stage runs |
 | The component runs by default | Bomly skips it and shows a warning under that stage |
 | The requirement depends on what the scan found, such as no dependencies or no vulnerability records | Bomly skips it and shows a warning, however it was selected |
 
-"By name" means a plain selector list such as `--analyzers my-reach-analyzer`, or `+name` for a component that is off by default. A requirement that this version of Bomly does not know is never treated as met.
+"By name" means a plain selector list such as `--analyzers my-reach-analyzer`, or `+name` for a component that is off by default. A requirement that this version of Bomly does not know is never treated as met. A component selected by name with such a requirement stops the command; a default component with one is skipped with a warning.
 
 The error names the component, the requirement, and what would meet it. This run selects an analyzer that needs a source tree while it reads an SBOM file:
 

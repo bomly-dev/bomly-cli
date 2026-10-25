@@ -2,7 +2,7 @@
 
 An ADR records a choice Bomly made between viable alternatives, so the next
 person who proposes the other alternative finds the reasoning instead of
-re-deriving it. The directory holds 21 live records and the stubs of 28
+re-deriving it. The directory holds 22 live records and the stubs of 28
 retired ones; the full text of a retired record is in git history.
 
 ## When to write one

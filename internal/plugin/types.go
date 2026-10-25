@@ -863,6 +863,7 @@ func LoadRuntimePlugins(root string) ([]Info, error) {
 			MatcherDescriptor:  cloneMatcherDescriptor(snapshot.MatcherDescriptor),
 			AuditorDescriptor:  cloneAuditorDescriptor(snapshot.AuditorDescriptor),
 			AnalyzerDescriptor: cloneAnalyzerDescriptor(snapshot.AnalyzerDescriptor),
+			AccessDisclosure:   manifest.AccessDisclosure(),
 			Installed:          new(item),
 			Enabled:            item.Enabled,
 			Entrypoint:         fullEntrypoint,

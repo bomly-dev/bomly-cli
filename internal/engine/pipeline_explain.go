@@ -74,7 +74,9 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 			auditResult, warnings := p.auditComponent(ctx, g, base.Registry, dependency, pipeReq)
 			findings = auditResult.Findings
 			allFindings = append(allFindings, findings...)
-			result.AuditWarnings = append(result.AuditWarnings, warnings...)
+			// One audit runs per matching manifest, so a warning that holds
+			// for all of them (a preflight skip, say) is reported once.
+			result.AuditWarnings = appendUniqueWarnings(result.AuditWarnings, warnings...)
 			result.AuditorRuns = appendUnique(result.AuditorRuns, auditResult.AuditorRuns...)
 			for name, count := range auditResult.AuditorFindings {
 				auditorFindings[name] += count
@@ -130,6 +132,15 @@ func appendUnique(values []string, candidates ...string) []string {
 		}
 		found := slices.Contains(values, candidate)
 		if !found {
+			values = append(values, candidate)
+		}
+	}
+	return values
+}
+
+func appendUniqueWarnings(values []PipelineWarning, candidates ...PipelineWarning) []PipelineWarning {
+	for _, candidate := range candidates {
+		if !slices.Contains(values, candidate) {
 			values = append(values, candidate)
 		}
 	}

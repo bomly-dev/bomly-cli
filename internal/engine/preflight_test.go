@@ -520,6 +520,11 @@ func TestPreflight_ComponentAuditChecksEcosystemScopedAuditors(t *testing.T) {
 		calls:      auditor,
 	})
 	req.AuditEnabled = true
+	// A second subproject with the same dependency: explain audits once per
+	// manifest, and the skip must still be reported once.
+	second := req.Subprojects[0]
+	second.RelativePath = "web"
+	req.Subprojects = append(req.Subprojects, second)
 
 	result, err := NewPipeline(registry, zap.NewNop()).RunExplain(context.Background(), ExplainRequest{Query: "dep", Pipeline: req})
 	if err != nil {
@@ -528,8 +533,17 @@ func TestPreflight_ComponentAuditChecksEcosystemScopedAuditors(t *testing.T) {
 	if *auditor != (calls{}) {
 		t.Fatalf("the component audit must hold the auditor back before Ready, got %+v", *auditor)
 	}
-	if len(result.AuditWarnings) == 0 || result.AuditWarnings[0].Source != "npm-only" {
-		t.Fatalf("expected a diagnostic for the held-back auditor, got %v", result.AuditWarnings)
+	if len(result.Targets) != 2 {
+		t.Fatalf("expected the dependency in both manifests, got %d targets", len(result.Targets))
+	}
+	skips := 0
+	for _, warning := range result.AuditWarnings {
+		if warning.Source == "npm-only" {
+			skips++
+		}
+	}
+	if skips != 1 {
+		t.Fatalf("expected one diagnostic for the held-back auditor across both manifests, got %v", result.AuditWarnings)
 	}
 
 	req.AuditorFilter = plugin.AuditorFilter{Include: []string{"npm-only"}}

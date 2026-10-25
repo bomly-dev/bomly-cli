@@ -102,7 +102,7 @@ A detector plugin takes part in project discovery like a built-in detector. It d
 
 ## Component prerequisites
 
-A component can declare the inputs it needs before it can do useful work. Bomly checks these declarations before it calls the component. A component that passes still runs its own readiness and applicability checks, so a declaration never makes a component run where it would not have run before. A component that declares nothing runs exactly as it always has.
+A component can declare the inputs it needs before it can do useful work. Bomly checks these declarations before it calls the component. When the declarations pass, Bomly still runs the component's own readiness and applicability checks. A component without declarations goes straight to those checks.
 
 | Requirement | Met when |
 | --- | --- |
@@ -184,7 +184,7 @@ Read the block as a description, not a limit:
 - A manifest without an `access` block shows `Declared access: unknown`. Treat that plugin as able to use everything your user account can.
 - An `access` block with every list empty is the publisher's claim that the plugin needs none of that access.
 - Bomly shows environment variable names only, never their values.
-- Bomly refuses to install a manifest whose `access` block is malformed or has an unknown key, so a declaration is never shortened without notice.
+- Bomly refuses to install a manifest whose `access` block is malformed or has an unknown key. The install error names the problem.
 
 Recommended practice:
 

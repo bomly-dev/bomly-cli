@@ -57,7 +57,9 @@ A plugin's identity lives in three places:
 | The descriptor the binary returns | Component facts: name, display name, aliases, tags, supported ecosystems and package managers, optional `requires` list, role-specific behavior | You, in code |
 | Bomly's installed-plugin database | Checksum, enabled state, install path, and a snapshot of the descriptor | Bomly, at install time |
 
-The descriptor's `requires` list names the inputs the component needs, such as `source-tree-v1`. Bomly checks it before the component runs; `Ready` and `Applicable` still run afterwards. The manifest's `access` block discloses the files, network destinations, environment variables, and commands the plugin uses. Bomly shows it to users before they enable the plugin and does not enforce it. Leave a list empty only when the plugin truly needs none of that access; leave the block out and users see the plugin's access as unknown. [Component prerequisites](../PLUGINS.md#component-prerequisites) and [Declared access](../PLUGINS.md#declared-access) describe both.
+The descriptor's `requires` list names the inputs the component needs, such as `source-tree-v1`. Bomly checks it before the component runs. When every requirement is met, `Ready` and `Applicable` run as usual. When one is not, Bomly skips the component or stops the command; see the link below.
+
+The manifest's `access` block discloses the files, network destinations, environment variables, and commands the plugin uses. Bomly shows it to users before they enable the plugin and does not enforce it. Leave a list empty only when the plugin needs none of that access. Without the block, users see the plugin's access as unknown. [Component prerequisites](../PLUGINS.md#component-prerequisites) and [Declared access](../PLUGINS.md#declared-access) describe both.
 
 The `access` block has five optional lists. Bomly sorts each list and removes duplicates when it reads the manifest:
 

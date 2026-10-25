@@ -22,8 +22,9 @@ import (
 func renderAccessDisclosure(w io.Writer, access *plugin.Access) error {
 	if access == nil {
 		_, err := fmt.Fprint(w, "Declared access: unknown\n"+
-			"  The manifest declares no access. Assume the plugin can use everything your\n"+
-			"  user account can: files, network, environment variables, and child processes.\n")
+			"  The manifest has no access declaration. Assume the plugin can use everything\n"+
+			"  your user account can: files, network, environment variables, and child\n"+
+			"  processes.\n")
 		return err
 	}
 	rows := [][2]string{

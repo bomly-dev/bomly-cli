@@ -14,9 +14,8 @@ manifest `Access` block.
 
 ## Decision
 
-- The SDK owns the types, vocabulary, normalization and validation
-  (`Requirements.Unsatisfied`, `ValidateAccess`). The CLI owns evaluation
-  and presentation, and duplicates no validator.
+- The SDK owns the types, vocabulary and validation. The CLI owns
+  evaluation and presentation, and duplicates no validator.
 - The host vouches for `source-tree-v1` when the target is a path or Git
   checkout not planned as an SBOM document. It vouches for
   `dependency-graph-v1` after detection, when the graph holds a dependency
@@ -28,7 +27,6 @@ manifest `Access` block.
   (exit 4) when the plan can never meet its requirement: wrong target
   shape, unknown token, or data no earlier stage produces. Explicit means
   named in a plain selector list, or default-off and added with `+name`.
-  The error names the component, the requirement and the remedy.
 - At each stage, any component whose requirement the actual data misses is
   held back before `Ready`, with a warning on that stage's channel. This
   applies to explicit components too, since the input, not the selection,

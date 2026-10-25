@@ -44,7 +44,7 @@ func TestRenderAccessDisclosureLabelsTheClaimAsUnverified(t *testing.T) {
 	if err := renderAccessDisclosure(&unknown, nil); err != nil {
 		t.Fatalf("renderAccessDisclosure(nil) error = %v", err)
 	}
-	if !strings.Contains(unknown.String(), "Declared access: unknown") || !strings.Contains(unknown.String(), "can use everything your") {
+	if !strings.Contains(unknown.String(), "Declared access: unknown") || !strings.Contains(unknown.String(), "can use everything") {
 		t.Fatalf("a manifest without an access block must read as unknown and unrestricted, got:\n%s", unknown.String())
 	}
 	for _, output := range []string{declared.String(), unknown.String()} {

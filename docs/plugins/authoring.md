@@ -57,9 +57,15 @@ A plugin's identity lives in three places:
 | The descriptor the binary returns | Component facts: name, display name, aliases, tags, supported ecosystems and package managers, optional `requires` list, role-specific behavior | You, in code |
 | Bomly's installed-plugin database | Checksum, enabled state, install path, and a snapshot of the descriptor | Bomly, at install time |
 
-The descriptor's `requires` list names the inputs the component needs, such as `source-tree-v1`. Bomly checks it before the component runs. When every requirement is met, `Ready` and `Applicable` run as usual. When one is not, Bomly skips the component or stops the command; see the link below.
+The descriptor's `requires` list names the inputs the component needs, such as `source-tree-v1`. Bomly checks it before the component runs. When every requirement is met, `Ready` and `Applicable` run as usual. When one is not, Bomly skips the component or stops the command, as [Component prerequisites](../PLUGINS.md#component-prerequisites) describes.
 
-The manifest's `access` block discloses the files, network destinations, environment variables, and commands the plugin uses. Bomly shows it to users before they enable the plugin and does not enforce it. Leave a list empty only when the plugin needs none of that access. Without the block, users see the plugin's access as unknown. [Component prerequisites](../PLUGINS.md#component-prerequisites) and [Declared access](../PLUGINS.md#declared-access) describe both.
+A Go descriptor declares the list with the SDK's constants:
+
+```go
+plugin.AnalyzerDescriptor{Name: "my-reach-analyzer", Requires: plugin.Requirements{plugin.RequirementSourceTree}}
+```
+
+The manifest's `access` block discloses the files, network destinations, environment variables, and commands the plugin uses. Bomly shows it to users before they enable the plugin and does not enforce it. Leave a list empty only when the plugin needs none of that access. An omitted list means the same as an empty one, and users see it as `none declared`. Without the block, users see the plugin's access as unknown. [Declared access](../PLUGINS.md#declared-access) describes how users see it.
 
 The `access` block has five optional lists. Bomly sorts each list and removes duplicates when it reads the manifest:
 

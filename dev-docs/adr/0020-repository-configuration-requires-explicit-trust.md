@@ -1,8 +1,7 @@
 # ADR-0020: Repository configuration requires explicit trust; baselines are the one auto-discovered repository input
 
 - **Date:** 2026-07-25
-- **Revised:** 2026-10-19 (folds ADR-0003 and ADR-0019)
-- **Revised:** 2026-10-25 (adds plugin access disclosure)
+- **Revised:** 2026-10-25 (folds ADR-0003 and ADR-0019; adds plugin access disclosure)
 - **Status:** Accepted
 
 ## Context
@@ -11,7 +10,8 @@ A configuration file can select a target, enable network enrichment, run
 package managers, load plugins and choose output paths. Loading one because
 it sits inside the checkout being scanned would let the checkout grant
 itself those permissions. Finding baselines also live in the repository, and
-users expect them to apply without flags.
+users expect them to apply without flags. A managed plugin runs with the
+user's authority, so enabling one is the user's trust decision.
 
 ## Decision
 
@@ -37,8 +37,9 @@ users expect them to apply without flags.
   baseline-specific stage or output model exists: a suppressed finding is an
   ordinary finding with `policy_status: suppressed`.
 - A managed plugin's manifest `access` block is the publisher's unverified
-  claim. Bomly shows it before the plugin is enabled and never enforces it.
-  An absent block means unknown and unrestricted, never "needs no access".
+  claim, shown at install (the plugin starts disabled) and in `plugins info`;
+  `plugins enable` shows it but asks for no confirmation. It is never
+  enforced. An absent block means unknown, never "needs no access".
 
 ## Rejected
 

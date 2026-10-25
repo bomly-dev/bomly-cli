@@ -110,7 +110,7 @@ A component can declare the inputs it needs before it can do useful work. Bomly 
 
 | Requirement | Met when |
 | --- | --- |
-| `source-tree-v1` | The target is a directory (`--path`) or a Git repository (`--url`), not an SBOM document or a container image |
+| `source-tree-v1` | The target is a directory (`--path`) or a Git repository (`--url`), not an [SBOM](GLOSSARY.md) document or a container image |
 | `dependency-graph-v1` | Detection found at least one dependency. A detector cannot require it |
 | `vulnerability-records-v1` | At least one package carries a vulnerability record when analyzers and auditors run. This usually needs `--enrich` with a vulnerability [matcher](GLOSSARY.md) |
 
@@ -118,11 +118,18 @@ What Bomly does with an unmet requirement depends on why the component is in the
 
 | Situation | Result |
 | --- | --- |
-| You selected the component by name, and the run can never meet the requirement: the target is the wrong kind, or this version of Bomly does not know the requirement | The command stops with exit code 4 before any stage runs |
+| You selected the component by name, and the run can never meet the requirement | The command stops with [exit code 4](EXIT_CODES.md#4-invalid-input) before any stage runs |
 | The component runs by default | Bomly skips it and shows a warning under that stage |
 | The requirement depends on what the scan found, such as no dependencies or no vulnerability records | Bomly skips it and shows a warning, however it was selected |
 
-"By name" means a plain selector list such as `--analyzers my-reach-analyzer`, or `+name` for a component that is off by default. A requirement that this version of Bomly does not know is never treated as met. A component selected by name with such a requirement stops the command; a default component with one is skipped with a warning.
+"By name" means a plain selector list such as `--analyzers my-reach-analyzer`, or `+name` for a component that is off by default. A run can never meet a requirement in these cases:
+
+- the component requires `source-tree-v1` and the target is an SBOM document or a container image;
+- a detector requires `dependency-graph-v1` or `vulnerability-records-v1`, which only later stages produce;
+- a matcher requires `vulnerability-records-v1`, which only analyzers and auditors can require;
+- this version of Bomly does not know the requirement.
+
+A component selected by name in one of these cases stops the command. A component that runs by default is skipped with a warning instead.
 
 The error names the component, the requirement, and what would meet it. This run selects an analyzer that needs a source tree while it reads an SBOM file:
 
@@ -168,7 +175,7 @@ Bomly cannot restrict a plugin's file or network access, stop it reading credent
 
 ### Declared access
 
-A plugin's manifest can include an `access` block: the publisher's own statement of the files, network destinations, environment variables, and commands the plugin uses. Bomly shows it when you install the plugin, when you enable it (before the plugin is enabled), and in `bomly plugins info`, `verify`, and `doctor`. The `--json` forms of `list`, `info`, `verify`, and `doctor` carry it as `access`, with `accessDisclosure` set to `declared` or `unknown`.
+A plugin's manifest can include an `access` block: the publisher's own statement of the files, network destinations, environment variables, and commands the plugin uses. Bomly shows it when you install the plugin, and in `bomly plugins info`, `verify`, and `doctor`. Plugins install disabled, so read it at install or with `bomly plugins info` before you enable the plugin. `bomly plugins enable` shows it again, but it does not ask for confirmation. The `--json` forms of `list`, `info`, `verify`, and `doctor` carry it as `access`, with `accessDisclosure` set to `declared` or `unknown`.
 
 This is how `bomly plugins enable` shows a declared block:
 
@@ -186,7 +193,7 @@ Read the block as a description, not a limit:
 
 - Bomly does not check that the plugin behaves as declared, and it does not stop the plugin from doing more. A checksum proves the file is the one published, not that its behavior is safe.
 - A manifest without an `access` block shows `Declared access: unknown`. Treat that plugin as able to use everything your user account can.
-- An `access` block with every list empty is the publisher's claim that the plugin needs none of that access.
+- An `access` block with every list empty is the publisher's claim that the plugin needs none of that access. An omitted list means the same as an empty one, and Bomly shows it as `none declared`.
 - Bomly shows environment variable names only, never their values.
 - Bomly refuses to install a manifest whose `access` block is malformed or has an unknown key. The install error names the problem.
 
@@ -194,7 +201,7 @@ Recommended practice:
 
 - Prefer `github:owner/repo@tag` installs from releases that publish `SHA256SUMS`.
 - Always pass `--checksum` for direct URL installs.
-- Run `bomly plugins verify <id>` before you enable a plugin from an external source, and compare its declared access with what the plugin says it does.
+- Run `bomly plugins verify <id>` before you enable a plugin from an external source, and compare its declared access with the plugin's own documentation.
 - Do not enable plugins you did not build or obtain from a source you control.
 
 [Security and trust boundaries](SECURITY.md) describes the wider trust model.

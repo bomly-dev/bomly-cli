@@ -44,6 +44,8 @@ Run with `-v` to see which project and detector failed.
 
 A flag, target, or config value is malformed. Examples: `--fail-on xyz` (the message lists the accepted values), `--format sarif` without `--audit`, `--audit` without `--enrich`, `--ref` without `--url`, or `-o spdx=` with an empty path. The error names the offending flag, and no partial output is produced.
 
+A component you selected by name also exits `4` when the run can never meet a requirement it declares, for example an analyzer that needs a source tree while you scan an SBOM file. The error names the component, the requirement, and what would meet it. [Component prerequisites](PLUGINS.md#component-prerequisites) lists the cases.
+
 ### `5`: nothing to evaluate
 
 No project was found at the target, so there was nothing to scan, diff, or audit. This differs from `3`. Exit `3` means Bomly found a project but could not turn it into a graph. Exit `5` means it found none. Typical causes: an `--ecosystems` or `--detectors` filter that matches nothing in the target (for example `--ecosystems maven` on an npm-only repository), or a directory, ref, or image with no supported manifests. The message lists the active filters and the candidates it skipped; see [Troubleshooting](TROUBLESHOOTING.md#nothing-to-evaluate-exit-5).

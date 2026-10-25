@@ -2,7 +2,7 @@
 
 An ADR records a choice Bomly made between viable alternatives, so the next
 person who proposes the other alternative finds the reasoning instead of
-re-deriving it. The directory holds 21 live records and the stubs of 28
+re-deriving it. The directory holds 21 live records and the stubs of 29
 retired ones; the full text of a retired record is in git history.
 
 ## When to write one
@@ -111,3 +111,4 @@ Each file is a stub naming where the decision lives now. Cleaned up
 | ADR-0039 | [Both modules build on Go 1.27; untrusted JSON parses strictly](0039-both-modules-build-on-go-1-27.md) | Folded into ADR-0026 |
 | ADR-0045 | [The SDK owns the SBOM codec](0045-the-sdk-owns-the-sbom-codec.md) | Folded into ADR-0040 |
 | ADR-0046 | [The scan output is the SDK's scan record](0046-the-scan-output-is-the-sdk-scan-record.md) | Folded into ADR-0011 and ADR-0040 |
+| ADR-0050 | [A component call is a transaction over a snapshot, within the command's lifetime](0050-a-component-call-is-a-transaction-over-a-snapshot.md) | Retired: implementation, see `dev-docs/ARCHITECTURE.md` (Scan Pipeline) |

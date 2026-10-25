@@ -100,6 +100,36 @@ bomly scan --enrich --analyze --analyzers +my-reach-analyzer     # add an analyz
 
 A detector plugin takes part in project discovery like a built-in detector. It declares which package managers and files it handles, which directories to skip, and whether it expands workspace modules itself; see [Monorepos](MONOREPOS.md).
 
+## Component prerequisites
+
+A component can declare the inputs it needs before it can do useful work. Bomly checks these declarations before it calls the component. A component that passes still runs its own readiness and applicability checks, so a declaration never makes a component run where it would not have run before. A component that declares nothing runs exactly as it always has.
+
+| Requirement | Met when |
+| --- | --- |
+| `source-tree-v1` | The target is a directory (`--path`) or a Git repository (`--url`), not an SBOM document or a container image |
+| `dependency-graph-v1` | Detection found at least one dependency. A detector cannot require it |
+| `vulnerability-records-v1` | At least one package carries a vulnerability record when analyzers and auditors run. This usually needs `--enrich` with a vulnerability [matcher](GLOSSARY.md) |
+
+What Bomly does with an unmet requirement depends on why the component is in the run:
+
+| Situation | Result |
+| --- | --- |
+| You selected the component by name, and the target can never meet the requirement | The command stops with exit code 4 before any stage runs |
+| The component runs by default | Bomly skips it and shows a warning under that stage |
+| The requirement depends on what the scan found, such as no dependencies or no vulnerability records | Bomly skips it and shows a warning, however it was selected |
+
+"By name" means a plain selector list such as `--analyzers my-reach-analyzer`, or `+name` for a component that is off by default. A requirement that this version of Bomly does not know is never treated as met.
+
+The error names the component, the requirement, and what would meet it. This run selects an analyzer that needs a source tree while it reads an SBOM file:
+
+```text
+bomly scan --sbom --path ./bom.cdx.json --enrich --analyze --analyzers my-reach-analyzer
+
+Error: selected components cannot run: analyzer my-reach-analyzer requires source-tree-v1: the target is an SBOM document, not a source tree; scan a directory with --path or a Git repository with --url
+```
+
+`bomly plugins info <plugin-id>` lists the requirements a component declares. Requirements name kinds of data, never other plugins, and Bomly never changes the order of the stages to meet one.
+
 ## Configure a plugin
 
 Plugin configuration is grouped by component kind under `plugins.<kind>.<name>`:
@@ -132,11 +162,35 @@ Before it runs a plugin, Bomly checks:
 
 Bomly cannot restrict a plugin's file or network access, stop it reading credentials from the environment, stop it starting child processes, or guarantee that an unchecked binary matches its declared source.
 
+### Declared access
+
+A plugin's manifest can include an `access` block: the publisher's own statement of the files, network destinations, environment variables, and commands the plugin uses. Bomly shows it when you install the plugin, when you enable it (before the plugin is enabled), and in `bomly plugins info`, `verify`, and `doctor`. The `--json` forms of `list`, `info`, `verify`, and `doctor` carry it as `access`, with `accessDisclosure` set to `declared` or `unknown`.
+
+This is how `bomly plugins enable` shows a declared block:
+
+```text
+Declared access (the publisher's claim; Bomly does not verify or enforce it):
+  Filesystem read  : cache, project
+  Filesystem write : cache
+  Network          : api.osv.dev
+  Environment      : none declared
+  Subprocesses     : none declared
+enabled acme.matcher.example@1.0.0
+```
+
+Read the block as a description, not a limit:
+
+- Bomly does not check that the plugin behaves as declared, and it does not stop the plugin from doing more. A checksum proves the file is the one published, not that its behavior is safe.
+- A manifest without an `access` block shows `Declared access: unknown`. Treat that plugin as able to use everything your user account can.
+- An `access` block with every list empty is the publisher's claim that the plugin needs none of that access.
+- Bomly shows environment variable names only, never their values.
+- Bomly refuses to install a manifest whose `access` block is malformed or has an unknown key, so a declaration is never shortened without notice.
+
 Recommended practice:
 
 - Prefer `github:owner/repo@tag` installs from releases that publish `SHA256SUMS`.
 - Always pass `--checksum` for direct URL installs.
-- Run `bomly plugins verify <id>` before you enable a plugin from an external source.
+- Run `bomly plugins verify <id>` before you enable a plugin from an external source, and compare its declared access with what the plugin says it does.
 - Do not enable plugins you did not build or obtain from a source you control.
 
 [Security and trust boundaries](SECURITY.md) describes the wider trust model.

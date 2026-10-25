@@ -92,6 +92,8 @@ Stage summary:
 
 `bomly explain` reuses the same detection (resolution + consolidation) and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
 
+Every stage starts with a preflight (`internal/engine/preflight.go`). It compares the requirements each selected component's descriptor declares (`sdk.Requirements`: a source tree, a dependency graph, vulnerability records) with what the target and the earlier stages actually produced. Before detection starts, an explicitly selected component that the plan can never satisfy fails the command. Inside a stage, a component whose requirement the data does not meet is left out of a registry view for that stage and reported on the stage's warning channel, before its `Ready` is called. Components that declare nothing are untouched, and preflight never reorders stages or resolves a provider by name ([ADR-0051](adr/0051-component-declarations-are-evaluated-or-shown-never-enforced.md)).
+
 ## Extensibility
 
 Extensibility is the core of Bomly's design. **Every built-in is an implementation of the same contract an external plugin implements** — there is no privileged internal path. Adding an ecosystem, an enrichment source, or a policy gate does not require forking the engine. Three extension points are pluggable today (detector, matcher, auditor); external **analyzer** plugins are planned — the built-in reachability analyzers are not yet loadable as plugins.
@@ -304,7 +306,7 @@ Managed plugin installation is owned by Bomly rather than by the runtime library
 1. Resolve a local archive, local dev binary, or direct URL source.
 2. Validate checksums when required.
 3. Extract archives safely into a temp directory.
-4. Validate `bomly-plugin.json`.
+4. Validate `bomly-plugin.json`, including its optional `access` block through `sdk.ValidateAccess`. The block is the publisher's disclosure, shown on install and enable and never enforced; an absent block is unknown, not "no access".
 5. Start the plugin through the SDK/gRPC runtime, fetch the role descriptor named by the manifest kind, require `descriptor.name == manifest.id`, and store Bomly's internal descriptor snapshot.
 6. Move the plugin into `~/.bomly/plugins/store/<id>/<version>`.
 7. Update `installed.json` atomically.

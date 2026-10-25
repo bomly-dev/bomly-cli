@@ -127,6 +127,9 @@ type Registry struct {
 	defaultEnabled   map[string]bool
 	componentOrigins map[string]plugin.DetectorOrigin
 	httpProvider     *httpkit.ClientProvider
+	// scopes are the lifetimes of the embedded components RegisterModule
+	// constructed, in construction order; Close ends them.
+	scopes []*plugin.ComponentScope
 }
 
 // ComponentOptions records Bomly-owned registry behavior that plugin authors

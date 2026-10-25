@@ -109,7 +109,10 @@ func (r *Registry) RegisterModule(m plugin.Module, opts ComponentOptions) error 
 	if err := plugin.ValidateModule(m); err != nil {
 		return fmt.Errorf("register module: %w", err)
 	}
-	ctx := context.Background()
+	ctx := r.lifetime
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	switch m.Kind {
 	case plugin.PluginKindDetector:
 		host := r.newEmbeddedHost(ctx, m.Kind, m.Detector.Descriptor.Name)

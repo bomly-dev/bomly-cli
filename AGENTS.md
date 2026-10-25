@@ -200,7 +200,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - **Plugin protocol is versioned `v1`.** External plugins use the SDK/HashiCorp gRPC `Metadata` and role descriptor contract.
 - **No secrets or credentials in logs.** Ever.
 - **Matcher network calls require explicit enrichment.** Built-in matchers may contact OSV (`https://api.osv.dev`), CISA KEV, deps.dev (`https://api.deps.dev`), OpenSSF Scorecard (`https://api.scorecard.dev`), and Grype's database service (`https://grype.anchore.io/databases`, plus the archive URL it returns) only during `--enrich`. Installed external matcher plugins such as ClearlyDefined and endoflife.date may contact their documented services during `--enrich`. `--audit` evaluates existing package data and must not trigger matcher calls. Remote Git targets and build-tool detectors have separate, explicit network behavior.
-- **An ADR records a decision, not an implementation.** Write one in [`dev-docs/adr/`](dev-docs/adr/README.md) only when a real alternative exists that someone would propose again, reversing the choice is expensive (an output or wire contract, a cross-repository or security boundary, a public claim), and the reason is not visible from the code or a guard's message. About 300 words, never more than about 400, one decision per file, with the rejected alternative and what enforces it; revise in place rather than appending amendments. Everything else is a code comment or a paragraph in `dev-docs/ARCHITECTURE.md`, which stays the architecture narrative (`docs/ARCHITECTURE.md` is the public overview). The full rule is [`dev-docs/adr/README.md`](dev-docs/adr/README.md).
+- **An ADR records a decision, not an implementation.** Write one in [`dev-docs/adr/`](dev-docs/adr/README.md) only when a real alternative exists that someone would propose again, reversing the choice is expensive (an output or wire contract, a cross-repository or security boundary, a public claim), and the reason is not visible from the code or a guard's message. About 300 words, never more than about 400, one decision per file, with the rejected alternative and what enforces it; revise in place rather than appending amendments. An issue, plan or acceptance checklist that asks for an ADR is asking for the decision to be recorded, not for a new file, and the bar above still decides: when the decision fails it, the reasoning goes in a code comment or `dev-docs/ARCHITECTURE.md` and the pull request says so; when it passes, revise the live record that owns the topic, and start a new one only when none does. Everything else is a code comment or a paragraph in `dev-docs/ARCHITECTURE.md`, which stays the architecture narrative (`docs/ARCHITECTURE.md` is the public overview). The full rule is [`dev-docs/adr/README.md`](dev-docs/adr/README.md).
 - **A format's specification outranks anything Bomly wrote.** When a specification and a Bomly document disagree about what a value in that format means, the specification wins — in every case, without being weighed against anything, accepted ADRs included. Bomly never got to decide what a word means in a format it does not own. Resolve such a question by citing the specification text, preferably as the pinned dependency vendors it (`cyclonedx-go` ships the CycloneDX schemas with their normative `meta:enum` descriptions), quote it in the code next to the behavior it settles, and correct whichever Bomly document was wrong. Neither "producers in the wild spell it loosely" nor "this direction is safer for a scanner" licenses a non-conforming reading: the first misreads every conforming document to accommodate the ones that are not, and the second is answered by a warning, a Bomly-owned policy knob that states plainly that it departs from the specification, or an upstream bug report. Worked examples, both in ADR-0037's scope rule and both resolved in bomly-dev/bomly-sdk#63: `optional` was read as runtime on a pre-1.6 gloss and defended as the safer reading for a scanner, and an absent scope — which CycloneDX says a consumer should assume is `required` — was read as no scope and dropped from every runtime filter. Reading the spec text once found both; another round of arguing the merits would have found neither.
 - **Prefer `internal/`.** Add new packages inside `internal/` unless there is a clear public API need; genuinely public contract surface belongs in the SDK module.
 - **Standard library + Cobra + existing deps only.** Do not add new dependencies without discussion.
@@ -383,6 +383,31 @@ Mechanics that go with the rules:
 - Nested pages belong under a folder the landing page knows how to list:
   `commands/`, `detectors/`, `matchers/`, `auditors/`, `plugins/`,
   `schemas/`.
+
+### Plugin-author and developer documentation
+
+The rules above apply to every page under `docs/`. Three other kinds of
+document follow these conventions:
+
+- **Plugin-author pages** (`docs/plugins/`) differ from rule 5 in one way.
+  They name the SDK's public API (packages, types, methods, descriptor
+  fields, manifest keys, requirement tokens), because that is what an
+  author writes. They never name a CLI-internal identifier.
+- **`dev-docs/ARCHITECTURE.md`** describes how Bomly works today. A
+  paragraph there carries the reasoning for a choice that does not meet the
+  ADR bar in [`dev-docs/adr/README.md`](dev-docs/adr/README.md). It states
+  the rule in the present tense, gives the reason in the same paragraph, and
+  names identifiers only where the reader must go. It carries no
+  pull-request or release chronology, and it links an ADR instead of
+  restating it.
+- **`AGENTS.md`** summarizes some rules and names the document that holds
+  the full rule, as the ADR bar names `dev-docs/adr/README.md`. A change to
+  such a rule lands in that document in the same pull request, so the
+  summary never states a rule the full text lacks.
+
+The `Docs link check` CI job covers `docs/`, `README.md` and
+`CONTRIBUTING.md`. Links in `dev-docs/` and `AGENTS.md` are checked by
+review only.
 
 ### Fuzz tests
 

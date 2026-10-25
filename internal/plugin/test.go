@@ -80,9 +80,10 @@ func Test(ctx context.Context, root, id string, builtins []Info) (*TestResult, e
 
 	return &TestResult{
 		Info: Info{
-			Manifest:   manifest,
-			Installed:  record,
-			Entrypoint: fullEntrypoint,
+			Manifest:         manifest,
+			Installed:        record,
+			Entrypoint:       fullEntrypoint,
+			AccessDisclosure: manifest.AccessDisclosure(),
 		},
 		Ready: ready,
 		Probe: probe,

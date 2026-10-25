@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestGenerateDocsWritesAllArtifacts(t *testing.T) {
@@ -83,5 +85,19 @@ func TestGenerateDocsIsDeterministic(t *testing.T) {
 		if normalizedFirst != normalizedSecond {
 			t.Fatalf("summary order differs at %d: %q vs %q", idx, normalizedFirst, normalizedSecond)
 		}
+	}
+}
+
+func TestComponentDocsListDeclaredRequirements(t *testing.T) {
+	requires := plugin.Requirements{plugin.RequirementVulnerabilityRecords, plugin.RequirementSourceTree}
+	matcher := renderMatcherMarkdown(plugin.MatcherDescriptor{Name: "example", Requires: requires})
+	auditor := renderAuditorMarkdown(plugin.AuditorDescriptor{Name: "example", Requires: requires})
+	for name, page := range map[string]string{"matcher": matcher, "auditor": auditor} {
+		if !strings.Contains(page, "| Requires | `source-tree-v1`, `vulnerability-records-v1` |") {
+			t.Errorf("%s page must list declared requirements, sorted:\n%s", name, page)
+		}
+	}
+	if page := renderMatcherMarkdown(plugin.MatcherDescriptor{Name: "example"}); strings.Contains(page, "| Requires |") {
+		t.Errorf("a component that declares nothing gets no requirements row:\n%s", page)
 	}
 }

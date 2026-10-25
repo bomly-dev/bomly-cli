@@ -94,6 +94,33 @@ type Manifest struct {
 	Description      string               `json:"description,omitempty"`
 	Homepage         string               `json:"homepage,omitempty"`
 	License          string               `json:"license,omitempty"`
+	// Access is the publisher's disclosure of the host access the plugin
+	// expects. It is an unverified claim, shown to the user before they
+	// enable the plugin and never enforced. Nil means the manifest discloses
+	// nothing, which is unknown and unrestricted, never "needs no access".
+	// Gate: sdkplugin.ValidateAccess, in validateManifest.
+	Access *sdkplugin.Access `json:"access,omitempty"`
+}
+
+// AccessDisclosure says whether a managed plugin's manifest declares the
+// access it expects.
+type AccessDisclosure string
+
+const (
+	// AccessDeclared means the manifest carries an access block: the
+	// publisher's claim, which Bomly shows but does not verify or enforce.
+	AccessDeclared AccessDisclosure = "declared"
+	// AccessUnknown means the manifest carries no access block, so the
+	// plugin may use anything the invoking user can.
+	AccessUnknown AccessDisclosure = "unknown"
+)
+
+// AccessDisclosure reports whether the manifest declares its access.
+func (m Manifest) AccessDisclosure() AccessDisclosure {
+	if m.Access == nil {
+		return AccessUnknown
+	}
+	return AccessDeclared
 }
 
 // RuntimeDescriptorSnapshot stores Bomly-verified runtime descriptors for an installed plugin.
@@ -155,6 +182,9 @@ type Info struct {
 	Enabled            bool
 	Entrypoint         string
 	SourceType         string
+	// AccessDisclosure is set for an installed managed plugin, from its
+	// manifest; a built-in component is part of Bomly and has none.
+	AccessDisclosure AccessDisclosure `json:"accessDisclosure,omitempty"`
 	// ReadyFn, when non-nil, is called by Test() to probe readiness for built-in plugins.
 	// Populated by the CLI layer from the in-process component instance.
 	// Never serialized to JSON.
@@ -486,6 +516,9 @@ func validateManifest(manifest Manifest) error {
 	if _, err := pathInPluginDir(".", entry); err != nil {
 		return fmt.Errorf("plugin entrypoint %q must stay within the plugin directory", entry)
 	}
+	if err := sdkplugin.ValidateAccess(manifest.Access); err != nil {
+		return fmt.Errorf("plugin manifest %w", err)
+	}
 	return nil
 }
 
@@ -766,6 +799,7 @@ func LoadInstalledPlugins(root string) ([]Info, error) {
 			MatcherDescriptor:  cloneMatcherDescriptor(snapshot.MatcherDescriptor),
 			AuditorDescriptor:  cloneAuditorDescriptor(snapshot.AuditorDescriptor),
 			AnalyzerDescriptor: cloneAnalyzerDescriptor(snapshot.AnalyzerDescriptor),
+			AccessDisclosure:   manifest.AccessDisclosure(),
 			Installed:          new(item),
 			Enabled:            item.Enabled,
 			Entrypoint:         fullEntrypoint,
@@ -902,23 +936,24 @@ func componentDescriptorEqual(left, right sdkplugin.ComponentDescriptor) bool {
 		slices.Equal(left.Aliases, right.Aliases) &&
 		slices.Equal(left.Tags, right.Tags) &&
 		slices.Equal(left.SupportedEcosystems, right.SupportedEcosystems) &&
-		slices.Equal(left.SupportedManagers, right.SupportedManagers)
+		slices.Equal(left.SupportedManagers, right.SupportedManagers) &&
+		slices.Equal(left.Requires.Normalized(), right.Requires.Normalized())
 }
 
 func componentFromDetectorDescriptor(descriptor sdkplugin.DetectorDescriptor) sdkplugin.ComponentDescriptor {
-	return sdkplugin.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers}
+	return sdkplugin.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers, Requires: descriptor.Requires}
 }
 
 func componentFromMatcherDescriptor(descriptor sdkplugin.MatcherDescriptor) sdkplugin.ComponentDescriptor {
-	return sdkplugin.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers}
+	return sdkplugin.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers, Requires: descriptor.Requires}
 }
 
 func componentFromAuditorDescriptor(descriptor sdkplugin.AuditorDescriptor) sdkplugin.ComponentDescriptor {
-	return sdkplugin.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers}
+	return sdkplugin.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers, Requires: descriptor.Requires}
 }
 
 func componentFromAnalyzerDescriptor(descriptor sdkplugin.AnalyzerDescriptor) sdkplugin.ComponentDescriptor {
-	return sdkplugin.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers}
+	return sdkplugin.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers, Requires: descriptor.Requires}
 }
 
 func cloneDetectorDescriptor(descriptor *sdkplugin.DetectorDescriptor) *sdkplugin.DetectorDescriptor {
@@ -1013,13 +1048,7 @@ func cloneMatcherDescriptor(descriptor *sdkplugin.MatcherDescriptor) *sdkplugin.
 	if descriptor == nil {
 		return nil
 	}
-	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]model.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]model.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
-	copyValue.Tags = append([]string(nil), descriptor.Tags...)
-	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
-	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
+	copyValue := descriptor.Clone()
 	return &copyValue
 }
 
@@ -1027,12 +1056,7 @@ func cloneAuditorDescriptor(descriptor *sdkplugin.AuditorDescriptor) *sdkplugin.
 	if descriptor == nil {
 		return nil
 	}
-	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]model.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]model.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
-	copyValue.Tags = append([]string(nil), descriptor.Tags...)
-	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
+	copyValue := descriptor.Clone()
 	return &copyValue
 }
 
@@ -1040,14 +1064,6 @@ func cloneAnalyzerDescriptor(descriptor *sdkplugin.AnalyzerDescriptor) *sdkplugi
 	if descriptor == nil {
 		return nil
 	}
-	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]model.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]model.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
-	copyValue.Tags = append([]string(nil), descriptor.Tags...)
-	copyValue.SupportedLanguages = append([]model.Language(nil), descriptor.SupportedLanguages...)
-	copyValue.SupportedTiers = append([]model.ReachabilityTier(nil), descriptor.SupportedTiers...)
-	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
-	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
+	copyValue := descriptor.Clone()
 	return &copyValue
 }

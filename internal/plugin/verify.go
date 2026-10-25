@@ -65,11 +65,26 @@ func Verify(ctx context.Context, root, id string) (*VerifyResult, error) {
 			MatcherDescriptor:  installedSnapshot.MatcherDescriptor,
 			AuditorDescriptor:  installedSnapshot.AuditorDescriptor,
 			AnalyzerDescriptor: installedSnapshot.AnalyzerDescriptor,
+			AccessDisclosure:   manifest.AccessDisclosure(),
 			Installed:          record,
 			Entrypoint:         fullEntrypoint,
 		},
 		Checks: checks,
 	}, nil
+}
+
+// InstalledManifest reads and validates the manifest of one installed
+// plugin, so a caller can show its access disclosure before enabling it.
+func InstalledManifest(root, id string) (Manifest, error) {
+	root, err := resolveRoot(root)
+	if err != nil {
+		return Manifest{}, err
+	}
+	record, err := findInstalled(root, id)
+	if err != nil {
+		return Manifest{}, err
+	}
+	return readManifest(record.Path)
 }
 
 // Enable marks one installed plugin enabled.

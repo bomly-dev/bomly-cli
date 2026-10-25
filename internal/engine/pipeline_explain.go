@@ -43,6 +43,11 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 	pipeReq.AuditEnabled = false
 
 	base := PipelineResult{}
+	// Planned with the caller's audit setting: explain audits the queried
+	// component itself, so an explicitly selected auditor is still in its plan.
+	if err := p.preflightPlan(req.Pipeline); err != nil {
+		return ExplainResult{PipelineResult: base}, err
+	}
 	if err := p.runDetect(ctx, &base, pipeReq); err != nil {
 		return ExplainResult{PipelineResult: base}, err
 	}

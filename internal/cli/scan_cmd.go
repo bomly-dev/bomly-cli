@@ -87,7 +87,7 @@ func newScanCmd() *cobra.Command {
 			pipeReq.Progress = prog
 			pipeResult, err := scanengine.Run(cmd.Context(), pipeline, pipeReq)
 			if err != nil {
-				return exit.ResolutionFailureError(err)
+				return pipelineFailure(err)
 			}
 			resolved := pipeResult.ResolveResults
 			detectionChildren := detectorProgressChildren(resolved)

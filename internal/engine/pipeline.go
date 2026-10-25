@@ -51,6 +51,9 @@ func (p *Pipeline) Run(ctx context.Context, req PipelineRequest) (PipelineResult
 // before policy evaluation.
 func (p *Pipeline) RunPreAudit(ctx context.Context, req PipelineRequest) (PipelineResult, error) {
 	result := PipelineResult{}
+	if err := p.preflightPlan(req); err != nil {
+		return result, err
+	}
 	if err := p.runDetect(ctx, &result, req); err != nil {
 		return result, err
 	}
@@ -136,9 +139,14 @@ func acceptedFindingCount(findings []model.Finding) int {
 // consolidates them into the single graph and package registry the rest of the
 // pipeline operates on. Consolidation is the tail of detection, not a separate stage.
 func (p *Pipeline) runDetect(ctx context.Context, result *PipelineResult, req PipelineRequest) error {
-	if err := p.runResolve(ctx, result, req); err != nil {
+	stage, issues := p.preflightStage(StageDetect, req, nil, nil)
+	if err := stage.runResolve(ctx, result, req); err != nil {
+		if len(issues) > 0 {
+			return fmt.Errorf("%w (%s)", err, preflightSummary(issues))
+		}
 		return err
 	}
+	result.DetectorWarnings = append(result.DetectorWarnings, detectorPreflightWarnings(issues)...)
 	return p.runConsolidate(result)
 }
 
@@ -500,7 +508,9 @@ func (p *Pipeline) analyze(ctx context.Context, result *PipelineResult, req Pipe
 		AnalyzerFilter:  req.AnalyzerFilter,
 		Stderr:          req.Stderr,
 	}
-	analyzeResult, err := p.engine.Analyze(ctx, aReq)
+	stage, issues := p.preflightStage(StageAnalyze, req, result.Graph, result.Registry)
+	result.AnalyzeWarnings = append(result.AnalyzeWarnings, preflightWarnings(issues)...)
+	analyzeResult, err := stage.engine.Analyze(ctx, aReq)
 	result.AnalyzerRuns = analyzeResult.AnalyzerRuns
 	if len(analyzeResult.AnalyzerStats) > 0 {
 		result.AnalyzerStats = analyzeResult.AnalyzerStats
@@ -509,7 +519,7 @@ func (p *Pipeline) analyze(ctx context.Context, result *PipelineResult, req Pipe
 		result.Registry = analyzeResult.Registry
 	}
 	if err != nil {
-		result.AnalyzeWarnings = PipelineWarningsFromError(err, "analyzer")
+		result.AnalyzeWarnings = append(result.AnalyzeWarnings, PipelineWarningsFromError(err, "analyzer")...)
 		p.Logger.Warn("pipeline: reachability analysis errors", zap.Error(err))
 	}
 }
@@ -538,7 +548,9 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 		MatcherFilter:   req.MatcherFilter,
 		Stderr:          req.Stderr,
 	}
-	matchResult, err := p.engine.Match(ctx, mReq)
+	stage, issues := p.preflightStage(StageMatch, req, result.Graph, result.Registry)
+	result.MatchWarnings = append(result.MatchWarnings, preflightWarnings(issues)...)
+	matchResult, err := stage.engine.Match(ctx, mReq)
 	result.MatcherStats = matchResult.MatcherStats
 	if matchResult.Registry != nil {
 		result.Registry = matchResult.Registry
@@ -548,7 +560,7 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 			zap.Int("records_removed", matchResult.VulnerabilitiesConsolidated))
 	}
 	if err != nil {
-		result.MatchWarnings = PipelineWarningsFromError(err, "matcher")
+		result.MatchWarnings = append(result.MatchWarnings, PipelineWarningsFromError(err, "matcher")...)
 		p.Logger.Warn("pipeline: matcher enrichment error", zap.Error(err))
 	}
 }
@@ -564,10 +576,11 @@ func (p *Pipeline) audit(ctx context.Context, g *model.Graph, registry *model.Pa
 		AuditorFilter:           req.AuditorFilter,
 		Stderr:                  req.Stderr,
 	}
-	result, err := p.engine.Audit(ctx, auditReq)
-	var warnings []PipelineWarning
+	stage, issues := p.preflightStage(StageAudit, req, g, registry)
+	warnings := preflightWarnings(issues)
+	result, err := stage.engine.Audit(ctx, auditReq)
 	if err != nil {
-		warnings = PipelineWarningsFromError(err, "auditor")
+		warnings = append(warnings, PipelineWarningsFromError(err, "auditor")...)
 		p.Logger.Warn("pipeline: audit errors", zap.Error(err))
 	}
 	return result, warnings
@@ -587,12 +600,13 @@ func (p *Pipeline) auditComponent(ctx context.Context, g *model.Graph, registry 
 		AuditorFilter:   req.AuditorFilter,
 		Stderr:          req.Stderr,
 	}
-	result, err := p.engine.Audit(ctx, auditReq)
+	stage, issues := p.preflightStage(StageAudit, req, g, registry)
+	warnings := preflightWarnings(issues)
+	result, err := stage.engine.Audit(ctx, auditReq)
 	result.Findings = DeduplicateFindings(result.Findings)
 	result.Findings = p.applyFindingPolicy(ctx, result.Findings, registry, req)
-	var warnings []PipelineWarning
 	if err != nil {
-		warnings = PipelineWarningsFromError(err, "auditor")
+		warnings = append(warnings, PipelineWarningsFromError(err, "auditor")...)
 		p.Logger.Warn("pipeline: component audit errors", zap.Error(err))
 	}
 	return result, warnings

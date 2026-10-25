@@ -85,7 +85,7 @@ func newExplainCmd() *cobra.Command {
 				Pipeline: pipeReq,
 			})
 			if err != nil {
-				return exit.ResolutionFailureError(err)
+				return pipelineFailure(err)
 			}
 
 			resolved := explainResult.ResolveResults

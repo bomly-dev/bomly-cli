@@ -3,6 +3,7 @@ package opts
 import (
 	"bytes"
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"slices"
@@ -1087,5 +1088,27 @@ func TestDetachPluginPoolIsolatesClones(t *testing.T) {
 	}
 	if base.pluginPool != baseLaunch.Pool {
 		t.Fatal("DetachPluginPool on the clone must not clear the base pool")
+	}
+}
+
+// TestJoinCleanupsRunsBothInOrder: the registry's component cleanups run
+// before the temp-dir cleanup they may depend on, and one failing never
+// skips the other.
+func TestJoinCleanupsRunsBothInOrder(t *testing.T) {
+	var order []string
+	errFirst, errRest := errors.New("component cleanup"), errors.New("temp dir")
+	joined := joinCleanups(
+		func() error { order = append(order, "components"); return errFirst },
+		func() error { order = append(order, "temp"); return errRest },
+	)
+	err := joined()
+	if !slices.Equal(order, []string{"components", "temp"}) {
+		t.Errorf("order = %v", order)
+	}
+	if !errors.Is(err, errFirst) || !errors.Is(err, errRest) {
+		t.Errorf("joined error %v lost a failure", err)
+	}
+	if err := joinCleanups(nil, nil)(); err != nil {
+		t.Errorf("two nil cleanups = %v", err)
 	}
 }

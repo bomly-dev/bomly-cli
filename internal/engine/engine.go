@@ -92,7 +92,8 @@ func cloneAuditRequest(req plugin.AuditRequest) plugin.AuditRequest {
 }
 
 // Analyze runs registered analyzers against the graph and returns the
-// reachability-annotated graph. Unlike Audit, Analyze does NOT error when
+// reachability-annotated graph. Each call is a transaction over its own
+// AnalyzeRequest.Clone, committed only on success, exactly as Match's are. Unlike Audit, Analyze does NOT error when
 // zero analyzers apply — reachability is opt-in and a request with no
 // applicable analyzers is a normal outcome.
 func (e *Engine) Analyze(ctx context.Context, req plugin.AnalyzeRequest) (plugin.AnalyzeResult, error) {
@@ -114,11 +115,11 @@ func (e *Engine) Analyze(ctx context.Context, req plugin.AnalyzeRequest) (plugin
 		descriptor := analyzer.Descriptor()
 		name := descriptor.Name
 		label := descriptor.Label()
-		if err := analyzer.Ready(ctx, req); err != nil {
+		if err := analyzer.Ready(ctx, req.Clone()); err != nil {
 			errs = append(errs, fmt.Errorf("analyzer %s: not ready: %w", name, err))
 			continue
 		}
-		applicable, err := analyzer.Applicable(ctx, req)
+		applicable, err := analyzer.Applicable(ctx, req.Clone())
 		if err != nil {
 			errs = append(errs, fmt.Errorf("analyzer %s: applicability check failed: %w", name, err))
 			continue
@@ -127,8 +128,8 @@ func (e *Engine) Analyze(ctx context.Context, req plugin.AnalyzeRequest) (plugin
 			continue
 		}
 
-		result, err := analyzer.Analyze(ctx, req)
-		if err != nil {
+		result, err := analyzer.Analyze(ctx, req.Clone())
+		if err = committable(ctx, err); err != nil {
 			errs = append(errs, fmt.Errorf("analyzer %s: %w", name, err))
 			continue
 		}
@@ -155,6 +156,16 @@ func (e *Engine) Analyze(ctx context.Context, req plugin.AnalyzeRequest) (plugin
 }
 
 // Match runs registered matchers against the graph and returns the enriched graph.
+//
+// Each call is a transaction over a snapshot (ADR-0050): every Ready,
+// Applicable and Match call receives its own MatchRequest.Clone, so a matcher
+// never holds the host's graph, registry or target. Only a successful Match
+// is committed -- its Registry if it returned one, otherwise its
+// PackageUpdates merged into the canonical registry -- and a failed or
+// cancelled one leaves the canonical state exactly as the previous matcher
+// left it. Changes a matcher makes to the graph or target are never
+// committed, as they never were for a managed plugin, whose request crosses
+// the wire as a copy.
 func (e *Engine) Match(ctx context.Context, req plugin.MatchRequest) (MatchResult, error) {
 	originalGraphSize := 0
 	if req.Graph != nil {
@@ -189,11 +200,11 @@ func (e *Engine) Match(ctx context.Context, req plugin.MatchRequest) (MatchResul
 	for _, matcher := range matcherList {
 		descriptor := matcher.Descriptor()
 		name := descriptor.Name
-		if err := matcher.Ready(ctx, req); err != nil {
+		if err := matcher.Ready(ctx, req.Clone()); err != nil {
 			errs = append(errs, fmt.Errorf("matcher %s: not ready: %w", name, err))
 			continue
 		}
-		applicable, err := matcher.Applicable(ctx, req)
+		applicable, err := matcher.Applicable(ctx, req.Clone())
 		if err != nil {
 			errs = append(errs, fmt.Errorf("matcher %s: applicability check failed: %w", name, err))
 			continue
@@ -203,8 +214,8 @@ func (e *Engine) Match(ctx context.Context, req plugin.MatchRequest) (MatchResul
 			continue
 		}
 
-		result, err := matcher.Match(ctx, req)
-		if err != nil {
+		result, err := matcher.Match(ctx, req.Clone())
+		if err = committable(ctx, err); err != nil {
 			errs = append(errs, fmt.Errorf("matcher %s: %w", name, err))
 			continue
 		}
@@ -228,6 +239,20 @@ func (e *Engine) Match(ctx context.Context, req plugin.MatchRequest) (MatchResul
 		return aggregated, errors.Join(errs...)
 	}
 	return aggregated, nil
+}
+
+// committable reports whether a component call's result may be committed:
+// not when the call failed, and not when the command was cancelled while it
+// ran, even if the component returned without an error -- a component that
+// ignored its context may have returned partial work.
+func committable(ctx context.Context, err error) error {
+	if err != nil {
+		return err
+	}
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return fmt.Errorf("cancelled: %w", ctxErr)
+	}
+	return nil
 }
 
 func finalizeMatchResult(result *MatchResult) {

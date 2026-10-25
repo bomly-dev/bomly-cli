@@ -37,6 +37,10 @@ Installed plugins are disabled until you enable them. Enabling a plugin is the t
 
 A plugin is a Go binary built on Bomly's public SDK. Bomly starts each enabled plugin as a separate process and talks to it over a versioned protocol. During one command, Bomly keeps one process per enabled plugin, starts it on first use, and stops it when the command ends. If the process dies, Bomly restarts it once; a second death disables the plugin for the rest of the command with a warning. Plugin processes never outlive the Bomly command.
 
+When the command ends, Bomly closes each plugin's connection and gives it a short grace period before stopping the process, so cleanups the plugin registered with `host.OnCleanup` run, all plugins at once. A component compiled into Bomly gets the same lifetime: it is built under the command's context and its cleanups run when the command ends.
+
+Each matcher and analyzer call receives a copy of the dependency graph and package registry, and Bomly keeps a call's result only when it succeeds. A plugin that fails or is cancelled partway leaves the scan exactly as the previous component left it. Changes a plugin makes to the graph or the target dependency are never kept: return enrichment as a registry or as package updates.
+
 Bomly owns installing plugin packages, validating their manifest, checking recorded checksums, storing plugins under `~/.bomly/plugins`, enabling and disabling them, and loading enabled plugins at the start of a command. Plugins have no install hooks or post-install scripts, and Bomly never runs a plugin it finds in a repository checkout.
 
 ## Install sources

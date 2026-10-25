@@ -119,8 +119,13 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 	if err != nil || len(children) != 1 || !testnodes.Is(children[0], legacy.NodeID()) {
 		t.Fatalf("expected eligible internal edge to survive, children=%#v err=%v", children, err)
 	}
-	if matcher.registry != registry || result.Registry != registry || matcher.registry.Len() != registry.Len() {
-		t.Fatal("expected the complete package registry to remain shared with matchers")
+	// Matchers see the complete registry, not one filtered like the graph --
+	// as a snapshot (ADR-0050), never the host's own pointer.
+	if matcher.registry == registry {
+		t.Fatal("the matcher received the host's registry instead of a snapshot")
+	}
+	if matcher.registry.Len() != registry.Len() || result.Registry.Len() != registry.Len() {
+		t.Fatalf("expected the complete package registry: matcher saw %d, result has %d, want %d", matcher.registry.Len(), result.Registry.Len(), registry.Len())
 	}
 	if graph.Size() != len(all) {
 		t.Fatalf("complete graph was mutated: size=%d want=%d", graph.Size(), len(all))

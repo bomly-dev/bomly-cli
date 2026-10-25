@@ -6,6 +6,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
 	"github.com/bomly-dev/bomly-sdk/runtime"
@@ -113,4 +114,50 @@ func TestClientPoolShutdownClosesClients(t *testing.T) {
 			t.Fatalf("expected Shutdown to close client %d", idx)
 		}
 	}
+}
+
+// slowClosingClient models go-plugin's Kill on a plugin that uses its whole
+// grace period to run cleanups.
+type slowClosingClient struct {
+	fakePooledClient
+	delay time.Duration
+}
+
+func (c *slowClosingClient) Close() {
+	time.Sleep(c.delay)
+	c.closed.Store(true)
+}
+
+// TestClientPoolShutdownIsBoundedByOneGracePeriod: plugins shut down
+// concurrently, so the command waits about one grace period, not one per
+// plugin, and every one is closed exactly when Shutdown returns -- a dead
+// subprocess included.
+func TestClientPoolShutdownIsBoundedByOneGracePeriod(t *testing.T) {
+	const delay = 150 * time.Millisecond
+	var clients []*slowClosingClient
+	pool := NewClientPool()
+	pool.startFn = func(context.Context, string, string, sdkplugin.PluginKind) (pooledClient, error) {
+		client := &slowClosingClient{delay: delay}
+		clients = append(clients, client)
+		return client, nil
+	}
+	for _, id := range []string{"a.plugin", "b.plugin", "c.plugin", "d.plugin"} {
+		if _, err := pool.Acquire(context.Background(), "/bin/fake", id, ""); err != nil {
+			t.Fatalf("Acquire(%s): %v", id, err)
+		}
+	}
+	clients[1].exited.Store(true)
+
+	started := time.Now()
+	pool.Shutdown()
+	elapsed := time.Since(started)
+	if elapsed > 3*delay {
+		t.Errorf("Shutdown took %v for %d plugins; it should be about one %v grace period", elapsed, len(clients), delay)
+	}
+	for i, client := range clients {
+		if !client.closed.Load() {
+			t.Errorf("client %d was not closed by the time Shutdown returned", i)
+		}
+	}
+	pool.Shutdown()
 }

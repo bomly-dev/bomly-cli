@@ -2,6 +2,7 @@
 
 - **Date:** 2026-07-25
 - **Revised:** 2026-10-19 (folds ADR-0003 and ADR-0019)
+- **Revised:** 2026-10-25 (adds plugin access disclosure)
 - **Status:** Accepted
 
 ## Context
@@ -35,11 +36,16 @@ users expect them to apply without flags.
   several participate, the least suppressive decision wins. No
   baseline-specific stage or output model exists: a suppressed finding is an
   ordinary finding with `policy_status: suppressed`.
+- A managed plugin's manifest `access` block is the publisher's unverified
+  claim. Bomly shows it before the plugin is enabled and never enforces it.
+  An absent block means unknown and unrestricted, never "needs no access".
 
 ## Rejected
 
 Auto-loading repository configuration behind an allowlist of safe keys (the
-allowlist becomes the attack surface); a separate baseline pipeline stage.
+allowlist becomes the attack surface); a separate baseline pipeline stage;
+enforcing declared plugin access, which needs a sandbox, when a declaration
+is not evidence of behavior.
 
 ## Consequences
 
@@ -47,4 +53,5 @@ allowlist becomes the attack surface); a separate baseline pipeline stage.
 - Baseline selection is visible in logs and run statistics.
 
 Enforced by: `internal/config/validate_test.go`; the symlink tests in
-`internal/baseline`.
+`internal/baseline`; `internal/plugin/access_test.go` and
+`internal/cli/plugin_access_test.go`.

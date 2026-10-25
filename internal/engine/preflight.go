@@ -17,7 +17,8 @@ import (
 // action method is called. It never reorders the fixed pipeline and never
 // looks a provider up by name: a requirement names data, and the only
 // question asked is whether that data exists at that point. A component that
-// declares nothing is legacy and passes untouched. ADR-0051 records the rules.
+// declares nothing is legacy and passes untouched. dev-docs/ARCHITECTURE.md
+// (Scan Pipeline) records why only an impossible plan fails the command.
 
 // PipelineStage names one stage of the fixed pipeline.
 type PipelineStage string

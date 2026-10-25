@@ -384,6 +384,31 @@ Mechanics that go with the rules:
   `commands/`, `detectors/`, `matchers/`, `auditors/`, `plugins/`,
   `schemas/`.
 
+### Plugin-author and developer documentation
+
+The rules above apply to every page under `docs/`. Three other kinds of
+document follow these conventions:
+
+- **Plugin-author pages** (`docs/plugins/`) differ from rule 5 in one way.
+  They name the SDK's public API (packages, types, methods, descriptor
+  fields, manifest keys, requirement tokens), because that is what an
+  author writes. They never name a CLI-internal identifier.
+- **`dev-docs/ARCHITECTURE.md`** describes how Bomly works today. A
+  paragraph there carries the reasoning for a choice that does not meet the
+  ADR bar in [`dev-docs/adr/README.md`](dev-docs/adr/README.md). It states
+  the rule in the present tense, gives the reason in the same paragraph, and
+  names identifiers only where the reader must go. It carries no
+  pull-request or release chronology, and it links an ADR instead of
+  restating it.
+- **`AGENTS.md`** summarizes some rules and names the document that holds
+  the full rule, as the ADR bar names `dev-docs/adr/README.md`. A change to
+  such a rule lands in that document in the same pull request, so the
+  summary never states a rule the full text lacks.
+
+The `Docs link check` CI job covers `docs/`, `README.md` and
+`CONTRIBUTING.md`. Links in `dev-docs/` and `AGENTS.md` are checked by
+review only.
+
 ### Fuzz tests
 
 - Every new or materially changed pure in-process parser for untrusted repository, configuration, baseline, SBOM, plugin, or analyzer data must have a native Go fuzz target. (The SDK's own parsers carry their fuzz targets in the SDK repo.)

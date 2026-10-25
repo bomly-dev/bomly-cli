@@ -230,7 +230,7 @@ func (p *Pipeline) preflightPlan(req PipelineRequest) error {
 	var issues []PreflightIssue
 	for _, stage := range plannedStages(req) {
 		facts := preflightFacts{stage: stage, planning: true, target: target, matchStage: req.EnrichEnabled || req.MatchEnabled}
-		for _, candidate := range p.stageCandidates(stage, req) {
+		for _, candidate := range p.stageCandidates(stage, req, stageData{planning: true}) {
 			if candidate.explicit {
 				issues = append(issues, facts.issues(candidate)...)
 			}
@@ -250,20 +250,30 @@ func (p *Pipeline) preflightPlan(req PipelineRequest) error {
 	return &PreflightError{Issues: issues}
 }
 
+// stageData is what one stage run receives. ecosystem is set only by a
+// component audit, which selects auditors by the queried package's
+// ecosystem; planning sees every selected auditor instead.
+type stageData struct {
+	graph     *model.Graph
+	registry  *model.PackageRegistry
+	ecosystem model.Ecosystem
+	planning  bool
+}
+
 // preflightStage evaluates the components stage would run against the data
 // the stage actually receives. It returns the pipeline the stage runs on --
 // p itself when nothing is held back, otherwise a view whose registry leaves
 // the held-back components out -- and one issue per unmet requirement.
 // Components that pass still go through Ready and Applicable as before.
-func (p *Pipeline) preflightStage(stage PipelineStage, req PipelineRequest, graph *model.Graph, registry *model.PackageRegistry) (*Pipeline, []PreflightIssue) {
+func (p *Pipeline) preflightStage(stage PipelineStage, req PipelineRequest, data stageData) (*Pipeline, []PreflightIssue) {
 	facts := preflightFacts{
 		stage:                stage,
 		target:               describeTarget(req),
 		matchStage:           req.EnrichEnabled || req.MatchEnabled,
-		dependencyNodes:      hasDependencyNode(graph),
-		vulnerabilityRecords: hasVulnerabilityRecord(registry),
+		dependencyNodes:      hasDependencyNode(data.graph),
+		vulnerabilityRecords: hasVulnerabilityRecord(data.registry),
 	}
-	candidates := p.stageCandidates(stage, req)
+	candidates := p.stageCandidates(stage, req, data)
 	var issues []PreflightIssue
 	var skipped []string
 	declared := 0
@@ -302,7 +312,7 @@ func (p *Pipeline) preflightStage(stage PipelineStage, req PipelineRequest, grap
 // stageCandidates lists the components stage would run for req, through the
 // same registry selection the stage itself uses, so preflight sees exactly
 // the plan the filters, defaults and detector chains produce.
-func (p *Pipeline) stageCandidates(stage PipelineStage, req PipelineRequest) []preflightCandidate {
+func (p *Pipeline) stageCandidates(stage PipelineStage, req PipelineRequest, data stageData) []preflightCandidate {
 	reg := p.Registry
 	kind := stageKinds[stage]
 	var candidates []preflightCandidate
@@ -343,7 +353,11 @@ func (p *Pipeline) stageCandidates(stage PipelineStage, req PipelineRequest) []p
 		}
 	case StageAudit:
 		filter := req.AuditorFilter
-		for _, auditor := range reg.Auditors(plugin.AuditRequest{AuditorFilter: filter}) {
+		auditors := reg.Auditors(plugin.AuditRequest{AuditorFilter: filter, Ecosystem: data.ecosystem})
+		if data.planning {
+			auditors = reg.SelectedAuditors(filter)
+		}
+		for _, auditor := range auditors {
 			descriptor := auditor.Descriptor()
 			add(descriptor.Name, descriptor.Requires, filter.Include, filter.Exclude, filter.Includes)
 		}

@@ -12,6 +12,20 @@ func (r *Registry) DefaultEnabled(kind plugin.PluginKind, name string) bool {
 	return r.isDefaultEnabled(kind, name)
 }
 
+// SelectedAuditors returns every auditor filter selects, before ecosystem
+// and package-manager matching narrows the set for one request. A component
+// audit selects by the queried package's ecosystem, which planning cannot
+// know in advance, so planning has to see all of them.
+func (r *Registry) SelectedAuditors(filter plugin.AuditorFilter) []plugin.Auditor {
+	selected := make([]plugin.Auditor, 0, len(r.auditors))
+	for _, auditor := range r.auditors {
+		if r.auditorSelected(filter, auditor.Descriptor()) {
+			selected = append(selected, auditor)
+		}
+	}
+	return selected
+}
+
 // Without returns a view of the registry that leaves out the named
 // components of one kind and shares every other registration. Runtime
 // preflight uses it to hold a component back from a stage without touching

@@ -412,7 +412,7 @@ func TestPreflight_EmptyRegistryPlansNothing(t *testing.T) {
 		t.Fatalf("an empty registry has nothing to reject, got %v", err)
 	}
 	for _, stage := range plannedStages(req) {
-		stagePipeline, issues := pipeline.preflightStage(stage, req, nil, nil)
+		stagePipeline, issues := pipeline.preflightStage(stage, req, stageData{})
 		if stagePipeline != pipeline || len(issues) != 0 {
 			t.Fatalf("stage %s: nothing to hold back, got %v", stage, issues)
 		}
@@ -495,5 +495,46 @@ func TestPreflight_OperatorSelectedDefaultOffComponentIsExplicit(t *testing.T) {
 	preflight, ok := errors.AsType[*PreflightError](err)
 	if !ok || len(preflight.Issues) != 1 || preflight.Issues[0].Component != "opt-in" {
 		t.Fatalf("a default-off component added with +name is the user's explicit choice, got %v", err)
+	}
+}
+
+func TestPreflight_ComponentAuditChecksEcosystemScopedAuditors(t *testing.T) {
+	// A component audit selects auditors by the queried package's ecosystem,
+	// so an npm-only auditor runs there although a plain audit would never
+	// select it. Preflight must see it on both the plan and the stage.
+	graph := model.New()
+	app := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"}})
+	dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "dep", Version: "2.0.0", PURL: "pkg:npm/dep@2.0.0"}})
+	for _, node := range []*model.DependencyNode{app, dep} {
+		if err := graph.AddNode(node); err != nil {
+			t.Fatalf("add node: %v", err)
+		}
+	}
+	if err := graph.AddEdge(app.NodeID(), dep.NodeID()); err != nil {
+		t.Fatalf("add edge: %v", err)
+	}
+	registry, req := preflightScenario(t, graph)
+	auditor := &calls{}
+	registry.registerAuditor(preflightAuditor{
+		descriptor: plugin.AuditorDescriptor{Name: "npm-only", SupportedEcosystems: []model.Ecosystem{model.EcosystemNPM}, Requires: requires("future-input-v1")},
+		calls:      auditor,
+	})
+	req.AuditEnabled = true
+
+	result, err := NewPipeline(registry, zap.NewNop()).RunExplain(context.Background(), ExplainRequest{Query: "dep", Pipeline: req})
+	if err != nil {
+		t.Fatalf("RunExplain() error = %v", err)
+	}
+	if *auditor != (calls{}) {
+		t.Fatalf("the component audit must hold the auditor back before Ready, got %+v", *auditor)
+	}
+	if len(result.AuditWarnings) == 0 || result.AuditWarnings[0].Source != "npm-only" {
+		t.Fatalf("expected a diagnostic for the held-back auditor, got %v", result.AuditWarnings)
+	}
+
+	req.AuditorFilter = plugin.AuditorFilter{Include: []string{"npm-only"}}
+	_, err = NewPipeline(registry, zap.NewNop()).RunExplain(context.Background(), ExplainRequest{Query: "dep", Pipeline: req})
+	if _, ok := errors.AsType[*PreflightError](err); !ok {
+		t.Fatalf("an explicitly selected ecosystem-scoped auditor that can never run must fail the plan, got %v", err)
 	}
 }

@@ -123,13 +123,15 @@ type targetShape struct {
 }
 
 // describeTarget classifies the request's target. A filesystem path or a Git
-// checkout is a source tree unless discovery planned it as an SBOM document;
-// a container image, and a target whose kind is not recorded, is not.
+// checkout is a source tree unless every planned subproject is an SBOM
+// document, as with --sbom; an SBOM discovered beside source manifests
+// leaves the directory a source tree. A container image, and a target whose
+// kind is not recorded, is not one.
 func describeTarget(req PipelineRequest) targetShape {
-	for _, sub := range req.Subprojects {
-		if sub.PrimaryPackageManager() == model.PackageManagerSBOM {
-			return targetShape{description: "an SBOM document"}
-		}
+	if len(req.Subprojects) > 0 && !slices.ContainsFunc(req.Subprojects, func(sub plugin.Subproject) bool {
+		return sub.PrimaryPackageManager() != model.PackageManagerSBOM
+	}) {
+		return targetShape{description: "an SBOM document"}
 	}
 	switch req.ExecutionTarget.Kind {
 	case plugin.ExecutionTargetFilesystem, plugin.ExecutionTargetGitRepository:

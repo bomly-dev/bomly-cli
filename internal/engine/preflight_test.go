@@ -552,3 +552,24 @@ func TestPreflight_ComponentAuditChecksEcosystemScopedAuditors(t *testing.T) {
 		t.Fatalf("an explicitly selected ecosystem-scoped auditor that can never run must fail the plan, got %v", err)
 	}
 }
+
+func TestPreflight_AnSBOMBesideSourceManifestsLeavesASourceTree(t *testing.T) {
+	// Discovery plans an SBOM found in a directory as its own subproject
+	// next to the directory's lockfiles. The directory is still a source
+	// tree; only a target whose every subproject is an SBOM is not.
+	graph := preflightGraph(t)
+	registry, req := preflightScenario(t, graph)
+	lockfile := req.Subprojects[0]
+	sbomTarget(registry, &req, graph)
+	sbom := req.Subprojects[0]
+	sbom.ExecutionTarget = ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo/app.cdx.json"}
+	req.ExecutionTarget = ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"}
+	req.Subprojects = []Subproject{lockfile, sbom}
+	if shape := describeTarget(req); !shape.sourceTree {
+		t.Fatalf("a directory with lockfiles and an SBOM must stay a source tree, got %+v", shape)
+	}
+	req.Subprojects = []Subproject{sbom}
+	if shape := describeTarget(req); shape.sourceTree || shape.description != "an SBOM document" {
+		t.Fatalf("a target planned only as SBOM documents is not a source tree, got %+v", shape)
+	}
+}

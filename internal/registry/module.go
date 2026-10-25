@@ -3,6 +3,7 @@ package registry
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"go.uber.org/zap"
@@ -19,6 +20,40 @@ type embeddedHostContext struct {
 	registry *Registry
 	kind     plugin.PluginKind
 	name     string
+	scope    *plugin.ComponentScope
+}
+
+// OnCleanup registers fn on the component's lifetime, which ends when the
+// registry is closed.
+func (c *embeddedHostContext) OnCleanup(fn func() error) {
+	c.scope.OnCleanup(fn)
+}
+
+// Close ends the lifetime of every embedded component the registry
+// constructed, newest first, running each one's cleanups at most once. Every
+// scope is closed even when an earlier one fails; the failures are joined,
+// each naming its component. Safe to call more than once.
+func (r *Registry) Close() error {
+	if r == nil {
+		return nil
+	}
+	var errs []error
+	for i := len(r.scopes) - 1; i >= 0; i-- {
+		if err := r.scopes[i].Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
+
+// newEmbeddedHost starts a component lifetime under parent and returns the
+// host context that carries it. The scope is recorded before the constructor
+// runs, so a constructor that registers a cleanup and then fails is still
+// cleaned up when the registry closes.
+func (r *Registry) newEmbeddedHost(parent context.Context, kind plugin.PluginKind, name string) *embeddedHostContext {
+	scope := plugin.NewComponentScope(parent, string(kind)+" "+name)
+	r.scopes = append(r.scopes, scope)
+	return &embeddedHostContext{registry: r, kind: kind, name: name, scope: scope}
 }
 
 func (c *embeddedHostContext) Logger() *zap.Logger {
@@ -74,32 +109,35 @@ func (r *Registry) RegisterModule(m plugin.Module, opts ComponentOptions) error 
 	if err := plugin.ValidateModule(m); err != nil {
 		return fmt.Errorf("register module: %w", err)
 	}
-	ctx := context.Background()
+	ctx := r.lifetime
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	switch m.Kind {
 	case plugin.PluginKindDetector:
-		host := &embeddedHostContext{registry: r, kind: m.Kind, name: m.Detector.Descriptor.Name}
-		detector, err := m.Detector.New(ctx, host)
+		host := r.newEmbeddedHost(ctx, m.Kind, m.Detector.Descriptor.Name)
+		detector, err := m.Detector.New(host.scope.Context(), host)
 		if err != nil {
 			return fmt.Errorf("construct detector %q: %w", m.Detector.Descriptor.Name, err)
 		}
 		r.RegisterDetectorWithOptions(detector, opts)
 	case plugin.PluginKindMatcher:
-		host := &embeddedHostContext{registry: r, kind: m.Kind, name: m.Matcher.Descriptor.Name}
-		matcher, err := m.Matcher.New(ctx, host)
+		host := r.newEmbeddedHost(ctx, m.Kind, m.Matcher.Descriptor.Name)
+		matcher, err := m.Matcher.New(host.scope.Context(), host)
 		if err != nil {
 			return fmt.Errorf("construct matcher %q: %w", m.Matcher.Descriptor.Name, err)
 		}
 		r.RegisterMatcherWithOptions(matcher, opts)
 	case plugin.PluginKindAuditor:
-		host := &embeddedHostContext{registry: r, kind: m.Kind, name: m.Auditor.Descriptor.Name}
-		auditor, err := m.Auditor.New(ctx, host)
+		host := r.newEmbeddedHost(ctx, m.Kind, m.Auditor.Descriptor.Name)
+		auditor, err := m.Auditor.New(host.scope.Context(), host)
 		if err != nil {
 			return fmt.Errorf("construct auditor %q: %w", m.Auditor.Descriptor.Name, err)
 		}
 		r.RegisterAuditorWithOptions(auditor, opts)
 	case plugin.PluginKindAnalyzer:
-		host := &embeddedHostContext{registry: r, kind: m.Kind, name: m.Analyzer.Descriptor.Name}
-		analyzer, err := m.Analyzer.New(ctx, host)
+		host := r.newEmbeddedHost(ctx, m.Kind, m.Analyzer.Descriptor.Name)
+		analyzer, err := m.Analyzer.New(host.scope.Context(), host)
 		if err != nil {
 			return fmt.Errorf("construct analyzer %q: %w", m.Analyzer.Descriptor.Name, err)
 		}

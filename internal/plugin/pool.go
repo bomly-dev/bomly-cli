@@ -93,8 +93,14 @@ func (p *ClientPool) Acquire(ctx context.Context, executable, pluginID string, k
 	return client.Raw(), nil
 }
 
-// Shutdown terminates every pooled subprocess and runs config-file cleanups.
-// The pool remains usable afterwards, but callers are expected to drop it.
+// Shutdown ends every pooled subprocess. Close is go-plugin's Kill, which
+// closes the connection first and gives the plugin a bounded grace period to
+// run its components' cleanups (bomly-sdk ServeModule closes the component
+// scope when serving stops) before it forces the process down; an old plugin
+// simply exits. The subprocesses are shut down concurrently, so the command
+// waits one grace period, not one per plugin. A subprocess that already died
+// is closed once and harmlessly. The pool remains usable afterwards, but
+// callers are expected to drop it.
 func (p *ClientPool) Shutdown() {
 	if p == nil {
 		return
@@ -103,12 +109,16 @@ func (p *ClientPool) Shutdown() {
 	entries := p.entries
 	p.entries = make(map[string]*poolEntry)
 	p.mu.Unlock()
+	var wg sync.WaitGroup
 	for _, entry := range entries {
-		entry.mu.Lock()
-		if entry.client != nil {
-			entry.client.Close()
-			entry.client = nil
-		}
-		entry.mu.Unlock()
+		wg.Go(func() {
+			entry.mu.Lock()
+			defer entry.mu.Unlock()
+			if entry.client != nil {
+				entry.client.Close()
+				entry.client = nil
+			}
+		})
 	}
+	wg.Wait()
 }

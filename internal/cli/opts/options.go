@@ -2,6 +2,7 @@ package opts
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -257,7 +258,11 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 	registryConfigs := RegistryConfigsFromResolved(resolved)
 	registryConfigs.HTTPClientProvider = httpProvider
 	scanRegistry := engine.NewRegistry(registryConfigs, *logger)
-	scanRegistry.Build()
+	scanRegistry.BuildContext(ctx)
+	// The registry's embedded components live as long as the command: their
+	// cleanups join the command cleanup chain ahead of the temp-dir cleanup
+	// they may still depend on, on every path out of here.
+	cleanup = joinCleanups(scanRegistry.Close, cleanup)
 
 	if err := o.registerInstalledPluginDescriptors(ctx, scanRegistry); err != nil {
 		if cleanup != nil {
@@ -578,6 +583,21 @@ func (o *Options) Writer(stdout io.Writer) (io.Writer, func() error, error) {
 }
 
 // Close performs any necessary cleanup for the command options.
+// joinCleanups returns a cleanup that runs first, then rest, and joins
+// their errors: one failing never skips the other. Either may be nil.
+func joinCleanups(first, rest func() error) func() error {
+	return func() error {
+		var errs []error
+		if first != nil {
+			errs = append(errs, first())
+		}
+		if rest != nil {
+			errs = append(errs, rest())
+		}
+		return errors.Join(errs...)
+	}
+}
+
 func (o *Options) Close() error {
 	if o.cleanup == nil {
 		return nil

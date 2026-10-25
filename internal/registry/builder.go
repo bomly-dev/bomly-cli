@@ -127,6 +127,12 @@ type Registry struct {
 	defaultEnabled   map[string]bool
 	componentOrigins map[string]plugin.DetectorOrigin
 	httpProvider     *httpkit.ClientProvider
+	// lifetime is the context embedded components are constructed under:
+	// the owning command's, set by BuildContext. scopes are the lifetimes
+	// RegisterModule started from it, in construction order; Close ends
+	// them.
+	lifetime context.Context
+	scopes   []*plugin.ComponentScope
 }
 
 // ComponentOptions records Bomly-owned registry behavior that plugin authors
@@ -214,8 +220,19 @@ func NewRegistry(configs Configs, logger zap.Logger) *Registry {
 	}
 }
 
-// Build registers detectors, auditors, matchers, and analyzers.
+// Build registers detectors, auditors, matchers, and analyzers, with no
+// command lifetime: for a registry built only to inspect descriptors. A
+// registry whose components run uses BuildContext.
 func (r *Registry) Build() {
+	r.BuildContext(context.Background())
+}
+
+// BuildContext registers detectors, auditors, matchers, and analyzers, and
+// constructs every embedded module component under ctx -- the owning
+// command's context -- so a component's lifetime ends with the command's.
+// The owner calls Close when the command is done.
+func (r *Registry) BuildContext(ctx context.Context) {
+	r.lifetime = ctx
 	r.logger.Debug("Building scan registry")
 	r.registerDetectors()
 	r.registerMatchers()

@@ -3,6 +3,7 @@ package registry
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 
@@ -167,5 +168,81 @@ func TestCompositionAnalyzerEntriesStayInDocsCatalog(t *testing.T) {
 		if _, ok := builtInAnalyzerAliases[entry.Name]; !ok {
 			t.Errorf("composition analyzer %q has no alias catalog entry", entry.Name)
 		}
+	}
+}
+
+// lifecycleModule is a matcher module whose constructor records its context
+// and registers cleanups that append to a shared trace, and optionally fails
+// after registering them.
+func lifecycleModule(name string, trace *[]string, constructed *context.Context, failAfterRegister bool) plugin.Module {
+	return plugin.Module{Kind: plugin.PluginKindMatcher, Matcher: &plugin.MatcherModule{
+		Descriptor: plugin.MatcherDescriptor{Name: name},
+		New: func(ctx context.Context, host plugin.HostContext) (plugin.Matcher, error) {
+			if constructed != nil {
+				*constructed = ctx
+			}
+			host.OnCleanup(func() error { *trace = append(*trace, name+":first"); return nil })
+			host.OnCleanup(func() error { *trace = append(*trace, name+":second"); return nil })
+			if failAfterRegister {
+				return nil, errors.New("config invalid")
+			}
+			return &moduleTestMatcher{name: name}, nil
+		},
+	}}
+}
+
+// TestRegistryComponentLifetimeIsTheCommands holds the embedded half of
+// cli#415: a constructor's context is the command's, cleanups run newest
+// first and at most once when the registry closes -- including those a
+// failed constructor registered before failing -- and a cleanup error names
+// its component without stopping the rest.
+func TestRegistryComponentLifetimeIsTheCommands(t *testing.T) {
+	command, cancel := context.WithCancel(context.Background())
+	registry := NewRegistry(Configs{}, *zap.NewNop())
+	registry.lifetime = command
+
+	var trace []string
+	var constructed context.Context
+	if err := registry.RegisterModule(lifecycleModule("alpha", &trace, &constructed, false), ComponentOptions{}); err != nil {
+		t.Fatalf("RegisterModule(alpha): %v", err)
+	}
+	if err := registry.RegisterModule(lifecycleModule("broken", &trace, nil, true), ComponentOptions{}); err == nil {
+		t.Fatal("RegisterModule(broken) succeeded")
+	}
+	failing := plugin.Module{Kind: plugin.PluginKindMatcher, Matcher: &plugin.MatcherModule{
+		Descriptor: plugin.MatcherDescriptor{Name: "leaky"},
+		New: func(_ context.Context, host plugin.HostContext) (plugin.Matcher, error) {
+			host.OnCleanup(func() error { return errors.New("socket already closed") })
+			return &moduleTestMatcher{name: "leaky"}, nil
+		},
+	}}
+	if err := registry.RegisterModule(failing, ComponentOptions{}); err != nil {
+		t.Fatalf("RegisterModule(leaky): %v", err)
+	}
+
+	if constructed.Err() != nil {
+		t.Fatal("the constructor's context is already done")
+	}
+	cancel()
+	if constructed.Err() == nil {
+		t.Error("cancelling the command did not reach the constructor's context")
+	}
+	if len(trace) != 0 {
+		t.Fatalf("cancellation ran cleanups; only Close may: %v", trace)
+	}
+
+	err := registry.Close()
+	if want := []string{"broken:second", "broken:first", "alpha:second", "alpha:first"}; !slices.Equal(trace, want) {
+		t.Errorf("cleanup order = %v, want %v", trace, want)
+	}
+	if err == nil || !strings.Contains(err.Error(), "matcher leaky: cleanup: socket already closed") {
+		t.Errorf("Close error = %v, want the leaky component's failure by name", err)
+	}
+	again := registry.Close()
+	if len(trace) != 4 {
+		t.Errorf("a second Close ran cleanups again: %v", trace)
+	}
+	if again == nil || again.Error() != err.Error() {
+		t.Errorf("a second Close = %v, want the first Close's %v", again, err)
 	}
 }

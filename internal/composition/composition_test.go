@@ -15,7 +15,8 @@ import (
 // fakeHost is a minimal plugin.HostContext for construction tests.
 type fakeHost struct{}
 
-func (fakeHost) Logger() *zap.Logger { return zap.NewNop() }
+func (fakeHost) Logger() *zap.Logger    { return zap.NewNop() }
+func (fakeHost) OnCleanup(func() error) {}
 func (fakeHost) HTTPClient() *httpkit.ClientProvider {
 	provider, _ := httpkit.NewClientProvider(httpkit.ClientConfig{})
 	return provider

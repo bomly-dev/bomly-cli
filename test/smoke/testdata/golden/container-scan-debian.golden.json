@@ -10906,7 +10906,7 @@
           "depends_on": [
             "pkg:deb/debian/debconf@1.5.82?arch=all\u0026distro=debian-12.15"
           ],
-          "id": "pkg:deb/debian/tzdata@2026c-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
+          "id": "pkg:deb/debian/tzdata@2026e-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
           "licenses": [
             {
               "type": "declared",
@@ -10956,9 +10956,9 @@
             }
           ],
           "name": "debian:tzdata",
-          "package_ref": "pkg:deb/debian/tzdata@2026c-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
-          "purl": "pkg:deb/debian/tzdata@2026c-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
-          "version": "2026c-0+deb12u1"
+          "package_ref": "pkg:deb/debian/tzdata@2026e-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
+          "purl": "pkg:deb/debian/tzdata@2026e-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
+          "version": "2026e-0+deb12u1"
         }
       ],
       "detector": "syft-detector",
@@ -16631,10 +16631,10 @@
     },
     {
       "cpes": [
-        "cpe:2.3:a:tzdata:tzdata:2026c-0\\+deb12u1:*:*:*:*:*:*:*"
+        "cpe:2.3:a:tzdata:tzdata:2026e-0\\+deb12u1:*:*:*:*:*:*:*"
       ],
       "ecosystem": "dpkg",
-      "id": "pkg:deb/debian/tzdata@2026c-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
+      "id": "pkg:deb/debian/tzdata@2026e-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
       "licenses": [
         {
           "type": "declared",
@@ -16644,9 +16644,9 @@
       "name": "tzdata",
       "org": "debian",
       "package_manager": "dpkg",
-      "purl": "pkg:deb/debian/tzdata@2026c-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
+      "purl": "pkg:deb/debian/tzdata@2026e-0%2Bdeb12u1?arch=all\u0026distro=debian-12.15",
       "type": "deb",
-      "version": "2026c-0+deb12u1",
+      "version": "2026e-0+deb12u1",
       "vulnerabilities": []
     },
     {

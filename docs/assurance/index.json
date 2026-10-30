@@ -1,8 +1,17 @@
 {
   "schema_version": "bomly.assurance-index/v1",
-  "latest": "v0.30.0",
-  "generated_at": "2026-10-25T23:44:48Z",
+  "latest": "v0.30.1",
+  "generated_at": "2026-10-30T06:09:37Z",
   "releases": [
+    {
+      "tag": "v0.30.1",
+      "version": "0.30.1",
+      "published_at": "2026-10-30T06:07:53Z",
+      "generated_at": "2026-10-30T06:09:37Z",
+      "verdict": "pass",
+      "gates_failed": 0,
+      "path": "reports/v0.30.1.json"
+    },
     {
       "tag": "v0.30.0",
       "version": "0.30.0",

@@ -8,7 +8,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 )
 
-var version = "0.30.0"
+var version = "0.30.1"
 
 func main() {
 	if err := cli.Execute(version); err != nil {

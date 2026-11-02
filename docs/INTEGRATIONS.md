@@ -26,6 +26,11 @@ Copy-and-paste recipes for GitHub Actions, GitLab CI, Jenkins, Azure DevOps, and
 A ready-made instruction for `CLAUDE.md`, `AGENTS.md`, or `copilot-instructions.md` that makes a coding agent run a dependency diff before it commits lockfile changes.
 → [MCP Server → Example prompts](MCP.md#example-prompts)
 
+### Editors: VS Code and Cursor (Official)
+
+There is no Bomly editor extension, and none is planned. The editor path is MCP plus SARIF: connect the MCP server so the editor's agent can scan, explain, and diff, and open `bomly scan --format sarif` output in a SARIF-aware viewer for inline findings. The pre-commit hook catches lockfile changes before they leave the machine.
+→ [MCP Server](MCP.md) · [Output formats → SARIF](OUTPUT_FORMATS.md#sarif) · [CI Integration → Pre-commit hook](CI_INTEGRATION.md#pre-commit-hook)
+
 ## GitHub code scanning
 
 Bomly writes SARIF 2.1.0, which the GitHub Security tab and other SARIF-aware tools read. Upload it through Guard's `upload-sarif` input or from the CLI.

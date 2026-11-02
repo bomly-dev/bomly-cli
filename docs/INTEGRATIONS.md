@@ -28,7 +28,7 @@ A ready-made instruction for `CLAUDE.md`, `AGENTS.md`, or `copilot-instructions.
 
 ### Editors: VS Code and Cursor (Official)
 
-There is no Bomly editor extension, and none is planned. The editor path is MCP plus SARIF: connect the MCP server so the editor's agent can scan, explain, and diff, and open `bomly scan --format sarif` output in a SARIF-aware viewer for inline findings. The pre-commit hook catches lockfile changes before they leave the machine.
+There is no Bomly editor extension, and none is planned. The editor path is MCP plus SARIF. Connect the MCP server so the editor's agent can scan, explain, and diff. For inline findings, run `bomly scan --enrich --audit --format sarif` and open the file in a SARIF-aware viewer. The pre-commit framework hook runs a scan at the `pre-push` stage, before changes leave the machine.
 → [MCP Server](MCP.md) · [Output formats → SARIF](OUTPUT_FORMATS.md#sarif) · [CI Integration → Pre-commit hook](CI_INTEGRATION.md#pre-commit-hook)
 
 ## GitHub code scanning

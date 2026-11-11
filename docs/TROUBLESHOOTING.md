@@ -76,7 +76,7 @@ The scan exited `0` with no findings. Check that you passed `--enrich` (without 
 
 ## Enrichment is slow on first run
 
-This is expected. The bundled Grype downloads its vulnerability database on first use, and matcher responses are cached under `~/.bomly/cache/`. Later runs read the cache and finish in seconds. In CI, cache that directory between runs, and schedule a nightly run on `main` to keep it warm. See [CI integration](CI_INTEGRATION.md#cache-enrichment-data).
+This is expected. The bundled Grype downloads its vulnerability database on first use into the operating system's cache directory, and matcher responses are cached under `~/.bomly/cache/`. Later runs read the cache and finish in seconds. In CI, cache that directory between runs, and schedule a nightly run on `main` to keep it warm. See [CI integration](CI_INTEGRATION.md#cache-enrichment-data).
 
 ## Enrichment fails with rate-limit or network errors
 

@@ -117,9 +117,10 @@ func newScanCmd() *cobra.Command {
 			}
 			scanManifests := output.ScanManifestsFromConsolidated(consolidated, pipeResult.Registry)
 			// Notices ride the report itself, not just the progress stream, so
-			// -q and non-terminal CI runs still surface degraded resolution and
-			// CI-readiness problems.
-			notices := render.WarningNotices(payload.Warnings)
+			// -q and non-terminal CI runs still surface degraded resolution,
+			// CI-readiness problems, and a matcher that returned no data (a
+			// missing vulnerability database reads as a clean scan otherwise).
+			notices := append(render.WarningNotices(payload.Warnings), pipelineWarningNotices(pipeResult.MatchWarnings)...)
 			textRenderer := func(w io.Writer) error {
 				if _, err := io.WriteString(w, render.Scan(selectedGraph, pipeResult.Registry, findings, pipeResult.MatcherStats, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Analyze, commandCtx.ResolvedConfig.FailOn, scanManifests, notices)); err != nil {
 					return fmt.Errorf("write scan text output: %w", err)

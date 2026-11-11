@@ -34,11 +34,31 @@ For an air-gapped or restricted pipeline:
 1. Do not pass `--enrich`, `--url`, `--image`, or `--install-first`. Scan a local checkout.
 2. Commit lockfiles, so the lockfile detectors resolve the graph and no build tool runs. In CI, pin `--detectors` to the lockfile detectors, so an unexpected fallback to a build-tool detector fails the job instead of running the tool. See [CI-readiness warnings](CI_READINESS.md).
 3. If you do rely on a build-tool detector, that tool's own offline settings (Go module proxy settings, Maven offline mode, a local registry mirror) decide whether it downloads anything.
-4. Enrichment responses are cached under `~/.bomly/cache/` with a lifetime per matcher, so a previously enriched environment keeps working through an outage. Offline, an expired entry is a miss, not stale data. See [Matchers](MATCHERS.md#cache).
+4. Enrichment responses are cached under `~/.bomly/cache/` with a lifetime per matcher. Within that lifetime, a repeated scan of the same packages reads the cache. Offline, an expired entry is a miss, not stale data, and a failed lookup is a warning, not a finding. See [Matchers](MATCHERS.md#cache).
+
+### Carry the Grype database to an offline host
+
+Grype's vulnerability database is one bulk download, so it is the only enrichment data you can carry to a host with no network. The OSV, KEV, license, and Scorecard caches hold answers for packages already scanned, and only until their lifetime ends, so they do not replace a database.
+
+On a connected host, run one enriched scan to download the database:
+
+```bash
+bomly scan --enrich --matchers grype
+```
+
+Copy the database directory to the offline host, keeping the path. The full `bomly` binary stores it under the operating system's cache directory: `~/.cache/grype/db` on Linux (or under `XDG_CACHE_HOME`) and `~/Library/Caches/grype/db` on macOS. The lite binary uses the external `grype` command, which imports a database with `grype db import`.
+
+On the offline host, turn the update check off and run Grype alone, with the detectors pinned to lockfile detectors:
+
+```bash
+BOMLY_GRYPE_DB_AUTO_UPDATE=false bomly scan --enrich --matchers grype --detectors npm,go-detector --audit --fail-on high
+```
+
+With the check off, the scan still warns once the database is older than `matchers.grype.db_max_age` (five days by default). Repeat the download on the connected host and copy the directory again to refresh it. The [Grype matcher](matchers/grype.md) page lists the settings.
 
 ## Proxies, custom endpoints, and CAs
 
-Bomly's built-in HTTP clients honor the configured proxy, no-proxy rules, and extra CA certificates, and accept custom OSV and Scorecard endpoints, including private addresses. These are trusted settings: set them in the user config, in a file you select with `--config` or `BOMLY_CONFIG`, or in environment variables. A config file inside a repository is never loaded on its own. Redirects follow Go's standard rules, and Bomly does not block private addresses, so self-hosted mirrors work. [Security and trust boundaries](SECURITY.md#network-trust) explains the trade-offs of that choice, and the [Config reference](CONFIG_REFERENCE.md) lists the keys.
+Bomly's built-in HTTP clients honor the configured proxy, no-proxy rules, and extra CA certificates, and accept custom OSV and Scorecard endpoints, including private addresses. The Grype database download is the exception: the bundled Grype reads the standard `HTTPS_PROXY`, `HTTP_PROXY`, and `NO_PROXY` variables and the system certificate store, not Bomly's settings. These are trusted settings: set them in the user config, in a file you select with `--config` or `BOMLY_CONFIG`, or in environment variables. A config file inside a repository is never loaded on its own. Redirects follow Go's standard rules, and Bomly does not block private addresses, so self-hosted mirrors work. [Security and trust boundaries](SECURITY.md#network-trust) explains the trade-offs of that choice, and the [Config reference](CONFIG_REFERENCE.md) lists the keys.
 
 ## See also
 

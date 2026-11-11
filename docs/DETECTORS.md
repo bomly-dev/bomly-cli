@@ -72,9 +72,9 @@ Matchers only call out when you pass `--enrich`, but a detector that runs a buil
 | Lockfile parser | `npm`, `pnpm`, `yarn` (lockfile strategy), `bundler-detector`, `composer-detector`, `nuget-detector`, `github-actions-detector`, SBOM ingest | None. The detector only reads files. |
 | Lockfile-first hybrid | `cargo-detector`, `poetry-detector`, `uv-detector` | None when the lockfile is present. The build-tool fallback passes `--locked` or `--no-sync` to stay offline. |
 | `pip inspect` | `pip-detector`, `pipenv-detector` | None when a lockfile is present. Otherwise the detector **may download** packages while it fills the isolated environment it inspects. |
-| Build-tool primary | `go-detector`, `maven-detector`, `gradle-detector`, `sbt-native-detector` | **May download** artifacts that are not in the local cache. |
+| Build-tool primary | `go-detector`, `maven-detector`, `gradle-detector`, `sbt-native-detector`, `pub-native-detector`, `swiftpm-native-detector` | **May download** artifacts that are not in the local cache. |
 
-The build-tool detectors run commands you would already run locally: `go list`, `mvn dependency:tree`, `gradle dependencies`, and `sbt dependencyTree`. Whether those commands use the network depends on the tool and on your local cache, not on Bomly. To keep these scans offline, warm the local cache first (for example with `go mod download` or `mvn dependency:go-offline`) or commit a lockfile when the ecosystem supports one.
+The build-tool detectors run commands you would already run locally: `go list`, `mvn dependency:tree`, `gradle dependencies`, `sbt dependencyTree`, `dart pub deps`, and `swift package show-dependencies`. Whether those commands use the network depends on the tool and on your local cache, not on Bomly. To keep these scans offline, warm the local cache first (for example with `go mod download` or `mvn dependency:go-offline`) or commit a lockfile when the ecosystem supports one.
 
 Each page under [`detectors/`](detectors/) documents the exact command that detector runs and whether it uses the network.
 

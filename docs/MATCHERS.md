@@ -61,7 +61,7 @@ Every matcher caches its responses on disk, so repeated scans are fast and survi
 | --- | --- |
 | Cache root (Unix/macOS) | `$HOME/.bomly/cache/` |
 | Cache root (Windows) | `%USERPROFILE%\.bomly\cache\` |
-| Fallback when no home dir | `./.bomly-cache/` |
+| No home directory | No cache. Every run queries the services. |
 
 Each matcher uses its own subdirectory and time to live (TTL):
 
@@ -69,8 +69,11 @@ Each matcher uses its own subdirectory and time to live (TTL):
 | --- | --- | --- |
 | OSV (queries) | `osv/` | 24h |
 | OSV (vulnerability details) | `osv-vulns/` | 7d |
-| CISA KEV | `kev/` | 6h |
+| CISA KEV | `kev/` | 24h |
 | deps.dev | `licenses/depsdev/` | 24h |
+| Scorecard | `scorecard/` | 24h |
+
+The bundled Grype keeps its vulnerability database outside this cache, in the operating system's cache directory. See [Grype](matchers/grype.md#network).
 
 To clear the cache, delete the directory:
 
@@ -89,7 +92,7 @@ Matchers degrade rather than abort. A failed enrichment never fails the scan:
 - **Cache write error**: the response is still applied, and a warning is logged.
 - **Rate limit or server error**: Bomly retries with backoff inside the matcher, then degrades.
 
-So a scan with `--enrich` exits 0 on a healthy graph even when some lookups failed. A policy gate only sees the data that did arrive, so it cannot tell a clean package from one whose lookup failed. Run with `-v` to see the warning for each failed lookup. To fail CI on the findings enrichment does return, add `--audit --fail-on <severity>`; see [Auditors](AUDITORS.md).
+So a scan with `--enrich` exits 0 on a healthy graph even when some lookups failed. A policy gate only sees the data that did arrive, so it cannot tell a clean package from one whose lookup failed. A matcher that returned no data at all, for example Grype without its database, prints a warning line at the top of the text report. Run with `-v` to see the warning for each failed lookup. To fail CI on the findings enrichment does return, add `--audit --fail-on <severity>`; see [Auditors](AUDITORS.md).
 
 ## See also
 

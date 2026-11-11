@@ -91,7 +91,7 @@ Only the packages the PR touched are audited, so findings elsewhere never fail t
 
 ### Cache enrichment data
 
-Bomly keeps enrichment responses under `~/.bomly/cache` and the bundled Grype vulnerability database under the operating system's cache directory (`~/.cache/grype/db` on Linux). Caching both between runs cuts enrichment time from minutes to seconds:
+Bomly keeps enrichment responses under `~/.bomly/cache` and the bundled Grype vulnerability database under the operating system's cache directory (`~/.cache/grype/db` on Linux, `~/Library/Caches/grype/db` on macOS). Caching both between runs cuts enrichment time from minutes to seconds:
 
 ```yaml
       - name: Cache Bomly enrichment data

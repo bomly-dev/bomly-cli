@@ -15,7 +15,7 @@ These defaults limit what Bomly may do. They do not make every scan offline: a b
 
 ## Network trust
 
-Bomly's built-in HTTP clients honor the configured proxy, no-proxy rules, and extra CA certificates. Redirects follow Go's standard rules, including its redirect limit and the removal of credentials on a cross-host redirect. Errors and logs never include endpoint or proxy credentials.
+Bomly's built-in HTTP clients honor the configured proxy, no-proxy rules, and extra CA certificates. The bundled Grype's database download reads the standard proxy variables and the system certificate store instead. Redirects follow Go's standard rules, including its redirect limit and the removal of credentials on a cross-host redirect. Errors and logs never include endpoint or proxy credentials.
 
 A trusted configuration may point a matcher at a custom endpoint on a public or private network, including plain HTTP, and a standard redirect may move an HTTPS request to HTTP. Bomly does not block private addresses, pin DNS answers, prevent DNS rebinding, or block that downgrade. In practice this means that whoever controls your configuration, or a server it names, controls where enrichment requests go. Keep configuration files under the same review as code.
 

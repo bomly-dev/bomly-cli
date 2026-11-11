@@ -42,6 +42,34 @@ func warningProgressChildren(warnings []engine.PipelineWarning) []progress.Child
 	return children
 }
 
+// pipelineWarningNotices renders stage warnings as report notices, one
+// "source: message" line per distinct warning, so a run without a terminal
+// (CI logs, -q, piped output) still says that a matcher produced no data.
+// The progress stream shows the same warnings only when it can draw.
+func pipelineWarningNotices(warnings []engine.PipelineWarning) []string {
+	notices := make([]string, 0, len(warnings))
+	seen := make(map[string]struct{}, len(warnings))
+	for _, warning := range warnings {
+		message := render.SanitizeUntrusted(strings.ReplaceAll(warning.Message, "\n", " "))
+		if message == "" {
+			continue
+		}
+		notice := message
+		if source := render.SanitizeUntrusted(warning.Source); source != "" {
+			notice = source + ": " + message
+		}
+		if _, ok := seen[notice]; ok {
+			continue
+		}
+		seen[notice] = struct{}{}
+		notices = append(notices, notice)
+	}
+	if len(notices) == 0 {
+		return nil
+	}
+	return notices
+}
+
 // detectorWarningProgressChildren converts detection warnings into ⚠ children
 // using the warning source as Label and the message as Detail.
 func detectorWarningProgressChildren(warnings []plugin.DetectorWarning) []progress.Child {

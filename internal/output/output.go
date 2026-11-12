@@ -24,13 +24,16 @@ const (
 	FormatSARIF Format = "sarif"
 	// FormatSPDX renders an SPDX 2.3 JSON SBOM.
 	FormatSPDX Format = "spdx"
+	// FormatSPDX3 renders an SPDX 3.0.1 JSON-LD SBOM. SPDX 2.3 stays the
+	// "spdx" format; 3.0 is chosen explicitly.
+	FormatSPDX3 Format = "spdx3"
 	// FormatCycloneDX renders a CycloneDX 1.7 JSON SBOM.
 	FormatCycloneDX Format = "cyclonedx"
 )
 
 // IsSBOM reports whether the format is a standard SBOM artifact.
 func (f Format) IsSBOM() bool {
-	return f == FormatSPDX || f == FormatCycloneDX
+	return f == FormatSPDX || f == FormatSPDX3 || f == FormatCycloneDX
 }
 
 // Renderers provides alternative renderers for human-readable formats.
@@ -52,6 +55,8 @@ func ParseFormat(value string) (Format, error) {
 		return FormatSARIF, nil
 	case string(FormatSPDX), "spdx-json":
 		return FormatSPDX, nil
+	case string(FormatSPDX3), "spdx3-json":
+		return FormatSPDX3, nil
 	case string(FormatCycloneDX), "cyclonedx-json":
 		return FormatCycloneDX, nil
 	default:

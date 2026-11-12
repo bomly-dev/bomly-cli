@@ -2,7 +2,7 @@
 
 This page shows how to write, read, convert, and compare Software Bills of Materials (SBOMs) with Bomly. Read it when someone asks you for an SBOM or hands you one. The field-by-field mapping lives in the [SBOM field reference](SBOM_REFERENCE.md).
 
-Bomly writes SPDX 2.3 and CycloneDX 1.7. It reads SPDX 2.3 and CycloneDX 1.4 through 1.7.
+Bomly writes SPDX 2.3, SPDX 3.0 and CycloneDX 1.7. It reads SPDX 2.3, SPDX 3.0 and CycloneDX 1.4 through 1.7. SPDX 2.3 is the default SPDX version, and you ask for SPDX 3.0 by name.
 
 ## What an SBOM is
 
@@ -10,18 +10,18 @@ An SBOM is a structured list of every package in a piece of software, with enoug
 
 ## Which format to pick
 
-| | SPDX 2.3 | CycloneDX 1.7 |
-| --- | --- | --- |
-| Steward | Linux Foundation | OWASP |
-| Main use | Supply chain and license compliance | Component analysis and vulnerability management |
-| Bomly write target | `spdx` | `cyclonedx` |
-| Encoding Bomly writes | JSON | JSON |
-| Vulnerability data | Not in 2.3 | Built in (`vulnerabilities` array) |
-| File hashes | Yes | Yes |
-| Relationships | `DESCRIBES`, `DEPENDS_ON`, and more | `dependencies` graph |
-| Adoption | NTIA reference, ISO/IEC 5962 | OWASP standard, wide scanner support |
+| | SPDX 2.3 | SPDX 3.0 | CycloneDX 1.7 |
+| --- | --- | --- | --- |
+| Steward | Linux Foundation | Linux Foundation | OWASP |
+| Main use | Supply chain and license compliance | Supply chain and license compliance | Component analysis and vulnerability management |
+| Bomly write target | `spdx` | `spdx3` | `cyclonedx` |
+| Encoding Bomly writes | JSON | JSON-LD (JSON for linked data) | JSON |
+| Vulnerability data | Not in 2.3 | Advisory links only | Built in (`vulnerabilities` array) |
+| File hashes | Yes | Yes | Yes |
+| Relationships | `DESCRIBES`, `DEPENDS_ON`, and more | `dependsOn`, `hasDeclaredLicense`, and more | `dependencies` graph |
+| Adoption | NTIA reference, ISO/IEC 5962 | Newer; fewer tools read it | OWASP standard, wide scanner support |
 
-Pick SPDX when a regulator or customer asks for it. Pick CycloneDX when a vulnerability scanner will read the file. Producing both costs nothing extra.
+Pick SPDX when a regulator or customer asks for it. Pick SPDX 3.0 only when the receiver asks for that version, because fewer tools read it. Pick CycloneDX when a vulnerability scanner will read the file. Producing several formats in one scan costs nothing extra.
 
 ## Write an SBOM
 
@@ -36,6 +36,9 @@ bomly scan -o spdx=sbom.spdx.json
 
 # Write both formats in one scan
 bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
+
+# Write SPDX 3.0
+bomly scan -o spdx3=sbom.spdx3.json
 ```
 
 `-o` is repeatable. When every `-o` names a file and you set no `--format`, Bomly writes the files and prints nothing. The full rules are in [Output formats](OUTPUT_FORMATS.md#write-more-than-one-output--o). SBOM formats are available on `scan` only.
@@ -64,7 +67,7 @@ sbom:
   support_end: "2030-12-31"                        # CRA Art. 13(8)
 ```
 
-CycloneDX carries these as `metadata.manufacturer`, external references on the primary component, and a `bomly:support_end_date` property. SPDX 2.3 has no fields for most of them, so Bomly writes an `Organization` creator, the supplier on the primary package, and the contacts in the creation-info comment. When `manufacturer` is set it also becomes the supplier of the primary component in both formats. Bomly never invents supplier or contact data: until the `sbom` section is configured, CRA profile checks will report it missing.
+CycloneDX carries these as `metadata.manufacturer`, external references on the primary component, and a `bomly:support_end_date` property. SPDX 2.3 has no fields for most of them, so Bomly writes an `Organization` creator, the supplier on the primary package, and the contacts in the creation-info comment. SPDX 3.0 carries the same values in its own creator, supplier and comment fields. When `manufacturer` is set it also becomes the supplier of the primary component in every format. Bomly never invents supplier or contact data: until the `sbom` section is configured, CRA profile checks will report it missing.
 
 ## Read an SBOM
 
@@ -74,7 +77,7 @@ Pass an existing SBOM as the scan target. Bomly skips detection and loads the fi
 bomly scan --sbom --path ./vendor.spdx.json
 ```
 
-Reading an SBOM is fast and offline. Use it to audit a vendor's SBOM against your policy, to re-run policy on an SBOM a previous CI step produced, or to compare SBOMs across releases. The format is detected from the content. Most SBOM producers, including Syft, can write one of the supported formats (for example `syft <target> -o spdx-json`).
+Reading an SBOM is fast and offline. Use it to audit a vendor's SBOM against your policy, to re-run policy on an SBOM a previous CI step produced, or to compare SBOMs across releases. The format is detected from the content. An SPDX 3.0 document is recognized by the SPDX context it names in `@context`. Most SBOM producers, including Syft, can write one of the supported formats (for example `syft <target> -o spdx-json`).
 
 Bomly keeps what the source document asserted about each component (supplier, description, homepage, checksums, CPEs, external references) and about itself (identity, name, timestamp, creators), and writes it back out on export. Every value is re-checked on the way in and the way out. Values that cannot be published safely, such as a URL with a credential or a local path, are dropped.
 
@@ -98,6 +101,7 @@ Read one format and write the other:
 ```bash
 bomly scan --sbom --path ./in.spdx.json -o cyclonedx=out.cdx.json
 bomly scan --sbom --path ./in.cdx.json  -o spdx=out.spdx.json
+bomly scan --sbom --path ./in.spdx.json -o spdx3=out.spdx3.json
 ```
 
 There is no separate `convert` command. The scan pipeline is the conversion path, so you can add `--enrich` or `--audit` in the same run. Converting a single document keeps that document's identity, and encoding is deterministic, so converting the same input twice gives the same output. The output is not byte-identical to the input: some fields are not read back, and some have no equivalent in the other format. The [conversion limits table](SBOM_REFERENCE.md#preservation-and-conversion-limits) lists what changes.
@@ -118,7 +122,7 @@ Before you treat a generated file as a release artifact, validate it with the va
 
 ## What Bomly writes
 
-Both formats carry:
+Every format carries:
 
 - the package name, version, and package URL (PURL);
 - the dependency relationships from the detector graph;

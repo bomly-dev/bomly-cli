@@ -4,9 +4,11 @@ package smoke
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"testing"
 )
 
@@ -17,9 +19,11 @@ import (
 // no longer packages, plus the primary component, digests, and licenses -- so
 // a regression there would have reached a user before it reached a test.
 //
-// Both formats are exported from one scan so they cannot drift apart: they
+// Every format is exported from one scan so they cannot drift apart: they
 // describe the same graph, and a component present in one and missing from the
-// other is a defect neither format's own assertions would catch.
+// other is a defect neither format's own assertions would catch. SPDX 3.0 is
+// converted from the same projection SPDX 2.3 writes, so its golden pins what
+// that conversion keeps.
 func TestScanSBOMExportGolden(t *testing.T) {
 	t.Parallel()
 	requireTool(t, "npm")
@@ -27,6 +31,7 @@ func TestScanSBOMExportGolden(t *testing.T) {
 	outputDir := t.TempDir()
 	spdxPath := filepath.Join(outputDir, "out.spdx.json")
 	cdxPath := filepath.Join(outputDir, "out.cdx.json")
+	spdx3Path := filepath.Join(outputDir, "out.spdx3.json")
 
 	_, stderr, code := runBomly(t,
 		// Pinned to the tag, like the sibling workspace case. On "main" this
@@ -36,7 +41,7 @@ func TestScanSBOMExportGolden(t *testing.T) {
 		// root's generic package URL.
 		"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm-workspaces", "--ref", "v1.0.0",
 		"--detectors", "npm", "--format", "json",
-		"-o", "spdx="+spdxPath, "-o", "cyclonedx="+cdxPath,
+		"-o", "spdx="+spdxPath, "-o", "cyclonedx="+cdxPath, "-o", "spdx3="+spdx3Path,
 	)
 	if code != 0 {
 		t.Fatalf("bomly exited %d\nstderr:\n%s", code, stderr)
@@ -48,6 +53,7 @@ func TestScanSBOMExportGolden(t *testing.T) {
 	}{
 		{golden: "sbom-export-spdx", path: spdxPath},
 		{golden: "sbom-export-cyclonedx", path: cdxPath},
+		{golden: "sbom-export-spdx3", path: spdx3Path},
 	} {
 		raw, err := os.ReadFile(export.path)
 		if err != nil {
@@ -93,15 +99,56 @@ func normalizeSBOMDocument(t *testing.T, raw []byte) []byte {
 		}
 	}
 
+	// SPDX 3: the creation info is a node of the @graph.
+	graph, _ := doc["@graph"].([]any)
+	for _, node := range graph {
+		if object, ok := node.(map[string]any); ok && object["type"] == "CreationInfo" {
+			if _, has := object["created"]; has {
+				object["created"] = "<timestamp>"
+			}
+		}
+	}
+
 	normalizeSyntheticIDs(doc)
 	normalizeSBOMStrings(doc)
 	normalizeToolVersions(doc)
+
+	// SPDX 3 orders its graph and element lists by identifier, and the tool
+	// version is part of some identifiers; re-sorting after it is masked
+	// keeps a release bump from reordering the golden.
+	if graph != nil {
+		sortSPDX3Graph(graph)
+	}
 
 	out, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
 		t.Fatalf("normalizeSBOMDocument: marshal: %v", err)
 	}
 	return append(out, '\n')
+}
+
+// sortSPDX3Graph orders an SPDX 3 @graph by element identifier and each
+// collection's element list lexically, as the encoder does.
+func sortSPDX3Graph(graph []any) {
+	key := func(node any) string {
+		object, _ := node.(map[string]any)
+		for _, field := range []string{"spdxId", "@id"} {
+			if id, ok := object[field].(string); ok {
+				return id
+			}
+		}
+		return ""
+	}
+	for _, node := range graph {
+		if object, ok := node.(map[string]any); ok {
+			if elements, ok := object["element"].([]any); ok {
+				sort.SliceStable(elements, func(i, j int) bool {
+					return fmt.Sprint(elements[i]) < fmt.Sprint(elements[j])
+				})
+			}
+		}
+	}
+	sort.SliceStable(graph, func(i, j int) bool { return key(graph[i]) < key(graph[j]) })
 }
 
 // normalizeToolVersions blanks the version of the bomly-cli tool component.

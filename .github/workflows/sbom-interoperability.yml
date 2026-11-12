@@ -143,6 +143,8 @@ jobs:
             sbom-assurance-artifacts/bomly.cdx.json
             sbom-assurance-artifacts/bomly-merged.spdx.json
             sbom-assurance-artifacts/bomly-merged.cdx.json
+            sbom-assurance-artifacts/bomly.spdx3.json
+            sbom-assurance-artifacts/bomly-merged.spdx3.json
             sbom-assurance-artifacts/run-manifest.json
           if-no-files-found: warn
           retention-days: 14

@@ -29,7 +29,7 @@ Some primary detectors execute the ecosystem build tool to recover richer depend
 | `python` | `pip`, `pipenv`, `poetry`, `uv` | `requirements.txt`, `requirements-dev.txt`, `requirements.in`, `requirements.lock`, `*requirements*.txt`, `Pipfile`, `Pipfile.lock`, `poetry.lock`, `pyproject.toml`, `uv.lock` | - | Native Python detectors |
 | `ruby` | `bundler` | `Gemfile.lock`, `Gemfile.next.lock` | - | Native detector |
 | `rust` | `cargo` | `Cargo.lock`, `Cargo.toml` | - | Native detector |
-| `sbom` | `sbom` | `*.syft.json`, `*.bom.*`, `*.bom`, `bom`, `*.sbom.*`, `*.sbom`, `sbom`, `*.cdx.*`, `*.cdx`, `*.spdx.*`, `*.spdx` | - | Native SBOM detector |
+| `sbom` | `sbom` | `*.syft.json`, `*.bom.*`, `*.bom`, `bom`, `*.sbom.*`, `*.sbom`, `sbom`, `*.cdx.*`, `*.cdx`, `*.spdx.*`, `*.spdx`, `*.spdx3.*`, `*.spdx3` | - | Native SBOM detector |
 | `scala` | `sbt` | `build.sbt`, `project/plugins.sbt`, `project/build.properties` | `build.sbt`, `project/plugins.sbt`, `project/build.properties` | Native detector |
 | `swift` | `cocoapods`, `swiftpm` | `Podfile.lock`, `Podfile`, `Package.resolved`, `.package.resolved`, `.swiftpm/xcode/package.xcworkspace/xcshareddata/swiftpm/Package.resolved`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved`, `Package.swift` | `Package.resolved`, `.package.resolved`, `.swiftpm/xcode/package.xcworkspace/xcshareddata/swiftpm/Package.resolved`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved`, `Package.swift` | Native detector |
 

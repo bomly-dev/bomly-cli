@@ -13,6 +13,7 @@ Every command writes one primary output to stdout, chosen with `--format`. `--js
 | `markdown` | A GitHub-flavored Markdown report | Job summaries and PR comments | `scan`, `explain`, `diff` |
 | `sarif` | SARIF 2.1.0, findings only | GitHub code scanning, Azure DevOps, IDE problem markers. Requires `--audit` | `scan`, `diff` |
 | `spdx` | An SPDX 2.3 JSON SBOM | Compliance and supply-chain exchange | `scan` |
+| `spdx3` | An SPDX 3.0 JSON-LD SBOM | Receivers that ask for SPDX 3.0 | `scan` |
 | `cyclonedx` | A CycloneDX 1.7 JSON SBOM | Vulnerability-management tools | `scan` |
 
 ```bash
@@ -145,9 +146,9 @@ bomly scan --enrich --audit --fail-on high --format sarif > bomly.sarif
 
 [CI integration](CI_INTEGRATION.md) shows how to upload SARIF to GitHub code scanning and other tools.
 
-## `spdx` and `cyclonedx`
+## `spdx`, `spdx3` and `cyclonedx`
 
-Both SBOM formats are written from the same graph. [SBOM formats](SBOM.md) explains which to pick, why license data needs `--enrich`, and how to read and convert SBOMs.
+All three SBOM formats are written from the same graph, and one scan gives them one document identity. [SBOM formats](SBOM.md) explains which to pick, why license data needs `--enrich`, and how to read and convert SBOMs.
 
 ## See also
 

@@ -323,6 +323,10 @@ func TestScan(t *testing.T) {
 			name: "scan-sbom-cyclonedx",
 			args: []string{"scan", "--sbom", "--path", sbomFixture("go.cdx.json"), "--format", "json", "--detectors", "sbom"},
 		},
+		{
+			name: "scan-sbom-spdx3",
+			args: []string{"scan", "--sbom", "--path", sbomFixture("go.spdx3.json"), "--format", "json", "--detectors", "sbom"},
+		},
 	}...)
 
 	for _, tc := range cases {

@@ -1,0 +1,445 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "comment": "bomly:type=application",
+      "creationInfo": "_:CreationInfo-1",
+      "description": "Source tree of the scanned project, described from its manifests and lockfiles. A source tree is not a distributed artifact, so no content hash applies to it and no files were analyzed.",
+      "name": "example-javascript-npm-workspaces",
+      "software_packageUrl": "pkg:generic/example-javascript-npm-workspaces@v1.0.0",
+      "software_packageVersion": "v1.0.0",
+      "software_primaryPurpose": "application",
+      "spdxId": "SPDXRef:DocumentRoot-example-javascript-npm-workspaces",
+      "type": "software_Package"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "CC0-1.0",
+      "simplelicensing_licenseText": "NOASSERTION",
+      "spdxId": "SPDXRef:ListedLicense-CC0-1.0",
+      "type": "expandedlicensing_ListedLicense"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "MIT",
+      "simplelicensing_licenseText": "NOASSERTION",
+      "spdxId": "SPDXRef:ListedLicense-MIT",
+      "type": "expandedlicensing_ListedLicense"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "WTFPL",
+      "simplelicensing_licenseText": "NOASSERTION",
+      "spdxId": "SPDXRef:ListedLicense-WTFPL",
+      "type": "expandedlicensing_ListedLicense"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:DocumentRoot-example-javascript-npm-workspaces",
+      "relationshipType": "dependsOn",
+      "spdxId": "SPDXRef:Relationship-DocumentRoot-example-javascript-npm-workspaces-dependsOn",
+      "to": [
+        "SPDXRef:module-apps-web-package.json-pkg-npm-web-1.0.0",
+        "SPDXRef:module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:DocumentRoot-example-javascript-npm-workspaces",
+      "relationshipType": "hasConcludedLicense",
+      "spdxId": "SPDXRef:Relationship-DocumentRoot-example-javascript-npm-workspaces-hasConcludedLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:DocumentRoot-example-javascript-npm-workspaces",
+      "relationshipType": "hasDeclaredLicense",
+      "spdxId": "SPDXRef:Relationship-DocumentRoot-example-javascript-npm-workspaces-hasDeclaredLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:module-apps-web-package.json-pkg-npm-web-1.0.0",
+      "relationshipType": "dependsOn",
+      "spdxId": "SPDXRef:Relationship-module-apps-web-package.json-pkg-npm-web-1.0.0-dependsOn",
+      "to": [
+        "SPDXRef:module-packages-lib-package.json-pkg-npm-lib-1.0.0",
+        "SPDXRef:pkg-npm-left-pad-1.3.0",
+        "SPDXRef:pkg-npm-minimist-1.2.5"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:module-apps-web-package.json-pkg-npm-web-1.0.0",
+      "relationshipType": "hasConcludedLicense",
+      "spdxId": "SPDXRef:Relationship-module-apps-web-package.json-pkg-npm-web-1.0.0-hasConcludedLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:module-apps-web-package.json-pkg-npm-web-1.0.0",
+      "relationshipType": "hasDeclaredLicense",
+      "spdxId": "SPDXRef:Relationship-module-apps-web-package.json-pkg-npm-web-1.0.0-hasDeclaredLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0",
+      "relationshipType": "dependsOn",
+      "spdxId": "SPDXRef:Relationship-module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0-dependsOn",
+      "to": [
+        "SPDXRef:pkg-npm-ms-2.1.3"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0",
+      "relationshipType": "hasConcludedLicense",
+      "spdxId": "SPDXRef:Relationship-module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0-hasConcludedLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0",
+      "relationshipType": "hasDeclaredLicense",
+      "spdxId": "SPDXRef:Relationship-module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0-hasDeclaredLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:module-packages-lib-package.json-pkg-npm-lib-1.0.0",
+      "relationshipType": "dependsOn",
+      "spdxId": "SPDXRef:Relationship-module-packages-lib-package.json-pkg-npm-lib-1.0.0-dependsOn",
+      "to": [
+        "SPDXRef:pkg-npm-lodash-4.17.20",
+        "SPDXRef:pkg-npm-minimist-1.2.5"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:module-packages-lib-package.json-pkg-npm-lib-1.0.0",
+      "relationshipType": "hasConcludedLicense",
+      "spdxId": "SPDXRef:Relationship-module-packages-lib-package.json-pkg-npm-lib-1.0.0-hasConcludedLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:module-packages-lib-package.json-pkg-npm-lib-1.0.0",
+      "relationshipType": "hasDeclaredLicense",
+      "spdxId": "SPDXRef:Relationship-module-packages-lib-package.json-pkg-npm-lib-1.0.0-hasDeclaredLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-npm-left-pad-1.3.0",
+      "relationshipType": "hasConcludedLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-npm-left-pad-1.3.0-hasConcludedLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-npm-left-pad-1.3.0",
+      "relationshipType": "hasDeclaredLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-npm-left-pad-1.3.0-hasDeclaredLicense",
+      "to": [
+        "SPDXRef:ListedLicense-WTFPL"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-npm-lodash-4.17.20",
+      "relationshipType": "hasConcludedLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-npm-lodash-4.17.20-hasConcludedLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-npm-lodash-4.17.20",
+      "relationshipType": "hasDeclaredLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-npm-lodash-4.17.20-hasDeclaredLicense",
+      "to": [
+        "SPDXRef:ListedLicense-MIT"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-npm-minimist-1.2.5",
+      "relationshipType": "hasConcludedLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-npm-minimist-1.2.5-hasConcludedLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-npm-minimist-1.2.5",
+      "relationshipType": "hasDeclaredLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-npm-minimist-1.2.5-hasDeclaredLicense",
+      "to": [
+        "SPDXRef:ListedLicense-MIT"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-npm-ms-2.1.3",
+      "relationshipType": "hasConcludedLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-npm-ms-2.1.3-hasConcludedLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-npm-ms-2.1.3",
+      "relationshipType": "hasDeclaredLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-npm-ms-2.1.3-hasDeclaredLicense",
+      "to": [
+        "SPDXRef:ListedLicense-MIT"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "element": [
+        "SPDXRef:DocumentRoot-example-javascript-npm-workspaces",
+        "SPDXRef:ListedLicense-MIT",
+        "SPDXRef:ListedLicense-WTFPL",
+        "SPDXRef:Relationship-DocumentRoot-example-javascript-npm-workspaces-dependsOn",
+        "SPDXRef:Relationship-DocumentRoot-example-javascript-npm-workspaces-hasConcludedLicense",
+        "SPDXRef:Relationship-DocumentRoot-example-javascript-npm-workspaces-hasDeclaredLicense",
+        "SPDXRef:Relationship-module-apps-web-package.json-pkg-npm-web-1.0.0-dependsOn",
+        "SPDXRef:Relationship-module-apps-web-package.json-pkg-npm-web-1.0.0-hasConcludedLicense",
+        "SPDXRef:Relationship-module-apps-web-package.json-pkg-npm-web-1.0.0-hasDeclaredLicense",
+        "SPDXRef:Relationship-module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0-dependsOn",
+        "SPDXRef:Relationship-module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0-hasConcludedLicense",
+        "SPDXRef:Relationship-module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0-hasDeclaredLicense",
+        "SPDXRef:Relationship-module-packages-lib-package.json-pkg-npm-lib-1.0.0-dependsOn",
+        "SPDXRef:Relationship-module-packages-lib-package.json-pkg-npm-lib-1.0.0-hasConcludedLicense",
+        "SPDXRef:Relationship-module-packages-lib-package.json-pkg-npm-lib-1.0.0-hasDeclaredLicense",
+        "SPDXRef:Relationship-pkg-npm-left-pad-1.3.0-hasConcludedLicense",
+        "SPDXRef:Relationship-pkg-npm-left-pad-1.3.0-hasDeclaredLicense",
+        "SPDXRef:Relationship-pkg-npm-lodash-4.17.20-hasConcludedLicense",
+        "SPDXRef:Relationship-pkg-npm-lodash-4.17.20-hasDeclaredLicense",
+        "SPDXRef:Relationship-pkg-npm-minimist-1.2.5-hasConcludedLicense",
+        "SPDXRef:Relationship-pkg-npm-minimist-1.2.5-hasDeclaredLicense",
+        "SPDXRef:Relationship-pkg-npm-ms-2.1.3-hasConcludedLicense",
+        "SPDXRef:Relationship-pkg-npm-ms-2.1.3-hasDeclaredLicense",
+        "SPDXRef:SoftwareAgent-bomly-cli-\u003cversion\u003e",
+        "SPDXRef:Tool-bomly-cli-\u003cversion\u003e",
+        "SPDXRef:Tool-bomly-detector-npm",
+        "SPDXRef:module-apps-web-package.json-pkg-npm-web-1.0.0",
+        "SPDXRef:module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0",
+        "SPDXRef:module-packages-lib-package.json-pkg-npm-lib-1.0.0",
+        "SPDXRef:pkg-npm-left-pad-1.3.0",
+        "SPDXRef:pkg-npm-lodash-4.17.20",
+        "SPDXRef:pkg-npm-minimist-1.2.5",
+        "SPDXRef:pkg-npm-ms-2.1.3",
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "rootElement": [
+        "SPDXRef:DocumentRoot-example-javascript-npm-workspaces"
+      ],
+      "spdxId": "SPDXRef:SBOM",
+      "type": "software_Sbom"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "bomly-cli-\u003cversion\u003e",
+      "spdxId": "SPDXRef:SoftwareAgent-bomly-cli-\u003cversion\u003e",
+      "type": "SoftwareAgent"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "bomly-cli-\u003cversion\u003e",
+      "spdxId": "SPDXRef:Tool-bomly-cli-\u003cversion\u003e",
+      "type": "Tool"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "bomly-detector:npm",
+      "spdxId": "SPDXRef:Tool-bomly-detector-npm",
+      "type": "Tool"
+    },
+    {
+      "comment": "bomly:type=application",
+      "creationInfo": "_:CreationInfo-1",
+      "name": "web",
+      "software_packageUrl": "pkg:npm/web@1.0.0",
+      "software_packageVersion": "1.0.0",
+      "software_primaryPurpose": "application",
+      "spdxId": "SPDXRef:module-apps-web-package.json-pkg-npm-web-1.0.0",
+      "type": "software_Package"
+    },
+    {
+      "comment": "bomly:type=application",
+      "creationInfo": "_:CreationInfo-1",
+      "name": "example-javascript-npm-workspaces",
+      "software_packageUrl": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
+      "software_packageVersion": "1.0.0",
+      "software_primaryPurpose": "application",
+      "spdxId": "SPDXRef:module-package.json-pkg-npm-example-javascript-npm-workspaces-1.0.0",
+      "type": "software_Package"
+    },
+    {
+      "comment": "bomly:type=application",
+      "creationInfo": "_:CreationInfo-1",
+      "name": "lib",
+      "software_packageUrl": "pkg:npm/lib@1.0.0",
+      "software_packageVersion": "1.0.0",
+      "software_primaryPurpose": "application",
+      "spdxId": "SPDXRef:module-packages-lib-package.json-pkg-npm-lib-1.0.0",
+      "type": "software_Package"
+    },
+    {
+      "comment": "bomly:scope=development",
+      "creationInfo": "_:CreationInfo-1",
+      "name": "left-pad",
+      "software_downloadLocation": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz",
+      "software_packageUrl": "pkg:npm/left-pad@1.3.0",
+      "software_packageVersion": "1.3.0",
+      "software_primaryPurpose": "library",
+      "spdxId": "SPDXRef:pkg-npm-left-pad-1.3.0",
+      "type": "software_Package",
+      "verifiedUsing": [
+        {
+          "algorithm": "sha512",
+          "hashValue": "5c8e4c3f354d0298c0ca1433a615fc06498ab0a5310f82ddc8adb88997901a29c137dc93413ddb165081cbf695c761eb35ca901ac768b7c821ae3cabbcc0a810",
+          "type": "Hash"
+        }
+      ]
+    },
+    {
+      "comment": "bomly:scope=runtime",
+      "creationInfo": "_:CreationInfo-1",
+      "name": "lodash",
+      "software_downloadLocation": "https://registry.npmjs.org/lodash/-/lodash-4.17.20.tgz",
+      "software_packageUrl": "pkg:npm/lodash@4.17.20",
+      "software_packageVersion": "4.17.20",
+      "software_primaryPurpose": "library",
+      "spdxId": "SPDXRef:pkg-npm-lodash-4.17.20",
+      "type": "software_Package",
+      "verifiedUsing": [
+        {
+          "algorithm": "sha512",
+          "hashValue": "3e585d15c8a594e20d7de57b362ea81754c011acb2641a19f1b72c8531ea39825896bab344ae616a0a5a824cb9a381df0b3cddd534645cf305aba70a93dac698",
+          "type": "Hash"
+        }
+      ]
+    },
+    {
+      "comment": "bomly:scope=runtime",
+      "creationInfo": "_:CreationInfo-1",
+      "name": "minimist",
+      "software_downloadLocation": "https://registry.npmjs.org/minimist/-/minimist-1.2.5.tgz",
+      "software_packageUrl": "pkg:npm/minimist@1.2.5",
+      "software_packageVersion": "1.2.5",
+      "software_primaryPurpose": "library",
+      "spdxId": "SPDXRef:pkg-npm-minimist-1.2.5",
+      "type": "software_Package",
+      "verifiedUsing": [
+        {
+          "algorithm": "sha512",
+          "hashValue": "14cf6735462b4410042d9413df179943b7e630e060ea758d989293720b0979a2ecb4ffd43835691acaf93a15e185783a7feaad27cba267e3d4c640d67202172f",
+          "type": "Hash"
+        }
+      ]
+    },
+    {
+      "comment": "bomly:scope=runtime",
+      "creationInfo": "_:CreationInfo-1",
+      "name": "ms",
+      "software_downloadLocation": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
+      "software_packageUrl": "pkg:npm/ms@2.1.3",
+      "software_packageVersion": "2.1.3",
+      "software_primaryPurpose": "library",
+      "spdxId": "SPDXRef:pkg-npm-ms-2.1.3",
+      "type": "software_Package",
+      "verifiedUsing": [
+        {
+          "algorithm": "sha512",
+          "hashValue": "e85973b9b4cb646dc9d9afcd542025784863ceae68c601f268253dc985ef70bb2fa1568726afece715c8ebf5d73fab73ed1f7100eb479d23bfb57b45dd645394",
+          "type": "Hash"
+        }
+      ]
+    },
+    {
+      "@id": "_:CreationInfo-1",
+      "comment": "bomly:lifecycle=pre-build;document_version=1",
+      "created": "\u003ctimestamp\u003e",
+      "createdBy": [
+        "SPDXRef:SoftwareAgent-bomly-cli-\u003cversion\u003e"
+      ],
+      "createdUsing": [
+        "SPDXRef:Tool-bomly-cli-\u003cversion\u003e",
+        "SPDXRef:Tool-bomly-detector-npm"
+      ],
+      "specVersion": "3.0.1",
+      "type": "CreationInfo"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "dataLicense": "SPDXRef:ListedLicense-CC0-1.0",
+      "name": "example-javascript-npm-workspaces",
+      "namespaceMap": [
+        {
+          "namespace": "https://bomly.dev/spdx/\u003cuuid\u003e#",
+          "prefix": "SPDXRef",
+          "type": "NamespaceMap"
+        }
+      ],
+      "profileConformance": [
+        "core",
+        "software"
+      ],
+      "rootElement": [
+        "SPDXRef:SBOM"
+      ],
+      "spdxId": "https://bomly.dev/spdx/\u003cuuid\u003e#",
+      "type": "SpdxDocument"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "spdxId": "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense",
+      "type": "expandedlicensing_IndividualLicensingInfo"
+    }
+  ]
+}

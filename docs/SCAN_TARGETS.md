@@ -62,7 +62,7 @@ bomly scan --sbom --path ./vendor.spdx.json
 bomly scan --sbom --path ./build/sbom.cdx.json
 ```
 
-SPDX 2.3 JSON and CycloneDX 1.4 to 1.7 JSON are detected automatically. Any other format is rejected. Use this when:
+SPDX 2.3 JSON, SPDX 3.0 JSON-LD, and CycloneDX 1.4 to 1.7 JSON are detected automatically. Any other format is rejected. Use this when:
 
 - a previous CI step already produced an SBOM and you want to audit it;
 - a vendor sent you an SBOM and you want to check it against your policy;

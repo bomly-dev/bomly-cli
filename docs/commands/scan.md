@@ -62,7 +62,7 @@ bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json    # write two SBOM
 bomly scan --interactive                                        # open the terminal UI instead of printing
 ```
 
-`--format` accepts `text`, `json`, `markdown`, `sarif`, `spdx`, and `cyclonedx`. When every `-o` names a file and you set no `--format`, the run writes the files and prints nothing. See [Output formats](../OUTPUT_FORMATS.md), [SBOM formats](../SBOM.md), and the [interactive TUI](../TUI.md).
+`--format` accepts `text`, `json`, `markdown`, `sarif`, `spdx`, `spdx3`, and `cyclonedx`. When every `-o` names a file and you set no `--format`, the run writes the files and prints nothing. See [Output formats](../OUTPUT_FORMATS.md), [SBOM formats](../SBOM.md), and the [interactive TUI](../TUI.md).
 
 ## Narrow the run
 

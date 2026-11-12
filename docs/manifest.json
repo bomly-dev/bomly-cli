@@ -72,7 +72,7 @@
     {
       "slug": "sbom",
       "title": "SBOM formats",
-      "description": "Write, read, convert, and compare SPDX 2.3 and CycloneDX 1.7 SBOMs.",
+      "description": "Write, read, convert, and compare SPDX 2.3, SPDX 3.0, and CycloneDX 1.7 SBOMs.",
       "group": "start"
     },
     {

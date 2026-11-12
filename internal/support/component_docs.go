@@ -204,7 +204,7 @@ To also discover independent projects in nested directories, pass `+"`--recursiv
 
 ## SBOM ingest
 
-Bomly treats SPDX 2.3 and CycloneDX SBOMs as first-class input. Use `+"`--sbom`"+` to ingest an SBOM file directly without running ecosystem detectors:
+Bomly treats SPDX 2.3, SPDX 3.0, and CycloneDX SBOMs as first-class input. Use `+"`--sbom`"+` to ingest an SBOM file directly without running ecosystem detectors:
 
 `+"```bash"+`
 bomly scan --sbom --path ./existing.spdx.json

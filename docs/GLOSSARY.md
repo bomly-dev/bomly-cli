@@ -62,7 +62,7 @@ The terms Bomly uses, one short definition each, with a link to the page that co
 
 **SARIF** — The Static Analysis Results Interchange Format, the JSON format GitHub code scanning and similar tools read. See [Output formats](OUTPUT_FORMATS.md#sarif).
 
-**SBOM** — A Software Bill of Materials. Bomly writes SPDX 2.3 and CycloneDX 1.7 and reads SPDX 2.3 and CycloneDX 1.4 to 1.7. See [SBOM formats](SBOM.md).
+**SBOM** — A Software Bill of Materials. Bomly writes SPDX 2.3, SPDX 3.0, and CycloneDX 1.7, and reads SPDX 2.3, SPDX 3.0, and CycloneDX 1.4 to 1.7. See [SBOM formats](SBOM.md).
 
 **Scope** — Whether a dependency is `runtime` (needed in production) or `development` (build or test only). `unknown` when the detector cannot tell.
 

@@ -54,6 +54,8 @@ func TestParseFormatAcceptsSharedFormatsAndAliases(t *testing.T) {
 		{value: "sarif", want: FormatSARIF},
 		{value: "spdx", want: FormatSPDX},
 		{value: "spdx-json", want: FormatSPDX},
+		{value: "spdx3", want: FormatSPDX3},
+		{value: "SPDX3-JSON", want: FormatSPDX3},
 		{value: "cyclonedx", want: FormatCycloneDX},
 		{value: "cyclonedx-json", want: FormatCycloneDX},
 		{value: " JSON ", want: FormatJSON},

@@ -82,7 +82,7 @@ By default enrichment uses Grype for vulnerabilities and deps.dev for licenses. 
 
 ## Generate an SBOM
 
-Use `-o` to write an SPDX 2.3 or CycloneDX 1.7 Software Bill of Materials (SBOM):
+Use `-o` to write an SPDX 2.3, SPDX 3.0, or CycloneDX 1.7 Software Bill of Materials (SBOM):
 
 ```bash
 bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json

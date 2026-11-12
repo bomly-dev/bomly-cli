@@ -134,6 +134,15 @@ type sbomAssuranceManifest struct {
 	Failure string `json:"failure,omitempty"`
 }
 
+// joinWithAnd joins names as an English list: "a", "a and b", "a, b and c".
+// The summary is rendered on the public assurance page.
+func joinWithAnd(names []string) string {
+	if len(names) < 2 {
+		return strings.Join(names, "")
+	}
+	return strings.Join(names[:len(names)-1], ", ") + " and " + names[len(names)-1]
+}
+
 // ConvertSBOMAssurance turns an SBOM interoperability run manifest into a
 // check result.
 func ConvertSBOMAssurance(data []byte, base CheckResult) (CheckResult, error) {
@@ -203,7 +212,7 @@ func ConvertSBOMAssurance(data []byte, base CheckResult) (CheckResult, error) {
 			names = append(names, validator.Name+" "+validator.Version)
 		}
 		result.Summary = fmt.Sprintf("%d generated SBOM documents passed %s",
-			len(manifest.Artifacts), strings.Join(names, " and "))
+			len(manifest.Artifacts), joinWithAnd(names))
 		if len(manifest.Checks) > 0 {
 			result.Summary += fmt.Sprintf(", and %d document check(s) held", len(manifest.Checks))
 		}

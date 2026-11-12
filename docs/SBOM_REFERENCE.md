@@ -105,6 +105,35 @@ Reachability results and other Bomly-specific data go to JSON output, not to the
 
 Bomly refuses a document whose JSON has more than one reading (see [What Bomly refuses to read](SBOM.md#what-bomly-refuses-to-read)). Checking for a repeated member name means remembering the names open in every object currently being read. Bomly refuses a document that would hold more than 100,000 open names or more than 16 MB of them. Neither format comes close: components live in an array, so only a handful of small objects are open at once, however many components the document lists.
 
+## How SPDX 3.0 is written and read
+
+Bomly writes an SPDX 3.0 document by first building the SPDX 2.3 document for the same scan. It then converts that document with the SPDX project's own Go library. Both SPDX versions therefore say the same thing about every package. The output is SPDX 3.0.1 in its JSON-LD serialization, and the same scan always produces the same bytes.
+
+Some values have a different home in SPDX 3.0:
+
+| Data | SPDX 2.3 | SPDX 3.0 |
+| --- | --- | --- |
+| Document identity | `documentNamespace` | The `SpdxDocument` element's `spdxId`: the same namespace followed by `#` |
+| Element identifiers | `SPDXRef-<name>` | The same names under the document namespace, written as `SPDXRef:<name>` through the document's `namespaceMap` |
+| Licenses | `licenseDeclared` and `licenseConcluded` expressions | `hasDeclaredLicense` and `hasConcludedLicense` relationships to license elements. Each listed license appears once per document |
+| Creators | `Tool:` and `Organization:` creator lines | The producing tool is the `createdBy` agent, or the configured manufacturer when set. Every credited tool is listed in `createdUsing` |
+| Unknown download location | `NOASSERTION` | Omitted. SPDX 3.0 has no such value for a location |
+| An origin beyond the first | A `bomly-package-origin` reference | An `altDownloadLocation` external reference |
+| A reference type SPDX 3.0 does not define | Written as stated | An external reference of type `other`. The comment keeps the SPDX 2.3 category and type, for example `bomly:category=OTHER;type=website` |
+| Sources of a merged document | `externalDocumentRefs` with a SHA-1 checksum | `import` entries with the same location and SHA-1 hash |
+| Vulnerabilities | An advisory reference | A `securityAdvisory` external reference. The SPDX 3.0 security profile is not written |
+
+An SPDX 3.0 document is read into the same model as an SPDX 2.3 document. A document Bomly wrote reads back to the same packages, licenses, scopes, hashes, and edges as its SPDX 2.3 counterpart. From any producer, Bomly reads:
+
+- packages, including AI and dataset packages;
+- `dependsOn`, `hasOptionalDependency`, and `hasProvidedDependency` relationships, with or without a lifecycle scope;
+- the document's subject, from its root elements or a `describes` relationship;
+- declared and concluded licenses, as license elements or as a single license expression;
+- hashes, the package URL (from `packageUrl` or a `packageUrl` external identifier), CPEs, supplier, and originator;
+- the document's name, creators, tools, creation time, and imports.
+
+Files, snippets, annotations, and the elements of the security, AI, and build profiles are not read. A license from the SPDX License List may be named by its IRI (`https://spdx.org/licenses/MIT`) without being defined. Any other element must be defined in the document. A document whose `@context` is a list is rejected.
+
 ## Preservation and conversion limits
 
 Bomly preserves component identity (including PURL), dependency edges, roots, scope, package type, licenses, digests, CPEs, and the enrichment fields above whenever the destination format can hold them. An ingested document also keeps supplier, originator, description, homepage, copyright, its own external references, and its own assertions. Encoding is deterministic when the scan timestamp and document identifiers are fixed.

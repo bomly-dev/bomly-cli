@@ -44,8 +44,8 @@ type Resolved struct {
 	WarnOnly              bool     `doc:"Downgrade failing findings to warnings" env:"BOMLY_WARN_ONLY"`
 	Baseline              string   `doc:"Finding baseline selection: auto, none, or a file path" env:"BOMLY_BASELINE" default:"auto"`
 	Analyzers             string   `doc:"Reachability analyzer selectors; supports +name and -name modifiers" env:"BOMLY_ANALYZERS"`
-	Format                string   `doc:"Primary output format: text, json, markdown, sarif, spdx, or cyclonedx. SBOM formats are scan-only" env:"BOMLY_FORMAT"`
-	Outputs               []string `doc:"Additional output target(s) as <format> or <format>=<path>. Repeatable; supports text, json, markdown, sarif, spdx, and cyclonedx" env:"BOMLY_OUTPUT"`
+	Format                string   `doc:"Primary output format: text, json, markdown, sarif, spdx, spdx3, or cyclonedx. SBOM formats are scan-only" env:"BOMLY_FORMAT"`
+	Outputs               []string `doc:"Additional output target(s) as <format> or <format>=<path>. Repeatable; supports text, json, markdown, sarif, spdx, spdx3, and cyclonedx" env:"BOMLY_OUTPUT"`
 	Interactive           bool     `doc:"Enable interactive TUI mode" env:"BOMLY_INTERACTIVE"`
 	Ecosystems            string   `doc:"Ecosystem selectors; supports +name and -name modifiers" env:"BOMLY_ECOSYSTEMS"`
 	Detectors             string   `doc:"Detector selectors; supports +name and -name modifiers" env:"BOMLY_DETECTORS"`

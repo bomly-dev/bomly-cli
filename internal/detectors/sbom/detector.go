@@ -23,7 +23,7 @@ type Detector struct {
 	Logger *zap.Logger
 }
 
-var evidencePatterns = []string{"*.syft.json", "*.bom.*", "*.bom", "bom", "*.sbom.*", "*.sbom", "sbom", "*.cdx.*", "*.cdx", "*.spdx.*", "*.spdx"}
+var evidencePatterns = []string{"*.syft.json", "*.bom.*", "*.bom", "bom", "*.sbom.*", "*.sbom", "sbom", "*.cdx.*", "*.cdx", "*.spdx.*", "*.spdx", "*.spdx3.*", "*.spdx3"}
 
 // PackageManagerSupport returns SBOM package-manager discovery metadata.
 func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {

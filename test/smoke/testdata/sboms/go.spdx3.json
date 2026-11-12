@@ -1,0 +1,200 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "CC0-1.0",
+      "simplelicensing_licenseText": "NOASSERTION",
+      "spdxId": "SPDXRef:ListedLicense-CC0-1.0",
+      "type": "expandedlicensing_ListedLicense"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-golang-example.com-app-1.0.0",
+      "relationshipType": "dependsOn",
+      "spdxId": "SPDXRef:Relationship-pkg-golang-example.com-app-1.0.0-dependsOn",
+      "to": [
+        "SPDXRef:pkg-golang-github.com-google-uuid-1.6.0",
+        "SPDXRef:pkg-golang-github.com-pkg-errors-0.9.1"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-golang-example.com-app-1.0.0",
+      "relationshipType": "hasConcludedLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-golang-example.com-app-1.0.0-hasConcludedLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-golang-example.com-app-1.0.0",
+      "relationshipType": "hasDeclaredLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-golang-example.com-app-1.0.0-hasDeclaredLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-golang-github.com-google-uuid-1.6.0",
+      "relationshipType": "hasConcludedLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-golang-github.com-google-uuid-1.6.0-hasConcludedLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-golang-github.com-google-uuid-1.6.0",
+      "relationshipType": "hasDeclaredLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-golang-github.com-google-uuid-1.6.0-hasDeclaredLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-golang-github.com-pkg-errors-0.9.1",
+      "relationshipType": "hasConcludedLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-golang-github.com-pkg-errors-0.9.1-hasConcludedLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "from": "SPDXRef:pkg-golang-github.com-pkg-errors-0.9.1",
+      "relationshipType": "hasDeclaredLicense",
+      "spdxId": "SPDXRef:Relationship-pkg-golang-github.com-pkg-errors-0.9.1-hasDeclaredLicense",
+      "to": [
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "type": "Relationship"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "element": [
+        "SPDXRef:Relationship-pkg-golang-example.com-app-1.0.0-dependsOn",
+        "SPDXRef:Relationship-pkg-golang-example.com-app-1.0.0-hasConcludedLicense",
+        "SPDXRef:Relationship-pkg-golang-example.com-app-1.0.0-hasDeclaredLicense",
+        "SPDXRef:Relationship-pkg-golang-github.com-google-uuid-1.6.0-hasConcludedLicense",
+        "SPDXRef:Relationship-pkg-golang-github.com-google-uuid-1.6.0-hasDeclaredLicense",
+        "SPDXRef:Relationship-pkg-golang-github.com-pkg-errors-0.9.1-hasConcludedLicense",
+        "SPDXRef:Relationship-pkg-golang-github.com-pkg-errors-0.9.1-hasDeclaredLicense",
+        "SPDXRef:SoftwareAgent-bomly-cli-0.30.1",
+        "SPDXRef:Tool-bomly-cli-0.30.1",
+        "SPDXRef:Tool-bomly-cli-test",
+        "SPDXRef:Tool-bomly-detector-sbom-detector",
+        "SPDXRef:pkg-golang-example.com-app-1.0.0",
+        "SPDXRef:pkg-golang-github.com-google-uuid-1.6.0",
+        "SPDXRef:pkg-golang-github.com-pkg-errors-0.9.1",
+        "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense"
+      ],
+      "rootElement": [
+        "SPDXRef:pkg-golang-example.com-app-1.0.0"
+      ],
+      "spdxId": "SPDXRef:SBOM",
+      "type": "software_Sbom"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "bomly-cli-0.30.1",
+      "spdxId": "SPDXRef:SoftwareAgent-bomly-cli-0.30.1",
+      "type": "SoftwareAgent"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "bomly-cli-0.30.1",
+      "spdxId": "SPDXRef:Tool-bomly-cli-0.30.1",
+      "type": "Tool"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "bomly-cli-test",
+      "spdxId": "SPDXRef:Tool-bomly-cli-test",
+      "type": "Tool"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "bomly-detector:sbom-detector",
+      "spdxId": "SPDXRef:Tool-bomly-detector-sbom-detector",
+      "type": "Tool"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "example.com/app",
+      "software_packageUrl": "pkg:golang/example.com/app@1.0.0",
+      "software_packageVersion": "1.0.0",
+      "software_primaryPurpose": "library",
+      "spdxId": "SPDXRef:pkg-golang-example.com-app-1.0.0",
+      "type": "software_Package"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "github.com/google/uuid",
+      "software_packageUrl": "pkg:golang/github.com/google/uuid@1.6.0",
+      "software_packageVersion": "1.6.0",
+      "software_primaryPurpose": "library",
+      "spdxId": "SPDXRef:pkg-golang-github.com-google-uuid-1.6.0",
+      "type": "software_Package"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "name": "github.com/pkg/errors",
+      "software_packageUrl": "pkg:golang/github.com/pkg/errors@0.9.1",
+      "software_packageVersion": "0.9.1",
+      "software_primaryPurpose": "library",
+      "spdxId": "SPDXRef:pkg-golang-github.com-pkg-errors-0.9.1",
+      "type": "software_Package"
+    },
+    {
+      "@id": "_:CreationInfo-1",
+      "comment": "bomly:lifecycle=pre-build;document_version=1",
+      "created": "2025-01-15T10:00:00Z",
+      "createdBy": [
+        "SPDXRef:SoftwareAgent-bomly-cli-0.30.1"
+      ],
+      "createdUsing": [
+        "SPDXRef:Tool-bomly-cli-0.30.1",
+        "SPDXRef:Tool-bomly-cli-test",
+        "SPDXRef:Tool-bomly-detector-sbom-detector"
+      ],
+      "specVersion": "3.0.1",
+      "type": "CreationInfo"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "dataLicense": "SPDXRef:ListedLicense-CC0-1.0",
+      "name": "go.spdx.json",
+      "namespaceMap": [
+        {
+          "namespace": "https://example.com/spdx/test-go-project#",
+          "prefix": "SPDXRef",
+          "type": "NamespaceMap"
+        }
+      ],
+      "profileConformance": [
+        "core",
+        "software"
+      ],
+      "rootElement": [
+        "SPDXRef:SBOM"
+      ],
+      "spdxId": "https://example.com/spdx/test-go-project#",
+      "type": "SpdxDocument"
+    },
+    {
+      "creationInfo": "_:CreationInfo-1",
+      "spdxId": "https://spdx.org/rdf/3.0.1/terms/ExpandedLicensing/NoAssertionLicense",
+      "type": "expandedlicensing_IndividualLicensingInfo"
+    }
+  ]
+}

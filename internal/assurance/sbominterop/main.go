@@ -4,7 +4,9 @@
 package main
 
 import (
+	"archive/tar"
 	"archive/zip"
+	"compress/gzip"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -28,15 +30,25 @@ import (
 const (
 	manifestSchema = "bomly.sbom-assurance-run/v1"
 
-	spdxVersion  = "2.0.7"
-	spdxURL      = "https://github.com/spdx/tools-java/releases/download/v2.0.7/tools-java-2.0.7.zip"
-	spdxSHA256   = "2dc63c3399c5178058b1be8a3de6f13b9f24981cd86c4292ef98f4a7e90de36d"
-	spdxJarName  = "tools-java-2.0.7-jar-with-dependencies.jar"
-	maxSPDXJar   = 128 << 20
-	cdxVersion   = "0.32.0"
-	cdxURL       = "https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.32.0/cyclonedx-linux-x64"
-	cdxSHA256    = "454879e6a4a405c8a13bff49b8982adcb0596f3019b26b0811c66e4d7f0783e1"
-	defaultInput = "test/smoke/testdata/sboms/go.spdx.json"
+	spdxVersion = "2.0.7"
+	spdxURL     = "https://github.com/spdx/tools-java/releases/download/v2.0.7/tools-java-2.0.7.zip"
+	spdxSHA256  = "2dc63c3399c5178058b1be8a3de6f13b9f24981cd86c4292ef98f4a7e90de36d"
+	spdxJarName = "tools-java-2.0.7-jar-with-dependencies.jar"
+	maxSPDXJar  = 128 << 20
+	cdxVersion  = "0.32.0"
+	cdxURL      = "https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.32.0/cyclonedx-linux-x64"
+	cdxSHA256   = "454879e6a4a405c8a13bff49b8982adcb0596f3019b26b0811c66e4d7f0783e1"
+	// SPDX 3.0 is JSON-LD, which tools-java 2.0.7 does not read; sbom-tools'
+	// parser does (SPDX 3.0.1). The gate is that it parses the document: a
+	// non-interactive view exits 0 after a successful parse and 3 on a parse
+	// error. A release a month old, not the newest, so the pin is not to a
+	// build nobody has used yet.
+	sbomToolsVersion   = "0.3.0"
+	sbomToolsURL       = "https://github.com/sbom-tool/sbom-tools/releases/download/v0.3.0/sbom-tools-linux-x86_64.tar.gz"
+	sbomToolsSHA256    = "3817fbc006aca0eabe7878d51f80204802b2964d097a22d49d5538bfffed7b24"
+	sbomToolsBinary    = "sbom-tools"
+	maxSBOMToolsBinary = 128 << 20
+	defaultInput       = "test/smoke/testdata/sboms/go.spdx.json"
 	// The merge case scans two source documents as one tree, so the export has
 	// to reconcile two documents that each assert their own identity — the
 	// case the single-fixture run never reaches.
@@ -136,6 +148,7 @@ func run(bomlyPath, outputDir, inputPath, mergeA, mergeB string) error {
 		Validators: []validatorInfo{
 			{Name: "spdx-tools-java", Version: spdxVersion, URL: spdxURL, SHA256: spdxSHA256},
 			{Name: "cyclonedx-cli", Version: cdxVersion, URL: cdxURL, SHA256: cdxSHA256},
+			{Name: "sbom-tools", Version: sbomToolsVersion, URL: sbomToolsURL, SHA256: sbomToolsSHA256},
 		},
 	}
 
@@ -157,6 +170,14 @@ func run(bomlyPath, outputDir, inputPath, mergeA, mergeB string) error {
 	if err := os.Chmod(cdxBinary, 0o755); err != nil {
 		return writeFailure(outputDir, &manifest, fmt.Errorf("mark CycloneDX validator executable: %w", err))
 	}
+	sbomToolsArchive := filepath.Join(downloadDir, "sbom-tools-"+sbomToolsVersion+".tar.gz")
+	if err := downloadVerified(ctx, sbomToolsURL, sbomToolsSHA256, sbomToolsArchive); err != nil {
+		return writeFailure(outputDir, &manifest, err)
+	}
+	sbomTools, err := extractSBOMTools(sbomToolsArchive, downloadDir)
+	if err != nil {
+		return writeFailure(outputDir, &manifest, err)
+	}
 
 	formats := []struct {
 		name string
@@ -164,13 +185,10 @@ func run(bomlyPath, outputDir, inputPath, mergeA, mergeB string) error {
 	}{
 		{name: "spdx-2.3-json", path: filepath.Join(outputDir, "bomly.spdx.json")},
 		{name: "cyclonedx-1.7-json", path: filepath.Join(outputDir, "bomly.cdx.json")},
+		{name: "spdx-3.0-json", path: filepath.Join(outputDir, "bomly.spdx3.json")},
 	}
 	for _, format := range formats {
-		cliFormat := "spdx"
-		if strings.HasPrefix(format.name, "cyclonedx") {
-			cliFormat = "cyclonedx"
-		}
-		result, stdout := execute(ctx, bomlyPath, "scan", "--sbom", "--path", inputPath, "--detectors", "sbom", "--format", cliFormat)
+		result, stdout := execute(ctx, bomlyPath, "scan", "--sbom", "--path", inputPath, "--detectors", "sbom", "--format", cliFormatFor(format.name))
 		manifest.Commands = append(manifest.Commands, result)
 		if result.ExitCode != 0 {
 			return writeFailure(outputDir, &manifest, fmt.Errorf("generate %s: exit %d", format.name, result.ExitCode))
@@ -195,13 +213,10 @@ func run(bomlyPath, outputDir, inputPath, mergeA, mergeB string) error {
 	}{
 		{name: "spdx-2.3-json-merged", path: filepath.Join(outputDir, "bomly-merged.spdx.json")},
 		{name: "cyclonedx-1.7-json-merged", path: filepath.Join(outputDir, "bomly-merged.cdx.json")},
+		{name: "spdx-3.0-json-merged", path: filepath.Join(outputDir, "bomly-merged.spdx3.json")},
 	}
 	for _, format := range merged {
-		cliFormat := "spdx"
-		if strings.HasPrefix(format.name, "cyclonedx") {
-			cliFormat = "cyclonedx"
-		}
-		result, stdout := execute(ctx, bomlyPath, "scan", "--path", mergeTree, "--recursive", "--detectors", "sbom", "--format", cliFormat)
+		result, stdout := execute(ctx, bomlyPath, "scan", "--path", mergeTree, "--recursive", "--detectors", "sbom", "--format", cliFormatFor(format.name))
 		manifest.Commands = append(manifest.Commands, result)
 		if result.ExitCode != 0 {
 			return writeFailure(outputDir, &manifest, fmt.Errorf("generate %s: exit %d", format.name, result.ExitCode))
@@ -231,6 +246,7 @@ func run(bomlyPath, outputDir, inputPath, mergeA, mergeB string) error {
 	}{
 		{format: mergedSPDX, path: merged[0].path},
 		{format: mergedCycloneDX, path: merged[1].path},
+		{format: mergedSPDX3, path: merged[2].path},
 	} {
 		linkCheck, err := checkMergedDocumentLinks(target.format, target.path, mergeA, mergeB)
 		if err != nil {
@@ -250,6 +266,9 @@ func run(bomlyPath, outputDir, inputPath, mergeA, mergeB string) error {
 		{cdxBinary, "validate", "--input-file", formats[1].path, "--input-format", "json", "--input-version", "v1_7", "--fail-on-errors"},
 		{"java", "-jar", spdxJar, "Verify", merged[0].path},
 		{cdxBinary, "validate", "--input-file", merged[1].path, "--input-format", "json", "--input-version", "v1_7", "--fail-on-errors"},
+		// "-o json" keeps the view non-interactive; a parse failure exits 3.
+		{sbomTools, "view", formats[2].path, "-o", "json"},
+		{sbomTools, "view", merged[2].path, "-o", "json"},
 	}
 	for _, command := range commands {
 		result, _ := execute(ctx, command[0], command[1:]...)
@@ -342,6 +361,77 @@ func extractSPDXJar(archivePath, destination string) (string, error) {
 	return jarPath, nil
 }
 
+// cliFormatFor is the Bomly output format that writes a generated document.
+func cliFormatFor(name string) string {
+	switch {
+	case strings.HasPrefix(name, "cyclonedx"):
+		return "cyclonedx"
+	case strings.HasPrefix(name, "spdx-3"):
+		return "spdx3"
+	default:
+		return "spdx"
+	}
+}
+
+// extractSBOMTools writes the sbom-tools executable out of its release
+// archive. Only a regular file named exactly sbomToolsBinary is taken, from
+// any directory, and it is written to a fixed name, so no entry name reaches
+// the filesystem; a second match, or an oversized one, is refused.
+func extractSBOMTools(archivePath, destination string) (string, error) {
+	file, err := os.Open(archivePath)
+	if err != nil {
+		return "", fmt.Errorf("open sbom-tools archive: %w", err)
+	}
+	defer file.Close()
+	decompressed, err := gzip.NewReader(file)
+	if err != nil {
+		return "", fmt.Errorf("decompress sbom-tools archive: %w", err)
+	}
+	defer decompressed.Close()
+
+	binaryPath := filepath.Join(destination, sbomToolsBinary)
+	found := false
+	archive := tar.NewReader(decompressed)
+	for {
+		header, err := archive.Next()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return "", fmt.Errorf("read sbom-tools archive: %w", err)
+		}
+		if header.Typeflag != tar.TypeReg || filepath.Base(header.Name) != sbomToolsBinary {
+			continue
+		}
+		if found {
+			return "", errors.New("sbom-tools archive contains more than one executable")
+		}
+		found = true
+		if header.Size > maxSBOMToolsBinary {
+			return "", fmt.Errorf("sbom-tools executable is %d bytes, limit %d", header.Size, maxSBOMToolsBinary)
+		}
+		output, err := os.OpenFile(binaryPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o700)
+		if err != nil {
+			return "", fmt.Errorf("create sbom-tools executable: %w", err)
+		}
+		written, copyErr := io.Copy(output, io.LimitReader(archive, maxSBOMToolsBinary+1))
+		closeErr := output.Close()
+		if copyErr != nil {
+			return "", fmt.Errorf("extract sbom-tools executable: %w", copyErr)
+		}
+		if written > maxSBOMToolsBinary {
+			return "", fmt.Errorf("sbom-tools executable exceeds %d-byte extraction limit", maxSBOMToolsBinary)
+		}
+		if closeErr != nil {
+			return "", fmt.Errorf("close sbom-tools executable: %w", closeErr)
+		}
+	}
+	if !found {
+		return "", fmt.Errorf("sbom-tools archive does not contain %q", sbomToolsBinary)
+	}
+	return binaryPath, nil
+}
+
 func execute(ctx context.Context, executable string, args ...string) (commandResult, []byte) {
 	started := time.Now()
 	command := exec.CommandContext(ctx, executable, args...)
@@ -427,6 +517,7 @@ type mergedFormat string
 
 const (
 	mergedSPDX      mergedFormat = "spdx"
+	mergedSPDX3     mergedFormat = "spdx3"
 	mergedCycloneDX mergedFormat = "cyclonedx"
 )
 
@@ -458,6 +549,8 @@ func evaluateMergedLinks(format mergedFormat, merged []byte, wanted map[string]s
 		document, err = decodeMergedCycloneDX(merged)
 	case mergedSPDX:
 		document, err = decodeMergedSPDX(merged)
+	case mergedSPDX3:
+		document, err = decodeMergedSPDX3(merged)
 	default:
 		return linkVerdict{}, fmt.Errorf("unknown merged document format %q", format)
 	}
@@ -502,6 +595,45 @@ func decodeMergedSPDX(merged []byte) (mergedDocument, error) {
 		linked[reference.SPDXDocument] = struct{}{}
 	}
 	return mergedDocument{identitySlot: "documentNamespace", identity: document.DocumentNamespace, linked: linked}, nil
+}
+
+// decodeMergedSPDX3 reads an SPDX 3 document's identity -- its SpdxDocument
+// element's spdxId, which Bomly writes as the 2.3 namespace with the "#" its
+// elements hang off -- and the documents it imports, which carry the source
+// identity as their location hint.
+func decodeMergedSPDX3(merged []byte) (mergedDocument, error) {
+	var document struct {
+		Graph []json.RawMessage `json:"@graph"`
+	}
+	if err := json.Unmarshal(merged, &document); err != nil {
+		return mergedDocument{}, fmt.Errorf("decode SPDX 3 document: %w", err)
+	}
+	out := mergedDocument{identitySlot: "SpdxDocument spdxId", linked: map[string]struct{}{}}
+	found := false
+	for _, node := range document.Graph {
+		var element struct {
+			Type    string `json:"type"`
+			SpdxID  string `json:"spdxId"`
+			Imports []struct {
+				LocationHint string `json:"locationHint"`
+			} `json:"import"`
+		}
+		if err := json.Unmarshal(node, &element); err != nil {
+			return mergedDocument{}, fmt.Errorf("decode SPDX 3 element: %w", err)
+		}
+		if element.Type != "SpdxDocument" {
+			continue
+		}
+		if found {
+			return mergedDocument{}, errors.New("SPDX 3 document has more than one SpdxDocument element")
+		}
+		found = true
+		out.identity = strings.TrimSuffix(element.SpdxID, "#")
+		for _, imported := range element.Imports {
+			out.linked[imported.LocationHint] = struct{}{}
+		}
+	}
+	return out, nil
 }
 
 // judgeMergedDocument applies ADR-0042's merge rule: a merge of two or more

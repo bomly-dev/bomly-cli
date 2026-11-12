@@ -1,0 +1,127 @@
+{
+  "command": "scan",
+  "digests": {
+    "findings": "\u003cnormalized\u003e",
+    "manifests": "\u003cnormalized\u003e",
+    "packages": "\u003cnormalized\u003e"
+  },
+  "findings": [],
+  "manifests": [
+    {
+      "dependencies": [
+        {
+          "depends_on": [
+            "pkg:golang/github.com/google/uuid@1.6.0",
+            "pkg:golang/github.com/pkg/errors@0.9.1"
+          ],
+          "id": "pkg:golang/example.com/app@1.0.0",
+          "licenses": [],
+          "name": "example.com/app",
+          "package_ref": "pkg:golang/example.com/app@1.0.0",
+          "purl": "pkg:golang/example.com/app@1.0.0",
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:golang/github.com/google/uuid@1.6.0",
+          "licenses": [],
+          "name": "github.com/google/uuid",
+          "package_ref": "pkg:golang/github.com/google/uuid@1.6.0",
+          "purl": "pkg:golang/github.com/google/uuid@1.6.0",
+          "version": "1.6.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:golang/github.com/pkg/errors@0.9.1",
+          "licenses": [],
+          "name": "github.com/pkg/errors",
+          "package_ref": "pkg:golang/github.com/pkg/errors@0.9.1",
+          "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
+          "version": "0.9.1"
+        }
+      ],
+      "detector": "sbom-detector",
+      "document": {
+        "checksum": {
+          "algorithm": "sha1",
+          "value": "229d85c9325fc359dbca1fc7325aeefe60964451"
+        },
+        "created": "2025-01-15T10:00:00Z",
+        "data_license": "CC0-1.0",
+        "format": "spdx-3.0+json",
+        "identity": "https://example.com/spdx/test-go-project",
+        "name": "go.spdx.json",
+        "tools": [
+          {
+            "name": "bomly-cli-0.30.1"
+          },
+          {
+            "name": "bomly-cli-test"
+          },
+          {
+            "name": "bomly-detector:sbom-detector"
+          }
+        ],
+        "version": 1
+      },
+      "ecosystem": "sbom",
+      "kind": "go.spdx3.json",
+      "package_manager": "sbom",
+      "path": "go.spdx3.json",
+      "subproject": "."
+    }
+  ],
+  "packages": [
+    {
+      "ecosystem": "go",
+      "id": "pkg:golang/example.com/app@1.0.0",
+      "licenses": [],
+      "name": "app",
+      "org": "example.com",
+      "package_manager": "gomod",
+      "purl": "pkg:golang/example.com/app@1.0.0",
+      "type": "library",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "id": "pkg:golang/github.com/google/uuid@1.6.0",
+      "licenses": [],
+      "name": "uuid",
+      "org": "github.com/google",
+      "package_manager": "gomod",
+      "purl": "pkg:golang/github.com/google/uuid@1.6.0",
+      "type": "library",
+      "version": "1.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "id": "pkg:golang/github.com/pkg/errors@0.9.1",
+      "licenses": [],
+      "name": "errors",
+      "org": "github.com/pkg",
+      "package_manager": "gomod",
+      "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
+      "type": "library",
+      "version": "0.9.1",
+      "vulnerabilities": []
+    }
+  ],
+  "run": {
+    "completed_at": "\u003cnormalized\u003e",
+    "id": "\u003cnormalized\u003e",
+    "started_at": "\u003cnormalized\u003e",
+    "tool": {
+      "name": "bomly",
+      "version": "\u003cnormalized\u003e"
+    }
+  },
+  "schema_version": "bomly.scan.v1",
+  "subject": {
+    "kind": "filesystem"
+  },
+  "waivers": [],
+  "warnings": []
+}

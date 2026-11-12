@@ -27,6 +27,14 @@ func TestDetectorResolveGraph_SPDXJSON(t *testing.T) {
 	verifyResolvedGraph(t, result, "react@18.2.0")
 }
 
+// SPDX 3.0 JSON-LD is detected from the document's own @context and read
+// into the same graph as the SPDX 2.3 encoding of that graph.
+func TestDetectorResolveGraph_SPDX3JSON(t *testing.T) {
+	path := writeSBOMFixture(t, sbom.TargetSPDX30JSON)
+	result := resolveFixture(t, path)
+	verifyResolvedGraph(t, result, "react@18.2.0")
+}
+
 func TestDetectorResolveGraph_CycloneDXJSON(t *testing.T) {
 	path := writeSBOMFixture(t, sbom.TargetCycloneDX16JSON)
 	result := resolveFixture(t, path)

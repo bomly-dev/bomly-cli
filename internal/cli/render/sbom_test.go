@@ -24,6 +24,8 @@ func TestParseOutputFormatAcceptsSharedFormatsAndAliases(t *testing.T) {
 		{value: "sarif", wantFormat: output.FormatSARIF, wantLabel: "sarif"},
 		{value: "spdx", wantFormat: output.FormatSPDX, wantTarget: sbom.TargetSPDX23JSON, wantLabel: "spdx"},
 		{value: "spdx-json", wantFormat: output.FormatSPDX, wantTarget: sbom.TargetSPDX23JSON, wantLabel: "spdx"},
+		{value: "spdx3", wantFormat: output.FormatSPDX3, wantTarget: sbom.TargetSPDX30JSON, wantLabel: "spdx3"},
+		{value: "spdx3-json", wantFormat: output.FormatSPDX3, wantTarget: sbom.TargetSPDX30JSON, wantLabel: "spdx3"},
 		{value: "cyclonedx", wantFormat: output.FormatCycloneDX, wantTarget: sbom.TargetCycloneDX17JSON, wantLabel: "cyclonedx"},
 		{value: "cyclonedx-json", wantFormat: output.FormatCycloneDX, wantTarget: sbom.TargetCycloneDX17JSON, wantLabel: "cyclonedx"},
 	}

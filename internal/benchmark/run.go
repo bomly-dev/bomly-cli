@@ -487,6 +487,8 @@ func bomlySBOMTarget(format string) (sbom.Target, error) {
 	switch format {
 	case "spdx":
 		return sbom.TargetSPDX23JSON, nil
+	case "spdx3":
+		return sbom.TargetSPDX30JSON, nil
 	case "cyclonedx":
 		return sbom.TargetCycloneDX17JSON, nil
 	default:

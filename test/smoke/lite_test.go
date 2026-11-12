@@ -102,6 +102,10 @@ func TestLiteScan(t *testing.T) {
 			name: "lite-scan-sbom-cyclonedx",
 			args: []string{"scan", "--sbom", "--path", sbomFixture("go.cdx.json"), "--format", "json"},
 		},
+		{
+			name: "lite-scan-sbom-spdx3",
+			args: []string{"scan", "--sbom", "--path", sbomFixture("go.spdx3.json"), "--format", "json"},
+		},
 	}
 
 	for _, tc := range cases {

@@ -34,7 +34,7 @@ For an air-gapped or restricted pipeline:
 1. Do not pass `--enrich`, `--url`, `--image`, or `--install-first`. Scan a local checkout.
 2. Commit lockfiles, so the lockfile detectors resolve the graph and no build tool runs. In CI, pin `--detectors` to the lockfile detectors, so an unexpected fallback to a build-tool detector fails the job instead of running the tool. See [CI-readiness warnings](CI_READINESS.md).
 3. If you do rely on a build-tool detector, that tool's own offline settings (Go module proxy settings, Maven offline mode, a local registry mirror) decide whether it downloads anything.
-4. Enrichment responses are cached under `~/.bomly/cache/` with a lifetime per matcher. Within that lifetime, a repeated scan of the same packages reads the cache. Offline, an expired entry is a miss, not stale data, and a failed lookup is a warning, not a finding. See [Matchers](MATCHERS.md#cache).
+4. Enrichment responses are cached under `~/.bomly/cache/` with a lifetime per matcher. Within that lifetime, a repeated scan of the same packages reads the cache. Offline, an expired entry is a miss, not stale data. See [Matchers](MATCHERS.md#cache). A failed lookup is a warning in the text report, not a finding, and the JSON document does not record it; see [failure semantics](MATCHERS.md#failure-semantics).
 
 ### Carry the Grype database to an offline host
 
@@ -46,7 +46,9 @@ On a connected host, run one enriched scan to download the database:
 bomly scan --enrich --matchers grype
 ```
 
-Copy the database directory to the offline host, keeping the path. The full `bomly` binary stores it under the operating system's cache directory: `~/.cache/grype/db` on Linux (or under `XDG_CACHE_HOME`) and `~/Library/Caches/grype/db` on macOS. The lite binary uses the external `grype` command, which imports a database with `grype db import`.
+Copy the database directory into the Grype cache directory of the offline host. The full `bomly` binary reads it from the operating system's cache directory, so the destination depends on the offline host, not on where it came from: `~/.cache/grype/db` on Linux (or under `XDG_CACHE_HOME`) and `~/Library/Caches/grype/db` on macOS.
+
+The lite binary uses the external `grype` command and its own settings. On the connected host, run `grype db update`, then copy the directory that `grype db status` reports to the same location on the offline host, and set `GRYPE_DB_AUTO_UPDATE=false` there instead of the Bomly variable below.
 
 On the offline host, turn the update check off and run Grype alone, with `--detectors` pinned to lockfile detectors (step 2 above). A build-tool detector such as `go-detector` runs the tool, which may download modules, so leave it out unless the tool's own cache and offline settings cover it:
 

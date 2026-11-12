@@ -48,10 +48,10 @@ bomly scan --enrich --matchers grype
 
 Copy the database directory to the offline host, keeping the path. The full `bomly` binary stores it under the operating system's cache directory: `~/.cache/grype/db` on Linux (or under `XDG_CACHE_HOME`) and `~/Library/Caches/grype/db` on macOS. The lite binary uses the external `grype` command, which imports a database with `grype db import`.
 
-On the offline host, turn the update check off and run Grype alone, with the detectors pinned to lockfile detectors:
+On the offline host, turn the update check off and run Grype alone, with `--detectors` pinned to lockfile detectors (step 2 above). A build-tool detector such as `go-detector` runs the tool, which may download modules, so leave it out unless the tool's own cache and offline settings cover it:
 
 ```bash
-BOMLY_GRYPE_DB_AUTO_UPDATE=false bomly scan --enrich --matchers grype --detectors npm,go-detector --audit --fail-on high
+BOMLY_GRYPE_DB_AUTO_UPDATE=false bomly scan --enrich --matchers grype --detectors npm --audit --fail-on high
 ```
 
 With the check off, the scan still warns once the database is older than `matchers.grype.db_max_age` (five days by default). Repeat the download on the connected host and copy the directory again to refresh it. The [Grype matcher](matchers/grype.md) page lists the settings.

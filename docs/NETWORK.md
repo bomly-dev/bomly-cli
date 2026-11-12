@@ -34,11 +34,33 @@ For an air-gapped or restricted pipeline:
 1. Do not pass `--enrich`, `--url`, `--image`, or `--install-first`. Scan a local checkout.
 2. Commit lockfiles, so the lockfile detectors resolve the graph and no build tool runs. In CI, pin `--detectors` to the lockfile detectors, so an unexpected fallback to a build-tool detector fails the job instead of running the tool. See [CI-readiness warnings](CI_READINESS.md).
 3. If you do rely on a build-tool detector, that tool's own offline settings (Go module proxy settings, Maven offline mode, a local registry mirror) decide whether it downloads anything.
-4. Enrichment responses are cached under `~/.bomly/cache/` with a lifetime per matcher, so a previously enriched environment keeps working through an outage. Offline, an expired entry is a miss, not stale data. See [Matchers](MATCHERS.md#cache).
+4. Enrichment responses are cached under `~/.bomly/cache/` with a lifetime per matcher. Within that lifetime, a repeated scan of the same packages reads the cache. Offline, an expired entry is a miss, not stale data. See [Matchers](MATCHERS.md#cache). A failed lookup is a warning in the text report, not a finding, and the JSON document does not record it; see [failure semantics](MATCHERS.md#failure-semantics).
+
+### Carry the Grype database to an offline host
+
+Grype's vulnerability database is one bulk download, so it is the only enrichment data you can carry to a host with no network. The OSV, KEV, license, and Scorecard caches hold answers for packages already scanned, and only until their lifetime ends, so they do not replace a database.
+
+On a connected host, run one enriched scan to download the database:
+
+```bash
+bomly scan --enrich --matchers grype
+```
+
+Copy the database directory into the Grype cache directory of the offline host. The full `bomly` binary reads it from the operating system's cache directory, so the destination depends on the offline host, not on where it came from: `~/.cache/grype/db` on Linux (or under `XDG_CACHE_HOME`) and `~/Library/Caches/grype/db` on macOS.
+
+The lite binary uses the external `grype` command and its own settings. On the connected host, run `grype db update`, then copy the directory that `grype db status` reports to the same location on the offline host, and set `GRYPE_DB_AUTO_UPDATE=false` there instead of the Bomly variable below.
+
+On the offline host, turn the update check off and run Grype alone, with `--detectors` pinned to lockfile detectors (step 2 above). A build-tool detector such as `go-detector` runs the tool, which may download modules, so leave it out unless the tool's own cache and offline settings cover it:
+
+```bash
+BOMLY_GRYPE_DB_AUTO_UPDATE=false bomly scan --enrich --matchers grype --detectors npm --audit --fail-on high
+```
+
+With the check off, the scan still warns once the database is older than `matchers.grype.db_max_age` (five days by default). Repeat the download on the connected host and copy the directory again to refresh it. The [Grype matcher](matchers/grype.md) page lists the settings.
 
 ## Proxies, custom endpoints, and CAs
 
-Bomly's built-in HTTP clients honor the configured proxy, no-proxy rules, and extra CA certificates, and accept custom OSV and Scorecard endpoints, including private addresses. These are trusted settings: set them in the user config, in a file you select with `--config` or `BOMLY_CONFIG`, or in environment variables. A config file inside a repository is never loaded on its own. Redirects follow Go's standard rules, and Bomly does not block private addresses, so self-hosted mirrors work. [Security and trust boundaries](SECURITY.md#network-trust) explains the trade-offs of that choice, and the [Config reference](CONFIG_REFERENCE.md) lists the keys.
+Bomly's built-in HTTP clients honor the configured proxy, no-proxy rules, and extra CA certificates, and accept custom OSV and Scorecard endpoints, including private addresses. The Grype database download is the exception: the bundled Grype reads the standard `HTTPS_PROXY`, `HTTP_PROXY`, and `NO_PROXY` variables and the system certificate store, not Bomly's settings. These are trusted settings: set them in the user config, in a file you select with `--config` or `BOMLY_CONFIG`, or in environment variables. A config file inside a repository is never loaded on its own. Redirects follow Go's standard rules, and Bomly does not block private addresses, so self-hosted mirrors work. [Security and trust boundaries](SECURITY.md#network-trust) explains the trade-offs of that choice, and the [Config reference](CONFIG_REFERENCE.md) lists the keys.
 
 ## See also
 

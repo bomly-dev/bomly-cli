@@ -37,10 +37,10 @@ Grype reads from a local vulnerability database. The full `bomly` binary downloa
 
 | Mode | Database sync source | Database location |
 | --- | --- | --- |
-| Full `bomly` binary | Anchore's database service | Managed by the built-in Grype; default `~/.cache/grype/db/` |
+| Full `bomly` binary | Anchore's database service | The operating system's cache directory: `~/.cache/grype/db/` on Linux (or under `XDG_CACHE_HOME`), `~/Library/Caches/grype/db/` on macOS |
 | `bomly-lite` | The external `grype` command | Wherever that `grype` stores it |
 
-The database sync is the only network call Grype makes. Once synced, matching is local. Bomly's own enrichment cache does not wrap Grype, because Grype manages its own.
+The database sync is the only network call Grype makes. Once synced, matching is local. Bomly's own enrichment cache does not wrap Grype, because Grype manages its own. The download reads the standard `HTTPS_PROXY`, `HTTP_PROXY`, and `NO_PROXY` variables and the system certificate store, not Bomly's `network.proxy` settings or CA file. To run with no network at all, copy the database directory from a connected host; see [Network and privacy](../NETWORK.md#carry-the-grype-database-to-an-offline-host).
 
 Three settings control the refresh in the full binary. See the [config reference](../CONFIG_REFERENCE.md) for the full list:
 
@@ -92,7 +92,7 @@ GRYPE_DB_AUTO_UPDATE=false bomly-lite scan --enrich          # lite: the externa
 BOMLY_GRYPE_DB_AUTO_UPDATE=false bomly scan --enrich         # full: keep the local database as it is
 ```
 
-With updates off, the full binary still warns once the database is older than `matchers.grype.db_max_age`. Delete `~/.cache/grype/db` to download a current one.
+With updates off, the full binary still warns once the database is older than `matchers.grype.db_max_age`. Delete the database directory to download a current one.
 
 ## Limitations
 

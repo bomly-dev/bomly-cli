@@ -114,7 +114,7 @@ bomly scan                         # no enrichment calls
 bomly scan --sbom --path sbom.json # read an SBOM you already have
 ```
 
-**You get:** the dependency graph with no license or vulnerability data. Without `--enrich` Bomly makes no enrichment calls, but a detector that runs your build tool (Go, Maven, Gradle) may download packages. Commit a lockfile or fill the build tool's cache first to stay fully offline. See [Network and privacy](NETWORK.md).
+**You get:** the dependency graph with no license or vulnerability data. Without `--enrich` Bomly makes no enrichment calls, but a detector that runs your build tool (Go, Maven, Gradle) may download packages. Commit a lockfile or fill the build tool's cache first to stay fully offline. To match vulnerabilities on a host with no network, carry the Grype database over; see [Network and privacy](NETWORK.md#carry-the-grype-database-to-an-offline-host).
 
 ## Scan and audit a container image
 
